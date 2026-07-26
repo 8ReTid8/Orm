@@ -1,4 +1,6 @@
 import './assets/main.css'
+import "tailwindcss";
+// Note: base.css is still imported via main.css @import chain but overridden
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
