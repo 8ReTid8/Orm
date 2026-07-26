@@ -1,43 +1,75 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+// import { createRouter, createWebHistory } from 'vue-router'
+// import HomeView from '../views/HomeView.vue'
+
+// const router = createRouter({
+//   history: createWebHistory(import.meta.env.BASE_URL),
+//   routes: [
+//     {
+//       path: '/',
+//       name: 'home',
+//       component: HomeView,
+//     },
+//     {
+//       path: '/about',
+//       name: 'about',
+//       // route level code-splitting
+//       // this generates a separate chunk (About.[hash].js) for this route
+//       // which is lazy-loaded when the route is visited.
+//       component: () => import('../views/AboutView.vue'),
+//     },
+//   ],
+// })
+
+// export default router
+import { createRouter, createWebHistory } from "vue-router"
+
+import MainLayout from "@/layouts/MainLayout.vue"
+// import DashboardView from "@/views/DashboardView.vue"
+// import TransactionView from "@/views/TransactionView.vue"
+// import BudgetView from "@/views/BudgetView.vue"
+// import SavingGoalView from "@/views/SavingGoalView.vue"
+// import CategoryView from "@/views/CategoryView.vue"
+// import ProfileView from "@/views/ProfileView.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+
   routes: [
     {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-    },
-    {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: () => import('../views/HomeView.vue'), // placeholder
-    },
-    {
-      path: '/transactions',
-      name: 'transactions',
-      component: () => import('../views/HomeView.vue'), // placeholder
-    },
-    {
-      path: '/budget',
-      name: 'budget',
-      component: () => import('../views/HomeView.vue'), // placeholder
-    },
-    {
-      path: '/reports',
-      name: 'reports',
-      component: () => import('../views/HomeView.vue'), // placeholder
-    },
-    {
-      path: '/investments',
-      name: 'investments',
-      component: () => import('../views/HomeView.vue'), // placeholder
-    },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: () => import('../views/HomeView.vue'), // placeholder
+      path: "/",
+      component: MainLayout,
+      // children: [
+      //   {
+      //     path: "",
+      //     name: "dashboard",
+      //     component: DashboardView,
+      //   },
+      //   {
+      //     path: "transactions",
+      //     name: "transactions",
+      //     component: TransactionView,
+      //   },
+      //   {
+      //     path: "budgets",
+      //     name: "budgets",
+      //     component: BudgetView,
+      //   },
+      //   {
+      //     path: "saving-goals",
+      //     name: "saving-goals",
+      //     component: SavingGoalView,
+      //   },
+      //   {
+      //     path: "categories",
+      //     name: "categories",
+      //     component: CategoryView,
+      //   },
+      //   {
+      //     path: "profile",
+      //     name: "profile",
+      //     component: ProfileView,
+      //   },
+      // ],
     },
   ],
 })
