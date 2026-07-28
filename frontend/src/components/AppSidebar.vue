@@ -7,13 +7,14 @@ import {
     Tags,
     User,
     LogOut,
+    CalendarDays,
 } from "lucide-vue-next"
 
 const menuItems = [
     {
-        name: "Dashboard",
+        name: "Log Money",
         path: "/",
-        icon: LayoutDashboard,
+        icon: CalendarDays,
     },
     {
         name: "Transactions",
@@ -42,21 +43,19 @@ const menuItems = [
     <aside class="flex min-h-full w-64 flex-col bg-base-200">
         <!-- Logo -->
         <div class="flex h-16 items-center gap-3 border-b border-base-300 px-5">
-            <div class="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-content">
+            <!-- <div class="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-content">
                 <WalletCards class="size-5" />
-            </div>
+            </div> -->
 
             <div>
-                <h1 class="font-bold">Finance App</h1>
+                <h1 class="font-bold">ORM</h1>
                 <p class="text-xs text-base-content/60">Money management</p>
             </div>
         </div>
 
         <!-- Menu -->
         <nav class="flex-1 p-3">
-            <p class="mb-2 px-3 text-xs font-semibold uppercase text-base-content/50">
-                Menu
-            </p>
+            
 
             <ul class="menu w-full gap-1 p-0">
                 <li v-for="item in menuItems" :key="item.path">

@@ -24,6 +24,7 @@
 import { createRouter, createWebHistory } from "vue-router"
 
 import MainLayout from "@/layouts/MainLayout.vue"
+import LogMoney from "@/views/LogMoney.vue"
 // import DashboardView from "@/views/DashboardView.vue"
 // import TransactionView from "@/views/TransactionView.vue"
 // import BudgetView from "@/views/BudgetView.vue"
@@ -38,38 +39,38 @@ const router = createRouter({
     {
       path: "/",
       component: MainLayout,
-      // children: [
-      //   {
-      //     path: "",
-      //     name: "dashboard",
-      //     component: DashboardView,
-      //   },
-      //   {
-      //     path: "transactions",
-      //     name: "transactions",
-      //     component: TransactionView,
-      //   },
-      //   {
-      //     path: "budgets",
-      //     name: "budgets",
-      //     component: BudgetView,
-      //   },
-      //   {
-      //     path: "saving-goals",
-      //     name: "saving-goals",
-      //     component: SavingGoalView,
-      //   },
-      //   {
-      //     path: "categories",
-      //     name: "categories",
-      //     component: CategoryView,
-      //   },
-      //   {
-      //     path: "profile",
-      //     name: "profile",
-      //     component: ProfileView,
-      //   },
-      // ],
+      children: [
+        {
+          path: "",
+          name: "log money",
+          component: LogMoney,
+        },
+        // {
+        //   path: "transactions",
+        //   name: "transactions",
+        //   component: TransactionView,
+        // },
+        // {
+        //   path: "budgets",
+        //   name: "budgets",
+        //   component: BudgetView,
+        // },
+        // {
+        //   path: "saving-goals",
+        //   name: "saving-goals",
+        //   component: SavingGoalView,
+        // },
+        // {
+        //   path: "categories",
+        //   name: "categories",
+        //   component: CategoryView,
+        // },
+        // {
+        //   path: "profile",
+        //   name: "profile",
+        //   component: ProfileView,
+        // },
+      ],
     },
   ],
 })
