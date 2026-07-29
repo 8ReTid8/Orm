@@ -11,7 +11,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func ConnectDB() *gorm.DB {
+var DB *gorm.DB
+
+func ConnectDB() {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Bangkok",
 		os.Getenv("DB_HOST"),
@@ -40,5 +42,8 @@ func ConnectDB() *gorm.DB {
 		log.Fatal(err)
 	}
 
-	return db
+	// return db
+	DB = db
+
+	log.Println("Database connected")
 }
