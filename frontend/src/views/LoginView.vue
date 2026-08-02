@@ -3,14 +3,11 @@ import { ref } from "vue"
 import { useRouter } from "vue-router"
 import axios from "axios"
 import { LogIn } from "lucide-vue-next"
-
 import { login } from "@/services/auth"
 
 const router = useRouter()
-
 const email = ref("")
 const password = ref("")
-
 const errorMessage = ref("")
 const isLoading = ref(false)
 
