@@ -49,66 +49,6 @@ async function submitRegister() {
     }
 }
 </script>
-
-<!-- <template>
-    <main class="flex min-h-screen items-center justify-center bg-base-200 p-4">
-        <div class="card w-full max-w-md bg-base-100 shadow-xl">
-            <div class="card-body">
-                <div class="mb-3 flex justify-center">
-                    <div class="rounded-full bg-primary p-3 text-primary-content">
-                        <UserPlus class="size-7" />
-                    </div>
-                </div>
-
-                <h1 class="text-center text-2xl font-bold">
-                    สมัครสมาชิก
-                </h1>
-
-                <p class="text-center text-sm text-base-content/60">
-                    สร้างบัญชีเพื่อเริ่มบันทึกรายรับรายจ่าย
-                </p>
-
-                <div v-if="errorMessage" role="alert" class="alert alert-error mt-4">
-                    <span>{{ errorMessage }}</span>
-                </div>
-
-                <form class="mt-4 space-y-4" @submit.prevent="submitRegister">
-
-                    <label class="form-control">
-                        <span class="label-text mb-2">อีเมล</span>
-                        <input v-model.trim="email" type="email" class="input input-bordered w-full"
-                            autocomplete="email" required />
-                    </label>
-
-                    <label class="form-control">
-                        <span class="label-text mb-2">รหัสผ่าน</span>
-                        <input v-model="password" type="password" class="input input-bordered w-full"
-                            autocomplete="new-password" minlength="8" required />
-                    </label>
-
-                    <label class="form-control">
-                        <span class="label-text mb-2">ยืนยันรหัสผ่าน</span>
-                        <input v-model="confirmPassword" type="password" class="input input-bordered w-full"
-                            autocomplete="new-password" minlength="8" required />
-                    </label>
-
-                    <button type="submit" class="btn btn-primary w-full" :disabled="isLoading">
-                        <span v-if="isLoading" class="loading loading-spinner loading-sm" />
-                        {{ isLoading ? "กำลังสมัคร..." : "สมัครสมาชิก" }}
-                    </button>
-                </form>
-
-                <p class="mt-3 text-center text-sm">
-                    มีบัญชีแล้ว?
-
-                    <RouterLink to="/login" class="link link-primary">
-                        เข้าสู่ระบบ
-                    </RouterLink>
-                </p>
-            </div>
-        </div>
-    </main>
-</template> -->
 <template>
     <main class="min-h-screen bg-base-200 flex items-center justify-center px-4">
         <div class="card w-full max-w-lg bg-base-100 shadow-2xl">
@@ -137,9 +77,9 @@ async function submitRegister() {
                     {{ errorMessage }}
                 </div>
 
-                <form class="space-y-5" @submit.prevent="submitRegister">
-
-                    <label class="form-control">
+                <!-- <form class="space-y-5" @submit.prevent="submitRegister"> -->
+                <form class="flex flex-col gap-3" @submit.prevent="submitRegister">
+                    <!-- <label class="form-control">
                         <span class="label-text font-medium mb-2">
                             อีเมล
                         </span>
@@ -148,10 +88,49 @@ async function submitRegister() {
                             <input v-model.trim="email" type="email" class="grow" placeholder="example@email.com"
                                 autocomplete="email" />
                         </label>
-                    </label>
+                    </label> -->
+                    <div class="flex flex-col gap-1">
+                        <label for="email" class="text-sm font-medium">
+                            อีเมล
+                        </label>
+
+                        <label class="input input-bordered flex w-full items-center gap-3">
+                            <Mail class="size-5 shrink-0 text-success" />
+
+                            <input id="email" v-model.trim="email" type="email" class="grow"
+                                placeholder="example@email.com" autocomplete="email" required />
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label for="password" class="text-sm font-medium">
+                            รหัสผ่าน
+                        </label>
+
+                        <label class="input input-bordered flex w-full items-center gap-3">
+                            <Lock class="size-5 shrink-0 text-success" />
+
+                            <input id="password" v-model="password" type="password" class="grow" placeholder="********"
+                                autocomplete="new-password" minlength="8" required />
+                        </label>
+                    </div>
+
+                    <!-- Confirm password -->
+                    <div class="flex flex-col gap-1">
+                        <label for="confirmPassword" class="text-sm font-medium">
+                            ยืนยันรหัสผ่าน
+                        </label>
+
+                        <label class="input input-bordered flex w-full items-center gap-3">
+                            <ShieldCheck class="size-5 shrink-0 text-success" />
+
+                            <input id="confirmPassword" v-model="confirmPassword" type="password" class="grow"
+                                placeholder="********" autocomplete="new-password" minlength="8" required />
+                        </label>
+                    </div>
 
 
-                    <label class="form-control">
+                    <!-- <label class="form-control">
                         <span class="label-text font-medium mb-2">
                             รหัสผ่าน
                         </span>
@@ -171,7 +150,7 @@ async function submitRegister() {
                             <ShieldCheck class="w-5 h-5 text-success" />
                             <input v-model="confirmPassword" type="password" class="grow" placeholder="********" />
                         </label>
-                    </label>
+                    </label> -->
 
 
                     <button class="btn btn-success w-full h-12 text-base" :disabled="isLoading">

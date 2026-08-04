@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import logo from "@/assets/logo.svg"
 import {
-    LayoutDashboard,
     ArrowLeftRight,
     WalletCards,
     PiggyBank,
@@ -42,20 +42,21 @@ const menuItems = [
 <template>
     <aside class="flex min-h-full w-64 flex-col bg-base-200">
         <!-- Logo -->
-        <div class="flex h-16 items-center gap-3 border-b border-base-300 px-5">
+        <div class="flex h-20 items-center gap-3 border-b border-base-300 px-5 bg-white">
             <!-- <div class="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-content">
                 <WalletCards class="size-5" />
             </div> -->
 
             <div>
-                <h1 class="font-bold">ORM</h1>
+                <!-- <h1 class="font-bold">ORM</h1> -->
+                <img :src="logo" alt="ORM Logo" class="h-10 w-auto" />
                 <p class="text-xs text-base-content/60">Money management</p>
             </div>
         </div>
 
         <!-- Menu -->
         <nav class="flex-1 p-3">
-            
+
 
             <ul class="menu w-full gap-1 p-0">
                 <li v-for="item in menuItems" :key="item.path">
@@ -74,14 +75,14 @@ const menuItems = [
                 <li>
                     <RouterLink to="/profile" active-class="menu-active">
                         <User class="size-5" />
-                        <span>Profile</span>
+                        <span class="text-base">Profile</span>
                     </RouterLink>
                 </li>
 
                 <li>
                     <button type="button">
                         <LogOut class="size-5" />
-                        <span>Logout</span>
+                        <span class="text-base">Logout</span>
                     </button>
                 </li>
             </ul>
