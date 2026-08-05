@@ -33,10 +33,16 @@ async function submitRegister() {
             password: password.value,
         })
 
-        localStorage.setItem("token", result.token)
-        localStorage.setItem("user", JSON.stringify(result.user))
+        // localStorage.setItem("token", result.token)
+        // localStorage.setItem("user", JSON.stringify(result.user))
 
-        await router.push("/")
+        // await router.push("/")
+        await router.push({
+            name: "login",
+            query: {
+                registered: "true",
+            },
+        })
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             errorMessage.value =
@@ -56,7 +62,7 @@ async function submitRegister() {
 
                 <div class="flex justify-center mb-4">
                     <div
-                        class="w-20 h-20 rounded-full bg-success text-success-content flex items-center justify-center shadow-lg">
+                        class="w-20 h-20 rounded-full bg-[#99e550] text-success-content flex items-center justify-center shadow-lg">
                         <UserPlus class="w-10 h-10" />
                     </div>
                 </div>
@@ -77,25 +83,14 @@ async function submitRegister() {
                     {{ errorMessage }}
                 </div>
 
-                <!-- <form class="space-y-5" @submit.prevent="submitRegister"> -->
                 <form class="flex flex-col gap-3" @submit.prevent="submitRegister">
-                    <!-- <label class="form-control">
-                        <span class="label-text font-medium mb-2">
-                            อีเมล
-                        </span>
-                        <label class="input input-bordered w-full flex items-center gap-3">
-                            <Mail class="w-5 h-5 text-success" />
-                            <input v-model.trim="email" type="email" class="grow" placeholder="example@email.com"
-                                autocomplete="email" />
-                        </label>
-                    </label> -->
                     <div class="flex flex-col gap-1">
                         <label for="email" class="text-sm font-medium">
                             อีเมล
                         </label>
 
                         <label class="input input-bordered flex w-full items-center gap-3">
-                            <Mail class="size-5 shrink-0 text-success" />
+                            <Mail class="size-5 shrink-0 text-[#99e550]" />
 
                             <input id="email" v-model.trim="email" type="email" class="grow"
                                 placeholder="example@email.com" autocomplete="email" required />
@@ -108,7 +103,7 @@ async function submitRegister() {
                         </label>
 
                         <label class="input input-bordered flex w-full items-center gap-3">
-                            <Lock class="size-5 shrink-0 text-success" />
+                            <Lock class="size-5 shrink-0 text-[#99e550]" />
 
                             <input id="password" v-model="password" type="password" class="grow" placeholder="********"
                                 autocomplete="new-password" minlength="8" required />
@@ -122,38 +117,14 @@ async function submitRegister() {
                         </label>
 
                         <label class="input input-bordered flex w-full items-center gap-3">
-                            <ShieldCheck class="size-5 shrink-0 text-success" />
+                            <ShieldCheck class="size-5 shrink-0 text-[#99e550]" />
 
                             <input id="confirmPassword" v-model="confirmPassword" type="password" class="grow"
                                 placeholder="********" autocomplete="new-password" minlength="8" required />
                         </label>
                     </div>
 
-
-                    <!-- <label class="form-control">
-                        <span class="label-text font-medium mb-2">
-                            รหัสผ่าน
-                        </span>
-
-                        <label class="input input-bordered flex w-full items-center gap-3">
-                            <Lock class="w-5 h-5 text-success" />
-                            <input v-model="password" type="password" class="grow" placeholder="********" />
-                        </label>
-                    </label>
-
-
-                    <label class="form-control">
-                        <span class="label-text font-medium mb-2">
-                            ยืนยันรหัสผ่าน
-                        </span>
-                        <label class="input input-bordered flex w-full items-center gap-3">
-                            <ShieldCheck class="w-5 h-5 text-success" />
-                            <input v-model="confirmPassword" type="password" class="grow" placeholder="********" />
-                        </label>
-                    </label> -->
-
-
-                    <button class="btn btn-success w-full h-12 text-base" :disabled="isLoading">
+                    <button class="btn bg-[#99e550] hover:bg-[#6abe30] w-full h-12 text-base" :disabled="isLoading">
                         <span v-if="isLoading" class="loading loading-spinner" />
                         {{ isLoading ? "กำลังสมัคร..." : "สมัครสมาชิก" }}
                     </button>

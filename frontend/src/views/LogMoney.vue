@@ -68,6 +68,7 @@ function resetForm() {
     transactionDate: formatDate(selectedDate.value),
   }
 }
+console.log(localStorage.getItem("token"))
 </script>
 
 <template>
