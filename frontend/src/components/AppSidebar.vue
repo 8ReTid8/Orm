@@ -61,12 +61,12 @@ async function logout() {
         <nav class="flex-1 p-3">
 
 
-            <ul class="menu w-full gap-2 p-0">
+            <ul class="menu w-full gap-2 p-0 ">
                 <li v-for="item in menuItems" :key="item.path">
-                    <RouterLink :to="item.path" active-class="menu-active"
+                    <RouterLink :to="item.path" active-class="menu-active bg-[#99e550] text-amber-50" class="hover:bg-[#99e550] "
                         :exact-active-class="item.path === '/' ? 'menu-active' : ''">
                         <component :is="item.icon" class="size-6" />
-                        <span class="text-base">{{ item.name }}</span>
+                        <span class="text-base te">{{ item.name }}</span>
                     </RouterLink>
                 </li>
             </ul>

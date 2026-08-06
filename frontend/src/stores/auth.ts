@@ -1,10 +1,6 @@
+import type { AuthUser } from "@/types/auth"
 import { defineStore } from "pinia"
 import { computed, ref } from "vue"
-
-export interface AuthUser {
-    id: number
-    email: string
-}
 
 function loadUser(): AuthUser | null {
     const savedUser = localStorage.getItem("user")

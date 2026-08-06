@@ -1,17 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { CalendarDays, Plus } from "lucide-vue-next"
-
-type TransactionType = "income" | "expense"
-
-interface TransactionForm {
-  type: TransactionType
-  amount: number | null
-  category: string
-  title: string
-  note: string
-  transactionDate: string
-}
+import type { TransactionForm } from "@/types/transaction"
 
 const selectedDate = ref<Date>(new Date())
 const dialogRef = ref<HTMLDialogElement | null>(null)
@@ -82,11 +72,7 @@ console.log(localStorage.getItem("token"))
         </p>
       </div>
 
-      <button
-        class="btn btn-primary"
-        type="button"
-        @click="selectDate(new Date())"
-      >
+      <button class="btn btn-primary" type="button" @click="selectDate(new Date())">
         <Plus class="size-4" />
         เพิ่มรายการวันนี้
       </button>
@@ -100,18 +86,13 @@ console.log(localStorage.getItem("token"))
           <h2 class="card-title">ปฏิทินรายรับรายจ่าย</h2>
         </div>
 
-        <VCalendar
-          expanded
-          borderless
-          :attributes="[
-            {
-              key: 'selected-day',
-              highlight: true,
-              dates: selectedDate,
-            },
-          ]"
-          @dayclick="selectDate($event.date)"
-        />
+        <VCalendar expanded borderless :attributes="[
+          {
+            key: 'selected-day',
+            highlight: true,
+            dates: selectedDate,
+          },
+        ]" @dayclick="selectDate($event.date)" />
       </div>
     </div>
 
@@ -130,33 +111,17 @@ console.log(localStorage.getItem("token"))
             <legend class="mb-2 font-medium">ประเภทรายการ</legend>
 
             <div class="grid grid-cols-2 gap-3">
-              <label
-                class="btn"
-                :class="form.type === 'income'
-                  ? 'btn-success'
-                  : 'btn-outline'"
-              >
-                <input
-                  v-model="form.type"
-                  type="radio"
-                  value="income"
-                  class="hidden"
-                />
+              <label class="btn" :class="form.type === 'income'
+                ? 'btn-success'
+                : 'btn-outline'">
+                <input v-model="form.type" type="radio" value="income" class="hidden" />
                 รายรับ
               </label>
 
-              <label
-                class="btn"
-                :class="form.type === 'expense'
-                  ? 'btn-error'
-                  : 'btn-outline'"
-              >
-                <input
-                  v-model="form.type"
-                  type="radio"
-                  value="expense"
-                  class="hidden"
-                />
+              <label class="btn" :class="form.type === 'expense'
+                ? 'btn-error'
+                : 'btn-outline'">
+                <input v-model="form.type" type="radio" value="expense" class="hidden" />
                 รายจ่าย
               </label>
             </div>
@@ -166,39 +131,22 @@ console.log(localStorage.getItem("token"))
           <fieldset class="fieldset">
             <legend class="fieldset-legend">ชื่อรายการ</legend>
 
-            <input
-              v-model.trim="form.title"
-              type="text"
-              class="input w-full"
-              placeholder="เช่น ค่าอาหาร"
-              required
-            />
+            <input v-model.trim="form.title" type="text" class="input w-full" placeholder="เช่น ค่าอาหาร" required />
           </fieldset>
 
           <!-- Amount -->
           <fieldset class="fieldset">
             <legend class="fieldset-legend">จำนวนเงิน</legend>
 
-            <input
-              v-model.number="form.amount"
-              type="number"
-              min="0.01"
-              step="0.01"
-              class="input w-full"
-              placeholder="0.00"
-              required
-            />
+            <input v-model.number="form.amount" type="number" min="0.01" step="0.01" class="input w-full"
+              placeholder="0.00" required />
           </fieldset>
 
           <!-- Category -->
           <fieldset class="fieldset">
             <legend class="fieldset-legend">หมวดหมู่</legend>
 
-            <select
-              v-model="form.category"
-              class="select w-full"
-              required
-            >
+            <select v-model="form.category" class="select w-full" required>
               <option disabled value="">เลือกหมวดหมู่</option>
               <option value="food">อาหาร</option>
               <option value="transport">การเดินทาง</option>
@@ -212,19 +160,11 @@ console.log(localStorage.getItem("token"))
           <fieldset class="fieldset">
             <legend class="fieldset-legend">หมายเหตุ</legend>
 
-            <textarea
-              v-model.trim="form.note"
-              class="textarea w-full"
-              placeholder="รายละเอียดเพิ่มเติม"
-            />
+            <textarea v-model.trim="form.note" class="textarea w-full" placeholder="รายละเอียดเพิ่มเติม" />
           </fieldset>
 
           <div class="modal-action">
-            <button
-              type="button"
-              class="btn btn-ghost"
-              @click="dialogRef?.close()"
-            >
+            <button type="button" class="btn btn-ghost" @click="dialogRef?.close()">
               ยกเลิก
             </button>
 
