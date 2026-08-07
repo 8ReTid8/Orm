@@ -2,17 +2,21 @@
 import { computed, ref } from "vue"
 import { CalendarDays, Plus } from "lucide-vue-next"
 import type { TransactionForm } from "@/types/transaction"
+import LogMoneyForm from "@/components/logMoney/LogMoneyForm.vue"
 
 const selectedDate = ref<Date>(new Date())
-const dialogRef = ref<HTMLDialogElement | null>(null)
+// const dialogRef = ref<HTMLDialogElement | null>(null)
+const isDialogOpen = ref(false)
 
 const form = ref<TransactionForm>({
   type: "expense",
   amount: null,
   category: "",
+  bankId: null,
   title: "",
   note: "",
   transactionDate: formatDate(new Date()),
+  slipImage: null,
 })
 
 const selectedDateText = computed(() => {
@@ -34,7 +38,8 @@ function formatDate(date: Date): string {
 function selectDate(date: Date) {
   selectedDate.value = date
   form.value.transactionDate = formatDate(date)
-  dialogRef.value?.showModal()
+  // dialogRef.value?.showModal()
+  isDialogOpen.value = true
 }
 
 function saveTransaction() {
@@ -44,7 +49,8 @@ function saveTransaction() {
 
   console.log("Transaction:", form.value)
 
-  dialogRef.value?.close()
+  // dialogRef.value?.close()
+  isDialogOpen.value = false
   resetForm()
 }
 
@@ -53,10 +59,15 @@ function resetForm() {
     type: "expense",
     amount: null,
     category: "",
+    bankId: null,
     title: "",
     note: "",
     transactionDate: formatDate(selectedDate.value),
+    slipImage: null,
   }
+}
+function closeDialog() {
+  isDialogOpen.value = false
 }
 console.log(localStorage.getItem("token"))
 </script>
@@ -86,98 +97,161 @@ console.log(localStorage.getItem("token"))
           <h2 class="card-title">ปฏิทินรายรับรายจ่าย</h2>
         </div>
 
-        <VCalendar expanded borderless :attributes="[
+        <!-- <VCalendar expanded borderless :attributes="[
           {
             key: 'selected-day',
             highlight: true,
             dates: selectedDate,
           },
-        ]" @dayclick="selectDate($event.date)" />
+        ]" @dayclick="selectDate($event.date)" /> -->
+        <!-- <VCalendar class="finance-calendar" expanded borderless :attributes="[
+          {
+            key: 'selected-day',
+            highlight: true,
+            dates: selectedDate,
+          },
+        ]" @dayclick="selectDate($event.date)" /> -->
+        <!-- <VCalendar class="finance-calendar" expanded borderless :attributes="[
+          {
+            key: 'selected-day',
+            highlight: true,
+            dates: selectedDate,
+          },
+        ]">
+          <template #day-content="{ day }">
+            <button type="button" class="calendar-day-cell" @click="selectDate(day.date)">
+              <span class="calendar-day-number">
+                {{ day.day }}
+              </span>
+
+             
+              <div class="calendar-day-details">
+               
+              </div>
+            </button>
+          </template>
+</VCalendar> -->
+        <VCalendar class="finance-calendar w-full" expanded borderless>
+          <template #day-content="{ day }">
+            <button type="button" class="
+        relative
+        block
+        min-h-28
+        w-full
+        cursor-pointer
+        bg-base-100
+        p-3
+        pt-10
+        text-left
+        transition-colors
+        hover:bg-base-200
+      " @click="selectDate(day.date)">
+              <span class="
+          absolute
+          right-3
+          top-2
+          flex
+          size-7
+          items-center
+          justify-center
+          rounded-full
+          text-sm
+          font-medium
+        ">
+                {{ day.day }}
+              </span>
+            </button>
+          </template>
+        </VCalendar>
       </div>
     </div>
 
     <!-- Transaction dialog -->
-    <dialog ref="dialogRef" class="modal">
-      <div class="modal-box max-w-lg">
-        <h2 class="text-xl font-bold">เพิ่มรายการ</h2>
+    <LogMoneyForm :open="isDialogOpen" :form="form" :selected-date-text="selectedDateText" @close="closeDialog"
+      @save="saveTransaction" />
 
-        <p class="mt-1 text-sm text-base-content/60">
-          วันที่ {{ selectedDateText }}
-        </p>
-
-        <form class="mt-6 space-y-4" @submit.prevent="saveTransaction">
-          <!-- Type -->
-          <fieldset>
-            <legend class="mb-2 font-medium">ประเภทรายการ</legend>
-
-            <div class="grid grid-cols-2 gap-3">
-              <label class="btn" :class="form.type === 'income'
-                ? 'btn-success'
-                : 'btn-outline'">
-                <input v-model="form.type" type="radio" value="income" class="hidden" />
-                รายรับ
-              </label>
-
-              <label class="btn" :class="form.type === 'expense'
-                ? 'btn-error'
-                : 'btn-outline'">
-                <input v-model="form.type" type="radio" value="expense" class="hidden" />
-                รายจ่าย
-              </label>
-            </div>
-          </fieldset>
-
-          <!-- Title -->
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">ชื่อรายการ</legend>
-
-            <input v-model.trim="form.title" type="text" class="input w-full" placeholder="เช่น ค่าอาหาร" required />
-          </fieldset>
-
-          <!-- Amount -->
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">จำนวนเงิน</legend>
-
-            <input v-model.number="form.amount" type="number" min="0.01" step="0.01" class="input w-full"
-              placeholder="0.00" required />
-          </fieldset>
-
-          <!-- Category -->
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">หมวดหมู่</legend>
-
-            <select v-model="form.category" class="select w-full" required>
-              <option disabled value="">เลือกหมวดหมู่</option>
-              <option value="food">อาหาร</option>
-              <option value="transport">การเดินทาง</option>
-              <option value="salary">เงินเดือน</option>
-              <option value="shopping">ช้อปปิ้ง</option>
-              <option value="other">อื่น ๆ</option>
-            </select>
-          </fieldset>
-
-          <!-- Note -->
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">หมายเหตุ</legend>
-
-            <textarea v-model.trim="form.note" class="textarea w-full" placeholder="รายละเอียดเพิ่มเติม" />
-          </fieldset>
-
-          <div class="modal-action">
-            <button type="button" class="btn btn-ghost" @click="dialogRef?.close()">
-              ยกเลิก
-            </button>
-
-            <button type="submit" class="btn btn-primary">
-              บันทึก
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <form method="dialog" class="modal-backdrop">
-        <button aria-label="Close dialog">close</button>
-      </form>
-    </dialog>
   </section>
 </template>
+<style>
+.finance-calendar .vc-weeks {
+  border-top: 1px solid var(--color-base-300);
+  /* border-left: 1px solid var(--color-base-300); */
+}
+
+.finance-calendar .vc-day {
+  min-height: 112px;
+  padding: 0 !important;
+  border-right: 1px solid var(--color-base-300);
+  border-bottom: 1px solid var(--color-base-300);
+  box-sizing: border-box;
+}
+</style>
+<!-- <style>
+.finance-calendar .vc-weeks {
+  border-top: 1px solid var(--color-base-300);
+  border-left: 1px solid var(--color-base-300);
+}
+
+.finance-calendar .vc-day {
+  padding: 0 !important;
+}
+</style> -->
+
+<!-- <style>
+.finance-calendar.vc-container {
+  width: 100%;
+  border: 0;
+}
+
+/* ตารางวันที่ */
+.finance-calendar .vc-weeks {
+  border-top: 1px solid #e5e7eb;
+  border-left: 1px solid #e5e7eb;
+}
+
+/* ช่องแต่ละวัน */
+.finance-calendar .vc-day {
+  height: 100px !important;
+  min-height: 100px !important;
+  padding: 8px;
+
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* Hover ทั้งช่อง */
+.finance-calendar .vc-day:hover {
+  background-color: #f5f5f5;
+}
+
+/* เลขวันที่ */
+.finance-calendar .vc-day-content {
+  width: 32px;
+  height: 32px;
+}
+
+/* ชื่อวัน อา จ อ ... */
+.finance-calendar .vc-weekday {
+  padding: 12px 0;
+  font-weight: 600;
+}
+
+.finance-calendar .vc-day-content {
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9999px;
+}
+</style> -->
