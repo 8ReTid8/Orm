@@ -84,18 +84,18 @@ function closeDialog() {
 
 <template>
     <dialog ref="dialogRef" class="modal">
-        <div class="modal-box max-w-lg">
+        <div class="modal-box max-w-lg ">
             <h2 class="text-xl font-bold">เพิ่มรายการ</h2>
 
             <p class="mt-1 text-sm text-base-content/60">
                 วันที่ {{ selectedDateText }}
             </p>
 
-            <form class="mt-6 space-y-4" @submit.prevent="submitForm">
+            <Form class="mt-6 space-y-4 " @submit.prevent="submitForm">
                 <!-- Type -->
-                <fieldset>
-                    <legend class="mb-2 font-medium">ประเภทรายการ</legend>
-
+                <fieldset class="fieldset gap-0.5">
+                    <!-- <legend class="mb-2 font-medium">ประเภทรายการ</legend> -->
+                    <label class="label text-base">ประเภทรายการ</label>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="btn" :class="form.type === 'income'
                             ? 'btn-success'
@@ -114,37 +114,41 @@ function closeDialog() {
                 </fieldset>
 
                 <!-- Title -->
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend">ชื่อรายการ</legend>
-
+                <fieldset class="fieldset gap-0.5">
+                    <label class="label text-base">ชื่อรายการ</label>
                     <input v-model.trim="form.title" type="text" class="input w-full" placeholder="เช่น ค่าอาหาร"
                         required />
                 </fieldset>
 
                 <!-- Amount -->
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend">จำนวนเงิน</legend>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <fieldset class="fieldset gap-0.5">
+                        <!-- <legend class="fieldset-legend text-lg">จำนวนเงิน</legend> -->
+                        <label class="label text-base">จำนวนเงิน</label>
+                        <input v-model.number="form.amount" type="number" min="0.01" step="0.01" class="input w-full"
+                            placeholder="0.00" required />
+                    </fieldset>
 
-                    <input v-model.number="form.amount" type="number" min="0.01" step="0.01" class="input w-full"
-                        placeholder="0.00" required />
-                </fieldset>
+                    <!-- Category -->
+                    <fieldset class="fieldset gap-0.5">
+                        <!-- <legend class="fieldset-legend">หมวดหมู่</legend> -->
+                        <label class="label text-base">หมวดหมู่</label>
 
-                <!-- Category -->
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend">หมวดหมู่</legend>
-                    <select v-model="form.category" class="select w-full" required>
-                        <option disabled value="">เลือกหมวดหมู่</option>
-                        <option value="food">อาหาร</option>
-                        <option value="transport">การเดินทาง</option>
-                        <option value="salary">เงินเดือน</option>
-                        <option value="shopping">ช้อปปิ้ง</option>
-                        <option value="other">อื่น ๆ</option>
-                    </select>
-                </fieldset>
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend">
+                        <select v-model="form.category" class="select w-full" required>
+                            <option disabled value="">เลือกหมวดหมู่</option>
+                            <option value="food">อาหาร</option>
+                            <option value="transport">การเดินทาง</option>
+                            <option value="salary">เงินเดือน</option>
+                            <option value="shopping">ช้อปปิ้ง</option>
+                            <option value="other">อื่น ๆ</option>
+                        </select>
+                    </fieldset>
+                </div>
+                <fieldset class="fieldset gap-0.5">
+                    <!-- <legend class="fieldset-legend">
                         ธนาคาร
-                    </legend>
+                    </legend> -->
+                    <label class="label text-base">ธนาคาร</label>
 
                     <select v-model.number="form.bankId" class="select w-full" required>
                         <option disabled :value="null">
@@ -157,34 +161,18 @@ function closeDialog() {
                     </select>
                 </fieldset>
                 <!-- Note -->
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend">หมายเหตุ</legend>
-
+                <fieldset class="fieldset gap-0.5">
+                    <!-- <legend class="fieldset-legend">หมายเหตุ</legend> -->
+                    <label class="label text-base">หมายเหตุ</label>
                     <textarea v-model.trim="form.note" class="textarea w-full" placeholder="รายละเอียดเพิ่มเติม" />
                 </fieldset>
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend">
+                <fieldset class="fieldset gap-0.5">
+                    <!-- <legend class="fieldset-legend">
                         รูปสลิป
-                    </legend>
-
-                    <label class="
-      flex
-      min-h-32
-      cursor-pointer
-      flex-col
-      items-center
-      justify-center
-      rounded-box
-      border
-      border-dashed
-      border-base-300
-      bg-base-200/50
-      p-4
-      text-center
-      transition
-      hover:border-primary
-      hover:bg-primary/5
-    ">
+                    </legend> -->
+                    <label class="label text-base">รูปสลิป</label>
+                    <label
+                        class="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-box border border-dashed border-base-300 bg-base-200/50 p-4 text-center transition hover:border-primary hover:bg-primary/5">
                         <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden"
                             @change="handleSlipChange" />
 
@@ -212,13 +200,11 @@ function closeDialog() {
                     </label>
                 </fieldset>
 
-                <div class="modal-action">
-                    <!-- <button type="button" class="btn btn-ghost" @click="dialogRef?.close()"> -->
+                <div class="modal-action !mt-2">
                     <button type="button" class="btn btn-ghost" @click="closeDialog">
                         ยกเลิก
                     </button>
-
-                    <!-- <button type="submit" class="btn btn-primary"> -->
+                    
                     <button type="submit" class="btn btn-primary">
                         บันทึก
                     </button>
