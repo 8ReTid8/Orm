@@ -11,6 +11,18 @@ export interface TransactionForm {
   slipImage: File | null
 }
 
+export interface Transaction {
+  id: number
+  type: TransactionType
+  amount: number
+  category: string
+  bankName: string
+  title: string
+  note: string
+  transactionDate: string
+  slipImage?: string | null
+}
+
 export interface Bank {
   id: number
   name: string

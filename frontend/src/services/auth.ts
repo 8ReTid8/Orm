@@ -1,8 +1,6 @@
 import type { AuthResponse, LoginInput, RegisterInput } from "@/types/auth"
 import api from "./api"
 
-
-
 export async function register(input: RegisterInput) {
   const response = await api.post<AuthResponse>(
     "/auth/register",

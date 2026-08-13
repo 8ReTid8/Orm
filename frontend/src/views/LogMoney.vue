@@ -1,13 +1,42 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { CalendarDays, Plus } from "lucide-vue-next"
-import type { TransactionForm } from "@/types/transaction"
+import type { TransactionForm, Transaction } from "@/types/transaction"
 import LogMoneyForm from "@/components/logMoney/LogMoneyForm.vue"
-
+import DailyTransactionList from "@/components/logMoney/DailyTransactionList.vue"
+import type { Category } from "@/types/category"
+import { getBanks } from "@/services/bank"
+import { getCategories } from "@/services/category"
+import type { Bank } from "@/types/bank"
 const selectedDate = ref<Date>(new Date())
 // const dialogRef = ref<HTMLDialogElement | null>(null)
 const isDialogOpen = ref(false)
-
+// const transactions = ref<Transaction[]>([])
+const transactions = ref<Transaction[]>([
+  {
+    id: 1,
+    type: "expense",
+    amount: 120,
+    category: "อาหาร",
+    bankName: "KBank",
+    title: "ข้าวกลางวัน",
+    note: "",
+    transactionDate: formatDate(new Date()),
+  },
+  {
+    id: 2,
+    type: "income",
+    amount: 500,
+    category: "รายได้",
+    bankName: "SCB",
+    title: "ค่าขนม",
+    note: "",
+    transactionDate: formatDate(new Date()),
+  },
+])
+const banks = ref<Bank[]>([])
+const categories = ref<Category[]>([])
+const isLoadingTransactions = ref(false)
 const form = ref<TransactionForm>({
   type: "expense",
   amount: null,
@@ -18,7 +47,27 @@ const form = ref<TransactionForm>({
   transactionDate: formatDate(new Date()),
   slipImage: null,
 })
+async function loadFormOptions() {
+  try {
+    const [bankResult, categoryResult] =
+      await Promise.all([
+        getBanks(),
+        getCategories(),
+      ])
 
+    banks.value = bankResult
+    categories.value = categoryResult
+
+  } catch (error) {
+    console.error(
+      "Failed to load form options:",
+      error
+    )
+  }
+}
+onMounted(() => {
+  loadFormOptions()
+})
 const selectedDateText = computed(() => {
   return selectedDate.value.toLocaleDateString("th-TH", {
     day: "numeric",
@@ -39,9 +88,13 @@ function selectDate(date: Date) {
   selectedDate.value = date
   form.value.transactionDate = formatDate(date)
   // dialogRef.value?.showModal()
+  // isDialogOpen.value = true
+}
+function addTodayTransaction() {
+  selectedDate.value = new Date()
+  form.value.transactionDate = formatDate(new Date())
   isDialogOpen.value = true
 }
-
 function saveTransaction() {
   if (!form.value.amount || !form.value.title || !form.value.category) {
     return
@@ -69,6 +122,7 @@ function resetForm() {
 function closeDialog() {
   isDialogOpen.value = false
 }
+
 console.log(localStorage.getItem("token"))
 </script>
 
@@ -96,41 +150,6 @@ console.log(localStorage.getItem("token"))
           <CalendarDays class="size-5" />
           <h2 class="card-title">ปฏิทินรายรับรายจ่าย</h2>
         </div>
-
-        <!-- <VCalendar expanded borderless :attributes="[
-          {
-            key: 'selected-day',
-            highlight: true,
-            dates: selectedDate,
-          },
-        ]" @dayclick="selectDate($event.date)" /> -->
-        <!-- <VCalendar class="finance-calendar" expanded borderless :attributes="[
-          {
-            key: 'selected-day',
-            highlight: true,
-            dates: selectedDate,
-          },
-        ]" @dayclick="selectDate($event.date)" /> -->
-        <!-- <VCalendar class="finance-calendar" expanded borderless :attributes="[
-          {
-            key: 'selected-day',
-            highlight: true,
-            dates: selectedDate,
-          },
-        ]">
-          <template #day-content="{ day }">
-            <button type="button" class="calendar-day-cell" @click="selectDate(day.date)">
-              <span class="calendar-day-number">
-                {{ day.day }}
-              </span>
-
-             
-              <div class="calendar-day-details">
-               
-              </div>
-            </button>
-          </template>
-</VCalendar> -->
         <VCalendar class="finance-calendar w-full" expanded borderless>
           <template #day-content="{ day }">
             <button type="button" class="
@@ -165,10 +184,14 @@ console.log(localStorage.getItem("token"))
         </VCalendar>
       </div>
     </div>
+    <DailyTransactionList :selected-date-text="selectedDateText" :transactions="transactions"
+      :loading="isLoadingTransactions" @add="isDialogOpen = true" />
 
     <!-- Transaction dialog -->
-    <LogMoneyForm :open="isDialogOpen" :form="form" :selected-date-text="selectedDateText" @close="closeDialog"
-      @save="saveTransaction" />
+    <!-- <LogMoneyForm :open="isDialogOpen" :form="form" :selected-date-text="selectedDateText" @close="closeDialog"
+      @save="saveTransaction" /> -->
+    <LogMoneyForm :open="isDialogOpen" :form="form" :banks="banks" :categories="categories"
+      :selected-date-text="selectedDateText" @close="closeDialog" @save="saveTransaction" />
 
   </section>
 </template>
@@ -186,72 +209,3 @@ console.log(localStorage.getItem("token"))
   box-sizing: border-box;
 }
 </style>
-<!-- <style>
-.finance-calendar .vc-weeks {
-  border-top: 1px solid var(--color-base-300);
-  border-left: 1px solid var(--color-base-300);
-}
-
-.finance-calendar .vc-day {
-  padding: 0 !important;
-}
-</style> -->
-
-<!-- <style>
-.finance-calendar.vc-container {
-  width: 100%;
-  border: 0;
-}
-
-/* ตารางวันที่ */
-.finance-calendar .vc-weeks {
-  border-top: 1px solid #e5e7eb;
-  border-left: 1px solid #e5e7eb;
-}
-
-/* ช่องแต่ละวัน */
-.finance-calendar .vc-day {
-  height: 100px !important;
-  min-height: 100px !important;
-  padding: 8px;
-
-  border-right: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
-
-  box-sizing: border-box;
-  cursor: pointer;
-}
-
-/* Hover ทั้งช่อง */
-.finance-calendar .vc-day:hover {
-  background-color: #f5f5f5;
-}
-
-/* เลขวันที่ */
-.finance-calendar .vc-day-content {
-  width: 32px;
-  height: 32px;
-}
-
-/* ชื่อวัน อา จ อ ... */
-.finance-calendar .vc-weekday {
-  padding: 12px 0;
-  font-weight: 600;
-}
-
-.finance-calendar .vc-day-content {
-  position: absolute;
-
-  top: 8px;
-  right: 8px;
-
-  width: 28px;
-  height: 28px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 9999px;
-}
-</style> -->

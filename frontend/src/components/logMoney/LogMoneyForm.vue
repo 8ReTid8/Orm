@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import type { Bank, TransactionForm } from "@/types/transaction"
+import type { Bank } from "@/types/bank";
+import type { Category } from "@/types/category";
+import type { TransactionForm } from "@/types/transaction"
 import { ref, watch } from "vue";
 
 interface Props {
     open: boolean
     form: TransactionForm
+    banks: Bank[]
+    categories: Category[]
     selectedDateText: string
 }
 const props = defineProps<Props>()
@@ -13,14 +17,15 @@ const emit = defineEmits<{
     save: []
 }>()
 const dialogRef = ref<HTMLDialogElement | null>(null)
-const banks: Bank[] = [
-    { id: 1, name: "เงินสด" },
-    { id: 2, name: "KBank" },
-    { id: 3, name: "SCB" },
-    { id: 4, name: "Krungthai" },
-    { id: 5, name: "Bangkok Bank" },
-    { id: 6, name: "TrueMoney" },
-]
+// const banks: Bank[] = [
+//     { id: 1, name: "เงินสด" },
+//     { id: 2, name: "KBank" },
+//     { id: 3, name: "SCB" },
+//     { id: 4, name: "Krungthai" },
+//     { id: 5, name: "Bangkok Bank" },
+//     { id: 6, name: "TrueMoney" },
+// ]
+
 watch(
     () => props.open,
     (isOpen) => {
