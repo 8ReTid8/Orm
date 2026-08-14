@@ -14,7 +14,8 @@ type User struct {
 	Password  string `gorm:"size:255;not null" json:"-"`
 	CreatedAt time.Time
 
-	Transactions []Transaction `gorm:"foreignKey:UserID"`
-	Budgets      []Budget      `gorm:"foreignKey:UserID"`
-	SavingGoals  []SavingGoal  `gorm:"foreignKey:UserID"`
+	// Transactions []Transaction `gorm:"foreignKey:UserID"`
+	Accounts    []Account    `gorm:"foreignKey:UserID"`
+	Budgets     []Budget     `gorm:"foreignKey:UserID"`
+	SavingGoals []SavingGoal `gorm:"foreignKey:UserID"`
 }

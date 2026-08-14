@@ -5,10 +5,12 @@ import "time"
 
 type Transaction struct {
 	
-	UserID uint
-	User User
-	BankID uint
-	Bank Bank
+	// UserID uint
+	// User User
+	// BankID uint
+	// Bank Bank
+	AccountID uint
+	Account Account
 
 	ID uint `gorm:"primaryKey"`
 	Title	string `gorm:"size:255;not null"`
