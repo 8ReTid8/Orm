@@ -75,21 +75,8 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// token, err := utils.GenerateToken(user.ID)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{
-	// 		"message": "ไม่สามารถสร้าง token ได้",
-	// 	})
-	// 	return
-	// }
-
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "สมัครสมาชิกสำเร็จ",
-		// "token":   token,
-		// "user": gin.H{
-		// 	"id":    user.ID,
-		// 	"email": user.Email,
-		// },
 	})
 }
 

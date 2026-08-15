@@ -17,7 +17,7 @@ import AppSidebar from "@/components/AppSidebar.vue"
           </label>
         </div>
 
-        <div class="flex-1">
+        <!-- <div class="flex-1">
           <span class="text-lg font-semibold">Finance Dashboard</span>
         </div>
 
@@ -27,7 +27,7 @@ import AppSidebar from "@/components/AppSidebar.vue"
               <span class="text-sm">ND</span>
             </div>
           </div>
-        </div>
+        </div> -->
       </header>
 
       <main class="flex-1 p-4 md:p-6">

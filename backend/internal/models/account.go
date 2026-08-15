@@ -3,13 +3,13 @@ package models
 // import "time"
 
 type Account struct {
-	ID uint `gorm:"primaryKey"`
+	ID uint `gorm:"primaryKey" json:"id"` 
 
-	UserID uint
-	User User
+	UserID uint `gorm:"not null;index" json:"userId"`
+	User User `json:"-"`
 
-	Name string `gorm:"size:255;not null"`
-	Balance float64 `gorm:"not null"`
+	Name string `gorm:"size:255;not null" json:"name"`
+	Balance float64 `gorm:"not null" json:"balance"`
 
-	Transactions []Transaction `gorm:"foreignKey:AccountID"`
+	Transactions []Transaction `gorm:"foreignKey:AccountID" json:"-"`
 } 

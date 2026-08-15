@@ -188,13 +188,11 @@ console.log(localStorage.getItem("token"))
       :loading="isLoadingTransactions" @add="isDialogOpen = true" />
 
     <!-- Transaction dialog -->
-    <!-- <LogMoneyForm :open="isDialogOpen" :form="form" :selected-date-text="selectedDateText" @close="closeDialog"
-      @save="saveTransaction" /> -->
-    <LogMoneyForm :open="isDialogOpen" :form="form" :banks="banks" :categories="categories"
-      :selected-date-text="selectedDateText" @close="closeDialog" @save="saveTransaction" />
-
   </section>
+  <LogMoneyForm :open="isDialogOpen" :form="form" :banks="banks" :categories="categories"
+    :selected-date-text="selectedDateText" @close="closeDialog" @save="saveTransaction" />
 </template>
+
 <style>
 .finance-calendar .vc-weeks {
   border-top: 1px solid var(--color-base-300);

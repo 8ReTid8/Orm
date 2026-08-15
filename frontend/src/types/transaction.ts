@@ -23,7 +23,3 @@ export interface Transaction {
   slipImage?: string | null
 }
 
-export interface Bank {
-  id: number
-  name: string
-}

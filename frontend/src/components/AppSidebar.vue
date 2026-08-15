@@ -20,8 +20,8 @@ const menuItems = [
         icon: CalendarDays,
     },
     {
-        name: "Transactions",
-        path: "/transactions",
+        name: "Accounts",
+        path: "/accounts",
         icon: ArrowLeftRight,
     },
     {
@@ -63,8 +63,9 @@ async function logout() {
 
             <ul class="menu w-full gap-2 p-0 ">
                 <li v-for="item in menuItems" :key="item.path">
-                    <RouterLink :to="item.path" active-class="menu-active bg-[#99e550] text-amber-50" class="hover:bg-[#99e550] "
-                        :exact-active-class="item.path === '/' ? 'menu-active' : ''">
+                    <RouterLink :to="item.path" 
+                        exact-active-class="menu-active bg-[#99e550] text-white"
+                        class="hover:bg-[#99e550] hover:text-white">
                         <component :is="item.icon" class="size-6" />
                         <span class="text-base te">{{ item.name }}</span>
                     </RouterLink>

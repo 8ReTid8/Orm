@@ -4,6 +4,8 @@ import MainLayout from "@/layouts/MainLayout.vue"
 import LogMoney from "@/views/LogMoney.vue"
 import LoginView from "@/views/LoginView.vue"
 import RegisterView from "@/views/RegisterView.vue"
+import AccountsView from "@/views/AccountsView.vue"
+
 // import DashboardView from "@/views/DashboardView.vue"
 // import TransactionView from "@/views/TransactionView.vue"
 // import BudgetView from "@/views/BudgetView.vue"
@@ -40,11 +42,11 @@ const router = createRouter({
           name: "log money",
           component: LogMoney,
         },
-        // {
-        //   path: "transactions",
-        //   name: "transactions",
-        //   component: TransactionView,
-        // },
+        {
+          path: "accounts",
+          name: "accounts",
+          component: AccountsView,
+        },
         // {
         //   path: "budgets",
         //   name: "budgets",
