@@ -3,47 +3,23 @@ import { onMounted, ref } from "vue"
 import {
     Plus,
     Wallet,
-    Landmark,
     MoreVertical,
 } from "lucide-vue-next"
 import type { Account } from "@/types/account"
 import AddAccountForm from "@/components/account/AddAccountForm.vue"
 import { createAccount, getAccounts } from "@/services/account"
+import AccountCard from "@/components/account/AccountCard.vue"
 
-
-// const accounts = ref<Account[]>([
-//     {
-//         id: 1,
-//         name: "เงินสด",
-//         balance: 2500,
-//         // transactionCount: 12,
-//     },
-//     {
-//         id: 2,
-//         name: "KBank เงินเดือน",
-//         balance: 18200,
-//         // transactionCount: 31,
-//     },
-//     {
-//         id: 3,
-//         name: "SCB เงินออม",
-//         balance: 42000,
-//         // transactionCount: 8,
-//     },
-// ])
 const accounts = ref<Account[]>([])
 const isLoading = ref(false)
 const isAddAccountOpen = ref(false)
 
-function formatMoney(value: number) {
-    return new Intl.NumberFormat("th-TH", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(value)
-}
-
 function openAddAccount() {
     isAddAccountOpen.value = true
+}
+
+function openAccountDetail(accountId: number) {
+  console.log("account:", accountId)
 }
 
 function closeAddAccount() {
@@ -54,11 +30,10 @@ async function saveAccount(data: {
     name: string
 }) {
     try {
-        const result = await createAccount({
-            name: data.name,
-        })
+        const result = await createAccount(data)
 
         console.log(result.account)
+        accounts.value.push(result.account)
 
         isAddAccountOpen.value = false
 
@@ -111,11 +86,11 @@ onMounted(() => {
 
         <!-- Account grid -->
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            <!-- Account cards -->
-            <div v-for="account in accounts" :key="account.id"
+
+            <!-- <div v-for="account in accounts" :key="account.id"
                 class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                 <div class="card-body">
-                    <!-- Top -->
+                 
                     <div class="flex items-start justify-between">
                         <div class="flex size-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
                             <Wallet class="size-6" />
@@ -126,7 +101,7 @@ onMounted(() => {
                         </button>
                     </div>
 
-                    <!-- Account name -->
+                 
                     <div class="mt-4">
                         <p class="text-sm text-base-content/50">
                             บัญชี
@@ -137,7 +112,6 @@ onMounted(() => {
                         </h2>
                     </div>
 
-                    <!-- Balance -->
                     <div class="mt-5">
                         <p class="text-sm text-base-content/50">
                             ยอดคงเหลือ
@@ -148,40 +122,24 @@ onMounted(() => {
                         </p>
                     </div>
 
-                    <!-- Footer -->
+                   
                     <div
                         class="mt-5 flex items-center justify-between border-t border-base-300 pt-4 text-sm text-base-content/60">
-                        <!-- <span>
+                        <span>
                             {{ account.transactionCount }} รายการ
-                        </span> -->
+                        </span>
 
                         <button type="button" class="link link-primary font-medium">
                             ดูรายละเอียด
                         </button>
                     </div>
                 </div>
-            </div>
-            <!-- <div v-for="account in accounts" :key="account.id"
-                class="card border border-base-300 bg-base-100 shadow-sm">
-                <div class="card-body">
-                    <h2 class="text-lg font-semibold">
-                        {{ account.name }}
-                    </h2>
-
-                    <div class="mt-4">
-                        <p class="text-sm text-base-content/50">
-                            ยอดคงเหลือ
-                        </p>
-
-                        <p class="text-2xl font-bold">
-                            ฿{{ account.balance.toLocaleString() }}
-                        </p>
-                    </div>
-                </div>
             </div> -->
+
+            <AccountCard v-for="account in accounts" :key="account.id" :account="account" @detail="openAccountDetail" />
             <!-- Add account card -->
             <button type="button"
-                class="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 bg-base-100 text-base-content/50 transition hover:border-primary hover:bg-primary/5 hover:text-primary"
+                class="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 bg-base-100 text-base-content/50 transition hover:border-primary hover:bg-primary/5 hover:text-primary"
                 @click="openAddAccount">
                 <div class="flex size-12 items-center justify-center rounded-full bg-base-200">
                     <Plus class="size-6" />
@@ -191,9 +149,6 @@ onMounted(() => {
                     เพิ่มบัญชีใหม่
                 </p>
 
-                <p class="mt-1 text-sm">
-                    เงินสด ธนาคาร หรือ Wallet
-                </p>
             </button>
         </div>
     </section>

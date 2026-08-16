@@ -4,3 +4,12 @@ export interface Account {
   name: string
   balance: number
 }
+
+export interface CreateAccountResponse {
+  message: string
+  account: Account
+}
+
+export interface CreateAccountInput {
+  name: string
+}

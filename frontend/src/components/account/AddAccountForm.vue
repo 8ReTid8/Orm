@@ -13,7 +13,6 @@ const emit = defineEmits<{
   save: [
     {
       name: string
-    //   balance: number
     }
   ]
 }>()
@@ -21,7 +20,6 @@ const emit = defineEmits<{
 const dialogRef = ref<HTMLDialogElement | null>(null)
 
 const name = ref("")
-// const balance = ref<number | null>(null)
 
 watch(
   () => props.open,
@@ -41,7 +39,6 @@ function submitForm() {
 
   emit("save", {
     name: name.value.trim(),
-    // balance: balance.value,
   })
 
   resetForm()
@@ -53,7 +50,6 @@ function closeDialog() {
 
 function resetForm() {
   name.value = ""
-//   balance.value = null
 }
 </script>
 
@@ -95,22 +91,6 @@ function resetForm() {
             required
           />
         </fieldset>
-
-        <!-- <fieldset class="fieldset">
-          <legend class="fieldset-legend">
-            ยอดเริ่มต้น
-          </legend>
-
-          <input
-            v-model.number="balance"
-            type="number"
-            min="0"
-            step="0.01"
-            class="input w-full"
-            placeholder="0.00"
-            required
-          />
-        </fieldset> -->
 
         <div class="modal-action">
           <button

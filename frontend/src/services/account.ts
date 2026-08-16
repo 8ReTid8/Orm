@@ -1,14 +1,5 @@
 import api from "./api"
-import type { Account } from "@/types/account"
-
-export interface CreateAccountInput {
-  name: string
-}
-
-interface CreateAccountResponse {
-  message: string
-  account: Account
-}
+import type { Account, CreateAccountInput, CreateAccountResponse } from "@/types/account"
 
 export async function createAccount(
   input: CreateAccountInput,
