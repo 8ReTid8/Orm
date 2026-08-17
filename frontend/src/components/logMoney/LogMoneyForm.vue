@@ -9,8 +9,7 @@ import { ref, watch } from "vue";
 interface Props {
     open: boolean
     form: TransactionForm
-    // banks: Bank[]
-    accounts : Account[]
+    accounts: Account[]
     categories: Category[]
     selectedDateText: string
 }
@@ -136,12 +135,16 @@ function closeDialog() {
 
                         <select v-model="form.category" class="select w-full" required>
                             <option disabled value="">เลือกหมวดหมู่</option>
-                            <option value="food">อาหาร</option>
+                            <option v-for="category in categories" :key="category.id" :value="category.id">
+                                {{ category.name }}
+                            </option>
+                            <!-- <option value="food">อาหาร</option>
                             <option value="transport">การเดินทาง</option>
                             <option value="salary">เงินเดือน</option>
                             <option value="shopping">ช้อปปิ้ง</option>
-                            <option value="other">อื่น ๆ</option>
+                            <option value="other">อื่น ๆ</option> -->
                         </select>
+
                     </fieldset>
                 </div>
                 <fieldset class="fieldset gap-0.5">
@@ -214,7 +217,7 @@ function closeDialog() {
                     <button type="button" class="btn btn-ghost" @click="closeDialog">
                         ยกเลิก
                     </button>
-                    
+
                     <button type="submit" class="btn btn-primary">
                         บันทึก
                     </button>

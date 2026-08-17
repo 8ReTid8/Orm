@@ -2,15 +2,15 @@
 import { onMounted, ref } from "vue"
 import {
     Plus,
-    Wallet,
-    MoreVertical,
 } from "lucide-vue-next"
 import type { Account } from "@/types/account"
 import AddAccountForm from "@/components/account/AddAccountForm.vue"
 import { createAccount, getAccounts } from "@/services/account"
 import AccountCard from "@/components/account/AccountCard.vue"
+import { useAccountStore } from "@/stores/account"
 
-const accounts = ref<Account[]>([])
+// const accounts = ref<Account[]>([])
+const accountStore = useAccountStore()
 const isLoading = ref(false)
 const isAddAccountOpen = ref(false)
 
@@ -19,7 +19,7 @@ function openAddAccount() {
 }
 
 function openAccountDetail(accountId: number) {
-  console.log("account:", accountId)
+    console.log("account:", accountId)
 }
 
 function closeAddAccount() {
@@ -33,8 +33,8 @@ async function saveAccount(data: {
         const result = await createAccount(data)
 
         console.log(result.account)
-        accounts.value.push(result.account)
-
+        // accounts.value.push(result.account)
+        accountStore.addAccount(result.account)
         isAddAccountOpen.value = false
 
         // ขั้นต่อไปค่อย reload accounts
@@ -45,22 +45,22 @@ async function saveAccount(data: {
         )
     }
 }
-async function loadAccounts() {
-    try {
-        isLoading.value = true
+// async function loadAccounts() {
+//     try {
+//         isLoading.value = true
 
-        accounts.value = await getAccounts()
-    } catch (error) {
-        console.error(
-            "Failed to load accounts:",
-            error,
-        )
-    } finally {
-        isLoading.value = false
-    }
-}
+//         accounts.value = await getAccounts()
+//     } catch (error) {
+//         console.error(
+//             "Failed to load accounts:",
+//             error,
+//         )
+//     } finally {
+//         isLoading.value = false
+//     }
+// }
 onMounted(() => {
-    loadAccounts()
+    accountStore.loadAccounts()
 })
 </script>
 
@@ -136,7 +136,9 @@ onMounted(() => {
                 </div>
             </div> -->
 
-            <AccountCard v-for="account in accounts" :key="account.id" :account="account" @detail="openAccountDetail" />
+            <!-- <AccountCard v-for="account in accounts" :key="account.id" :account="account" @detail="openAccountDetail" /> -->
+            <AccountCard v-for="account in accountStore.accounts" :key="account.id" :account="account" @detail="openAccountDetail" />
+
             <!-- Add account card -->
             <button type="button"
                 class="flex min-h-52 flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 bg-base-100 text-base-content/50 transition hover:border-primary hover:bg-primary/5 hover:text-primary"

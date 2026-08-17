@@ -9,6 +9,8 @@ import { getBanks } from "@/services/bank"
 import { getCategories } from "@/services/category"
 import type { Bank } from "@/types/bank"
 import type { Account } from "@/types/account"
+import { useAccountStore } from "@/stores/account"
+import { useCategoryStore } from "@/stores/category"
 const selectedDate = ref<Date>(new Date())
 // const dialogRef = ref<HTMLDialogElement | null>(null)
 const isDialogOpen = ref(false)
@@ -35,41 +37,57 @@ const transactions = ref<Transaction[]>([
     transactionDate: formatDate(new Date()),
   },
 ])
-const banks = ref<Bank[]>([])
-const accounts = ref<Account[]>([])
-const categories = ref<Category[]>([])
+// const banks = ref<Bank[]>([])
+// const accounts = ref<Account[]>([])
+// const categories = ref<Category[]>([])
+const accountStore = useAccountStore()
+const categoryStore = useCategoryStore()
+
 const isLoadingTransactions = ref(false)
 const form = ref<TransactionForm>({
   type: "expense",
   amount: null,
   category: "",
-  // bankId: null,
   accountId: null,
   title: "",
   note: "",
   transactionDate: formatDate(new Date()),
   slipImage: null,
 })
-async function loadFormOptions() {
-  try {
-    const [bankResult, categoryResult] =
-      await Promise.all([
-        getBanks(),
-        getCategories(),
-      ])
+// async function loadFormOptions() {
+//   try {
+//     const [bankResult, categoryResult] =
+//       await Promise.all([
+//         getBanks(),
+//         getCategories(),
+//       ])
 
-    banks.value = bankResult
-    categories.value = categoryResult
+//     banks.value = bankResult
+//     categories.value = categoryResult
 
-  } catch (error) {
-    console.error(
-      "Failed to load form options:",
-      error
-    )
-  }
-}
+//   } catch (error) {
+//     console.error(
+//       "Failed to load form options:",
+//       error
+//     )
+//   }
+// }
+// async function loadFormOptions() {
+//   try {
+//     const categoryResult = await getCategories()
+
+//     categories.value = categoryResult
+//   } catch (error) {
+//     console.error(
+//       "Failed to load form options:",
+//       error
+//     )
+//   }
+// }
 onMounted(() => {
-  loadFormOptions()
+  // loadFormOptions()
+  categoryStore.loadCategories()
+  accountStore.loadAccounts()
 })
 const selectedDateText = computed(() => {
   return selectedDate.value.toLocaleDateString("th-TH", {
@@ -105,7 +123,6 @@ function saveTransaction() {
 
   console.log("Transaction:", form.value)
 
-  // dialogRef.value?.close()
   isDialogOpen.value = false
   resetForm()
 }
@@ -115,7 +132,6 @@ function resetForm() {
     type: "expense",
     amount: null,
     category: "",
-    // bankId: null,
     accountId: null,
     title: "",
     note: "",
@@ -193,7 +209,7 @@ console.log(localStorage.getItem("token"))
 
     <!-- Transaction dialog -->
   </section>
-  <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accounts" :categories="categories"
+  <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts" :categories="categoryStore.categories"
     :selected-date-text="selectedDateText" @close="closeDialog" @save="saveTransaction" />
 </template>
 

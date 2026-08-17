@@ -14,8 +14,6 @@ export async function createAccount(
 }
 
 export async function getAccounts() {
-  const response =
-    await api.get<Account[]>("/accounts")
-
+  const response = await api.get<Account[]>("/accounts")
   return response.data
 }
