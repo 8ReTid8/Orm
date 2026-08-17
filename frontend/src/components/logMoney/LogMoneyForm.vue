@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import type { Account } from "@/types/account";
 import type { Bank } from "@/types/bank";
 import type { Category } from "@/types/category";
 import type { TransactionForm } from "@/types/transaction"
+import { ImagePlus } from "lucide-vue-next";
 import { ref, watch } from "vue";
 
 interface Props {
     open: boolean
     form: TransactionForm
-    banks: Bank[]
+    // banks: Bank[]
+    accounts : Account[]
     categories: Category[]
     selectedDateText: string
 }
@@ -17,14 +20,6 @@ const emit = defineEmits<{
     save: []
 }>()
 const dialogRef = ref<HTMLDialogElement | null>(null)
-// const banks: Bank[] = [
-//     { id: 1, name: "เงินสด" },
-//     { id: 2, name: "KBank" },
-//     { id: 3, name: "SCB" },
-//     { id: 4, name: "Krungthai" },
-//     { id: 5, name: "Bangkok Bank" },
-//     { id: 6, name: "TrueMoney" },
-// ]
 
 watch(
     () => props.open,
@@ -153,24 +148,34 @@ function closeDialog() {
                     <!-- <legend class="fieldset-legend">
                         ธนาคาร
                     </legend> -->
-                    <label class="label text-base">ธนาคาร</label>
-
-                    <select v-model.number="form.bankId" class="select w-full" required>
+                    <label class="label text-base">บัญชี</label>
+                    <!-- <select v-model.number="form.bankId" class="select w-full" required>
                         <option disabled :value="null">
-                            เลือกธนาคาร
+                            เลือกบัญชี
                         </option>
 
                         <option v-for="bank in banks" :key="bank.id" :value="bank.id">
                             {{ bank.name }}
                         </option>
+                    </select> -->
+                    <select v-model.number="form.accountId" class="select w-full" required>
+                        <option disabled :value="null">
+                            เลือกบัญชี
+                        </option>
+
+                        <option v-for="account in accounts" :key="account.id" :value="account.id">
+                            {{ account.name }}
+                        </option>
                     </select>
                 </fieldset>
+
                 <!-- Note -->
                 <fieldset class="fieldset gap-0.5">
                     <!-- <legend class="fieldset-legend">หมายเหตุ</legend> -->
                     <label class="label text-base">หมายเหตุ</label>
                     <textarea v-model.trim="form.note" class="textarea w-full" placeholder="รายละเอียดเพิ่มเติม" />
                 </fieldset>
+
                 <fieldset class="fieldset gap-0.5">
                     <!-- <legend class="fieldset-legend">
                         รูปสลิป

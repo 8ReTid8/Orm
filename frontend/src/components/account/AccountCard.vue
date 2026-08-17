@@ -21,15 +21,15 @@ function formatMoney(value: number) {
 </script>
 
 <template>
-  <div class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-  <!-- <div class="card min-h-64 border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-1 hover:shadow-md"> -->
+  <!-- <div class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-1 hover:shadow-md"> -->
+  <div class="card min-h-52 border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
 
   <div class="card-body">
 
     <!-- Account -->
     <div class="flex items-center gap-3">
       <div
-        class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary"
+        class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-lime-300 text-green-700"
       >
         <Wallet class="size-6" />
       </div>

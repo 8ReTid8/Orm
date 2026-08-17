@@ -8,6 +8,7 @@ import type { Category } from "@/types/category"
 import { getBanks } from "@/services/bank"
 import { getCategories } from "@/services/category"
 import type { Bank } from "@/types/bank"
+import type { Account } from "@/types/account"
 const selectedDate = ref<Date>(new Date())
 // const dialogRef = ref<HTMLDialogElement | null>(null)
 const isDialogOpen = ref(false)
@@ -35,13 +36,15 @@ const transactions = ref<Transaction[]>([
   },
 ])
 const banks = ref<Bank[]>([])
+const accounts = ref<Account[]>([])
 const categories = ref<Category[]>([])
 const isLoadingTransactions = ref(false)
 const form = ref<TransactionForm>({
   type: "expense",
   amount: null,
   category: "",
-  bankId: null,
+  // bankId: null,
+  accountId: null,
   title: "",
   note: "",
   transactionDate: formatDate(new Date()),
@@ -112,7 +115,8 @@ function resetForm() {
     type: "expense",
     amount: null,
     category: "",
-    bankId: null,
+    // bankId: null,
+    accountId: null,
     title: "",
     note: "",
     transactionDate: formatDate(selectedDate.value),
@@ -189,7 +193,7 @@ console.log(localStorage.getItem("token"))
 
     <!-- Transaction dialog -->
   </section>
-  <LogMoneyForm :open="isDialogOpen" :form="form" :banks="banks" :categories="categories"
+  <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accounts" :categories="categories"
     :selected-date-text="selectedDateText" @close="closeDialog" @save="saveTransaction" />
 </template>
 

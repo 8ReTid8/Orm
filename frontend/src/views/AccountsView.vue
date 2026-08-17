@@ -139,7 +139,7 @@ onMounted(() => {
             <AccountCard v-for="account in accounts" :key="account.id" :account="account" @detail="openAccountDetail" />
             <!-- Add account card -->
             <button type="button"
-                class="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 bg-base-100 text-base-content/50 transition hover:border-primary hover:bg-primary/5 hover:text-primary"
+                class="flex min-h-52 flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 bg-base-100 text-base-content/50 transition hover:border-primary hover:bg-primary/5 hover:text-primary"
                 @click="openAddAccount">
                 <div class="flex size-12 items-center justify-center rounded-full bg-base-200">
                     <Plus class="size-6" />
