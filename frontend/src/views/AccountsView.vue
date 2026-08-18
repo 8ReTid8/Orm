@@ -13,7 +13,7 @@ import { useAccountStore } from "@/stores/account"
 const accountStore = useAccountStore()
 const isLoading = ref(false)
 const isAddAccountOpen = ref(false)
-
+console.log(localStorage.getItem("token"))
 function openAddAccount() {
     isAddAccountOpen.value = true
 }

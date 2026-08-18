@@ -4,7 +4,7 @@ import type { Bank } from "@/types/bank";
 import type { Category } from "@/types/category";
 import type { TransactionForm } from "@/types/transaction"
 import { ImagePlus } from "lucide-vue-next";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 
 interface Props {
     open: boolean
@@ -20,6 +20,11 @@ const emit = defineEmits<{
 }>()
 const dialogRef = ref<HTMLDialogElement | null>(null)
 
+const filteredCategories = computed(() => {
+    return props.categories.filter(
+        (category) => category.type === props.form.type
+    )
+})
 watch(
     () => props.open,
     (isOpen) => {
@@ -135,9 +140,12 @@ function closeDialog() {
 
                         <select v-model="form.category" class="select w-full" required>
                             <option disabled value="">เลือกหมวดหมู่</option>
-                            <option v-for="category in categories" :key="category.id" :value="category.id">
+                            <option v-for="category in filteredCategories" :key="category.id" :value="category.id">
                                 {{ category.name }}
                             </option>
+                            <!-- <option v-for="category in categories" :key="category.id" :value="category.id">
+                                {{ category.name }}
+                            </option> -->
                             <!-- <option value="food">อาหาร</option>
                             <option value="transport">การเดินทาง</option>
                             <option value="salary">เงินเดือน</option>
@@ -152,15 +160,6 @@ function closeDialog() {
                         ธนาคาร
                     </legend> -->
                     <label class="label text-base">บัญชี</label>
-                    <!-- <select v-model.number="form.bankId" class="select w-full" required>
-                        <option disabled :value="null">
-                            เลือกบัญชี
-                        </option>
-
-                        <option v-for="bank in banks" :key="bank.id" :value="bank.id">
-                            {{ bank.name }}
-                        </option>
-                    </select> -->
                     <select v-model.number="form.accountId" class="select w-full" required>
                         <option disabled :value="null">
                             เลือกบัญชี
