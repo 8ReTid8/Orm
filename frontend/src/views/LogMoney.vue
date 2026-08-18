@@ -11,6 +11,7 @@ import type { Bank } from "@/types/bank"
 import type { Account } from "@/types/account"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
+import { createTransaction } from "@/services/transaction"
 const selectedDate = ref<Date>(new Date())
 // const dialogRef = ref<HTMLDialogElement | null>(null)
 const isDialogOpen = ref(false)
@@ -54,41 +55,13 @@ const form = ref<TransactionForm>({
   transactionDate: formatDate(new Date()),
   slipImage: null,
 })
-// async function loadFormOptions() {
-//   try {
-//     const [bankResult, categoryResult] =
-//       await Promise.all([
-//         getBanks(),
-//         getCategories(),
-//       ])
 
-//     banks.value = bankResult
-//     categories.value = categoryResult
-
-//   } catch (error) {
-//     console.error(
-//       "Failed to load form options:",
-//       error
-//     )
-//   }
-// }
-// async function loadFormOptions() {
-//   try {
-//     const categoryResult = await getCategories()
-
-//     categories.value = categoryResult
-//   } catch (error) {
-//     console.error(
-//       "Failed to load form options:",
-//       error
-//     )
-//   }
-// }
 onMounted(() => {
   // loadFormOptions()
   categoryStore.loadCategories()
   accountStore.loadAccounts()
 })
+
 const selectedDateText = computed(() => {
   return selectedDate.value.toLocaleDateString("th-TH", {
     day: "numeric",
@@ -116,15 +89,25 @@ function addTodayTransaction() {
   form.value.transactionDate = formatDate(new Date())
   isDialogOpen.value = true
 }
-function saveTransaction() {
-  if (!form.value.amount || !form.value.title || !form.value.category) {
+async function saveTransaction() {
+  if (!form.value.amount || !form.value.title || !form.value.category || !form.value.accountId) {
     return
   }
 
-  console.log("Transaction:", form.value)
+  try {
+    console.log("form before send:", form.value)
+    const result = await createTransaction(form.value)
+    console.log("Transaction:", result.transaction)
 
-  isDialogOpen.value = false
-  resetForm()
+    isDialogOpen.value = false
+    resetForm()
+  } catch (error) {
+    console.error("Create transaction failed:", error)
+  }
+  // console.log("Transaction:", form.value)
+
+  // isDialogOpen.value = false
+  // resetForm()
 }
 
 function resetForm() {
@@ -209,8 +192,9 @@ console.log(localStorage.getItem("token"))
 
     <!-- Transaction dialog -->
   </section>
-  <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts" :categories="categoryStore.categories"
-    :selected-date-text="selectedDateText" @close="closeDialog" @save="saveTransaction" />
+  <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
+    :categories="categoryStore.categories" :selected-date-text="selectedDateText" @close="closeDialog"
+    @save="saveTransaction" />
 </template>
 
 <style>

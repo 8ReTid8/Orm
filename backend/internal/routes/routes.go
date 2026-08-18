@@ -18,13 +18,13 @@ func SetupRoutes(router *gin.Engine) {
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		protected.GET("/banks", handlers.GetBanks)
+		// protected.GET("/banks", handlers.GetBanks)
 		protected.GET("/categories", handlers.GetCategories)
 		protected.POST("/accounts", handlers.CreateAccount)
 		protected.GET("/accounts", handlers.GetAccounts)
-		// protected.POST(
-		// 	"/transactions",
-		// 	handlers.CreateTransaction,
-		// )
+		protected.POST(
+			"/transactions",
+			handlers.CreateTransaction,
+		)
 	}
 }

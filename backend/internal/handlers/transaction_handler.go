@@ -1,161 +1,241 @@
 package handlers
 
-// import (
-// 	"fmt"
-// 	"net/http"
-// 	"os"
-// 	"path/filepath"
-// 	"strconv"
-// 	"time"
+import (
+	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 
-// 	"backend/internal/database"
-// 	"backend/internal/models"
+	"backend/internal/database"
+	"backend/internal/models"
 
-// 	"github.com/gin-gonic/gin"
-// )
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
 
-// func CreateTransaction(c *gin.Context) {
-// 	// 1. User จาก JWT
-// 	userIDValue, exists := c.Get("userID")
-// 	if !exists {
-// 		c.JSON(http.StatusUnauthorized, gin.H{
-// 			"message": "Unauthorized",
-// 		})
-// 		return
-// 	}
+func CreateTransaction(c *gin.Context) {
+	// 1. User จาก JWT
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Unauthorized",
+		})
+		return
+	}
 
-// 	userID, ok := userIDValue.(uint)
-// 	if !ok {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"message": "Invalid user ID",
-// 		})
-// 		return
-// 	}
+	userID, ok := userIDValue.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Invalid user ID",
+		})
+		return
+	}
 
-// 	// 2. รับค่าจาก multipart/form-data
-// 	transactionType := c.PostForm("type")
-// 	amountString := c.PostForm("amount")
-// 	category := c.PostForm("category")
-// 	bankIDString := c.PostForm("bankId")
-// 	title := c.PostForm("title")
-// 	note := c.PostForm("note")
-// 	transactionDateString := c.PostForm("transactionDate")
+	// 2. รับค่าจาก multipart/form-data
+	transactionType := c.PostForm("type")
+	amountString := c.PostForm("amount")
+	category := c.PostForm("category")
+	// bankIDString := c.PostForm("bankId")
+	accountIDString := c.PostForm("accountId")
+	title := c.PostForm("title")
+	note := c.PostForm("note")
+	transactionDateString := c.PostForm("transactionDate")
+	fmt.Printf(
+		"transactionType = [%s]\n",
+		transactionType,
+	)
+	if transactionType != "income" && transactionType != "expense" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "ประเภท transaction ไม่ถูกต้อง",
+		})
+		return
+	}
 
-// 	if transactionType != "income" && transactionType != "expense" {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"message": "ประเภท transaction ไม่ถูกต้อง",
-// 		})
-// 		return
-// 	}
+	if title == "" || category == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "กรุณากรอกข้อมูลให้ครบ",
+		})
+		return
+	}
 
-// 	if title == "" || category == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"message": "กรุณากรอกข้อมูลให้ครบ",
-// 		})
-// 		return
-// 	}
+	// amount string -> float64
+	amount, err := strconv.ParseFloat(amountString, 64)
+	if err != nil || amount <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "จำนวนเงินไม่ถูกต้อง",
+		})
+		return
+	}
 
-// 	// amount string -> float64
-// 	amount, err := strconv.ParseFloat(amountString, 64)
-// 	if err != nil || amount <= 0 {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"message": "จำนวนเงินไม่ถูกต้อง",
-// 		})
-// 		return
-// 	}
+	// bankId string -> uint
+	// bankID64, err := strconv.ParseUint(bankIDString, 10, 64)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "ธนาคารไม่ถูกต้อง",
+	// 	})
+	// 	return
+	// }
 
-// 	// bankId string -> uint
-// 	bankID64, err := strconv.ParseUint(bankIDString, 10, 64)
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"message": "ธนาคารไม่ถูกต้อง",
-// 		})
-// 		return
-// 	}
+	// bankID := uint(bankID64)
 
-// 	bankID := uint(bankID64)
+	accountID64, err := strconv.ParseUint(accountIDString, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "บัญชีไม่ถูกต้อง",
+		})
+		return
+	}
 
-// 	// วันที่
-// 	transactionDate, err := time.Parse(
-// 		"2006-01-02",
-// 		transactionDateString,
-// 	)
+	accountID := uint(accountID64)
 
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"message": "วันที่ไม่ถูกต้อง",
-// 		})
-// 		return
-// 	}
+	// วันที่
+	transactionDate, err := time.Parse(
+		"2006-01-02",
+		transactionDateString,
+	)
 
-// 	// 3. เช็ก Bank ก่อน
-// 	var bank models.Bank
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "วันที่ไม่ถูกต้อง",
+		})
+		return
+	}
 
-// 	if err := database.DB.First(&bank, bankID).Error; err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"message": "ไม่พบธนาคาร",
-// 		})
-// 		return
-// 	}
+	// 3. เช็ก Bank ก่อน
+	// var bank models.Bank
 
-// 	// 4. Upload slip (optional)
-// 	slipPath := ""
+	// if err := database.DB.First(&bank, bankID).Error; err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "ไม่พบธนาคาร",
+	// 	})
+	// 	return
+	// }
 
-// 	file, err := c.FormFile("slipImage")
+	// 7. เช็กว่า account เป็นของ user นี้จริง
+	var account models.Account
 
-// 	if err == nil {
-// 		uploadDir := "uploads/slips"
+	if err := database.DB.
+		Where("id = ? AND user_id = ?", accountID, userID).
+		First(&account).Error; err != nil {
 
-// 		if err := os.MkdirAll(uploadDir, 0755); err != nil {
-// 			c.JSON(http.StatusInternalServerError, gin.H{
-// 				"message": "ไม่สามารถสร้างโฟลเดอร์รูปได้",
-// 			})
-// 			return
-// 		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "ไม่พบบัญชี",
+		})
+		return
+	}
 
-// 		extension := filepath.Ext(file.Filename)
+	// 4. Upload slip (optional)
+	slipPath := ""
 
-// 		filename := fmt.Sprintf(
-// 			"%d_%d%s",
-// 			userID,
-// 			time.Now().UnixNano(),
-// 			extension,
-// 		)
+	file, err := c.FormFile("slipImage")
 
-// 		filePath := filepath.Join(uploadDir, filename)
+	if err == nil {
+		uploadDir := "uploads/slips"
 
-// 		if err := c.SaveUploadedFile(file, filePath); err != nil {
-// 			c.JSON(http.StatusInternalServerError, gin.H{
-// 				"message": "ไม่สามารถบันทึกรูปสลิปได้",
-// 			})
-// 			return
-// 		}
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "ไม่สามารถสร้างโฟลเดอร์รูปได้",
+			})
+			return
+		}
 
-// 		slipPath = "/" + filepath.ToSlash(filePath)
-// 	}
+		extension := filepath.Ext(file.Filename)
 
-// 	// 5. Create Transaction
-// 	transaction := models.Transaction{
-// 		UserID:          userID,
-// 		BankID:          bankID,
-// 		Category:        category,
-// 		Type:            models.TransactionType(transactionType),
-// 		Amount:          amount,
-// 		Title:           title,
-// 		Note:            note,
-// 		SlipImage:       slipPath,
-// 		TransactionDate: transactionDate,
-// 	}
+		filename := fmt.Sprintf(
+			"%d_%d%s",
+			userID,
+			time.Now().UnixNano(),
+			extension,
+		)
 
-// 	if err := database.DB.Create(&transaction).Error; err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"message": "ไม่สามารถบันทึกรายการได้",
-// 		})
-// 		return
-// 	}
+		filePath := filepath.Join(uploadDir, filename)
 
-// 	c.JSON(http.StatusCreated, gin.H{
-// 		"message":     "เพิ่มรายการสำเร็จ",
-// 		"transaction": transaction,
-// 	})
-// }
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "ไม่สามารถบันทึกรูปสลิปได้",
+			})
+			return
+		}
+
+		slipPath = "/" + filepath.ToSlash(filePath)
+	}
+
+	// 5. Create Transaction
+	transaction := models.Transaction{
+		// UserID:          userID,
+		// BankID:          bankID,
+		AccountID: accountID,
+		Category:  category,
+		// Type:            models.TransactionType(transactionType),
+		Type:            transactionType,
+		Amount:          amount,
+		Title:           title,
+		Note:            note,
+		Image:           slipPath,
+		TransactionDate: transactionDate,
+	}
+
+	// if err := database.DB.Create(&transaction).Error; err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"message": "ไม่สามารถบันทึกรายการได้",
+	// 	})
+	// 	return
+	// }
+	err = database.DB.Transaction(func(tx *gorm.DB) error {
+
+		// expense ต้องเช็กยอดก่อน
+		if transactionType == "expense" {
+			if account.Balance < amount {
+				return fmt.Errorf("ยอดเงินในบัญชีไม่เพียงพอ")
+			}
+
+			if err := tx.Model(&models.Account{}).
+				Where("id = ?", accountID).
+				Update(
+					"balance",
+					gorm.Expr("balance - ?", amount),
+				).Error; err != nil {
+				return err
+			}
+		}
+
+		// income
+		if transactionType == "income" {
+			if err := tx.Model(&models.Account{}).
+				Where("id = ?", accountID).
+				Update(
+					"balance",
+					gorm.Expr("balance + ?", amount),
+				).Error; err != nil {
+				return err
+			}
+		}
+
+		// สร้าง transaction
+		if err := tx.Create(&transaction).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+	
+	if err != nil {
+		if err.Error() == "ยอดเงินในบัญชีไม่เพียงพอ" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถบันทึกรายการได้",
+		})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{
+		"message":     "เพิ่มรายการสำเร็จ",
+		"transaction": transaction,
+	})
+}

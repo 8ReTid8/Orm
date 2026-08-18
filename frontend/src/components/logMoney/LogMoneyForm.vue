@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Account } from "@/types/account";
-import type { Bank } from "@/types/bank";
 import type { Category } from "@/types/category";
 import type { TransactionForm } from "@/types/transaction"
 import { ImagePlus } from "lucide-vue-next";
@@ -135,30 +134,20 @@ function closeDialog() {
 
                     <!-- Category -->
                     <fieldset class="fieldset gap-0.5">
-                        <!-- <legend class="fieldset-legend">หมวดหมู่</legend> -->
                         <label class="label text-base">หมวดหมู่</label>
 
                         <select v-model="form.category" class="select w-full" required>
                             <option disabled value="">เลือกหมวดหมู่</option>
-                            <option v-for="category in filteredCategories" :key="category.id" :value="category.id">
+                            <option v-for="category in filteredCategories" :key="category.id" :value="category.name">
                                 {{ category.name }}
                             </option>
                             <!-- <option v-for="category in categories" :key="category.id" :value="category.id">
                                 {{ category.name }}
                             </option> -->
-                            <!-- <option value="food">อาหาร</option>
-                            <option value="transport">การเดินทาง</option>
-                            <option value="salary">เงินเดือน</option>
-                            <option value="shopping">ช้อปปิ้ง</option>
-                            <option value="other">อื่น ๆ</option> -->
                         </select>
-
                     </fieldset>
                 </div>
                 <fieldset class="fieldset gap-0.5">
-                    <!-- <legend class="fieldset-legend">
-                        ธนาคาร
-                    </legend> -->
                     <label class="label text-base">บัญชี</label>
                     <select v-model.number="form.accountId" class="select w-full" required>
                         <option disabled :value="null">
@@ -173,15 +162,11 @@ function closeDialog() {
 
                 <!-- Note -->
                 <fieldset class="fieldset gap-0.5">
-                    <!-- <legend class="fieldset-legend">หมายเหตุ</legend> -->
                     <label class="label text-base">หมายเหตุ</label>
                     <textarea v-model.trim="form.note" class="textarea w-full" placeholder="รายละเอียดเพิ่มเติม" />
                 </fieldset>
 
                 <fieldset class="fieldset gap-0.5">
-                    <!-- <legend class="fieldset-legend">
-                        รูปสลิป
-                    </legend> -->
                     <label class="label text-base">รูปสลิป</label>
                     <label
                         class="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-box border border-dashed border-base-300 bg-base-200/50 p-4 text-center transition hover:border-primary hover:bg-primary/5">
