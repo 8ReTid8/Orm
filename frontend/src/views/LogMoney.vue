@@ -1,43 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
-import { CalendarDays, Plus } from "lucide-vue-next"
+import { Plus } from "lucide-vue-next"
 import type { TransactionForm, Transaction } from "@/types/transaction"
 import LogMoneyForm from "@/components/logMoney/LogMoneyForm.vue"
 import DailyTransactionList from "@/components/logMoney/DailyTransactionList.vue"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
 import { createTransaction, getTransactions } from "@/services/transaction"
+import TransCalendar from "@/components/logMoney/TransCalendar.vue"
 const selectedDate = ref<Date>(new Date())
 const isDialogOpen = ref(false)
 const transactions = ref<Transaction[]>([])
-// const transactions = ref<Transaction[]>([
-//   {
-//     id: 1,
-//     type: "expense",
-//     amount: 120,
-//     category: "อาหาร",
-//     bankName: "KBank",
-//     title: "ข้าวกลางวัน",
-//     note: "",
-//     transactionDate: formatDate(new Date()),
-//   },
-//   {
-//     id: 2,
-//     type: "income",
-//     amount: 500,
-//     category: "รายได้",
-//     bankName: "SCB",
-//     title: "ค่าขนม",
-//     note: "",
-//     transactionDate: formatDate(new Date()),
-//   },
-// ])
-// const banks = ref<Bank[]>([])
-// const accounts = ref<Account[]>([])
-// const categories = ref<Category[]>([])
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
-
+const editingTransactionId = ref<number | null>(null)
 const isLoadingTransactions = ref(false)
 const form = ref<TransactionForm>({
   type: "expense",
@@ -58,6 +34,37 @@ const selectedDateText = computed(() => {
   })
 })
 
+const selectedDayTransactions = computed(() => {
+  const date = formatDate(selectedDate.value)
+
+  return transactions.value.filter(
+    transaction =>
+      transaction.transactionDate.startsWith(date)
+  )
+})
+function openEditTransaction(transaction: Transaction) {
+  editingTransactionId.value = transaction.id
+  form.value = {
+    type: transaction.type,
+    amount: transaction.amount,
+    category: transaction.category,
+    accountId: transaction.account.id,
+    title: transaction.title,
+    note: transaction.note,
+    transactionDate: transaction.transactionDate.slice(0, 10),
+    slipImage: null,
+  }
+  isDialogOpen.value = true
+}
+function openAddTransaction() {
+  editingTransactionId.value = null
+  resetForm()
+
+  form.value.transactionDate =
+    formatDate(selectedDate.value)
+
+  isDialogOpen.value = true
+}
 function formatDate(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -69,14 +76,14 @@ function formatDate(date: Date): string {
 function selectDate(date: Date) {
   selectedDate.value = date
   form.value.transactionDate = formatDate(date)
-  // dialogRef.value?.showModal()
-  // isDialogOpen.value = true
 }
+
 function addTodayTransaction() {
   selectedDate.value = new Date()
   form.value.transactionDate = formatDate(new Date())
   isDialogOpen.value = true
 }
+
 async function saveTransaction() {
   if (!form.value.amount || !form.value.title || !form.value.category || !form.value.accountId) {
     return
@@ -110,9 +117,11 @@ function resetForm() {
     slipImage: null,
   }
 }
+
 function closeDialog() {
   isDialogOpen.value = false
 }
+
 async function loadTransactions(
   year: number,
   month: number,
@@ -133,15 +142,6 @@ async function loadTransactions(
     isLoadingTransactions.value = false
   }
 }
-
-const selectedDayTransactions = computed(() => {
-  const date = formatDate(selectedDate.value)
-
-  return transactions.value.filter(
-    transaction =>
-      transaction.transactionDate.startsWith(date)
-  )
-})
 
 console.log(localStorage.getItem("token"))
 onMounted(() => {
@@ -174,69 +174,11 @@ onMounted(() => {
         เพิ่มรายการวันนี้
       </button>
     </div>
-
-    <!-- Calendar card -->
-    <div class="card border border-base-300 bg-base-100 shadow-sm">
-      <div class="card-body">
-        <div class="mb-3 flex items-center gap-2">
-          <CalendarDays class="size-5" />
-          <h2 class="card-title">ปฏิทินรายรับรายจ่าย</h2>
-        </div>
-        <VCalendar class="finance-calendar w-full" expanded borderless>
-          <template #day-content="{ day }">
-            <button type="button" class="
-        relative
-        block
-        min-h-28
-        w-full
-        cursor-pointer
-        bg-base-100
-        p-3
-        pt-10
-        text-left
-        transition-colors
-        hover:bg-base-200
-      " @click="selectDate(day.date)">
-              <span class="
-          absolute
-          right-3
-          top-2
-          flex
-          size-7
-          items-center
-          justify-center
-          rounded-full
-          text-sm
-          font-medium
-        ">
-                {{ day.day }}
-              </span>
-            </button>
-          </template>
-        </VCalendar>
-      </div>
-    </div>
+    <TransCalendar :selected-date="selectedDate" :transactions="transactions" @select="selectDate" />
     <DailyTransactionList :selected-date-text="selectedDateText" :transactions="selectedDayTransactions"
-      :loading="isLoadingTransactions" @add="isDialogOpen = true" />
-
-    <!-- Transaction dialog -->
+      :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" />
   </section>
   <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
     :categories="categoryStore.categories" :selected-date-text="selectedDateText" @close="closeDialog"
     @save="saveTransaction" />
 </template>
-
-<style>
-.finance-calendar .vc-weeks {
-  border-top: 1px solid var(--color-base-300);
-  /* border-left: 1px solid var(--color-base-300); */
-}
-
-.finance-calendar .vc-day {
-  min-height: 112px;
-  padding: 0 !important;
-  border-right: 1px solid var(--color-base-300);
-  border-bottom: 1px solid var(--color-base-300);
-  box-sizing: border-box;
-}
-</style>

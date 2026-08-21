@@ -6,7 +6,6 @@ export interface TransactionForm {
   type: TransactionType
   amount: number | null
   category: string
-  // bankId: number | null
   accountId: number | null
   title: string
   note: string
