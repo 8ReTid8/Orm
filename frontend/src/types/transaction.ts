@@ -1,3 +1,5 @@
+import type { Account } from "./account"
+
 export type TransactionType = "income" | "expense"
 
 export interface TransactionForm {
@@ -14,6 +16,7 @@ export interface TransactionForm {
 
 export interface Transaction {
   id: number
+  account: Account
   type: TransactionType
   amount: number
   category: string

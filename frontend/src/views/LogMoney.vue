@@ -4,40 +4,34 @@ import { CalendarDays, Plus } from "lucide-vue-next"
 import type { TransactionForm, Transaction } from "@/types/transaction"
 import LogMoneyForm from "@/components/logMoney/LogMoneyForm.vue"
 import DailyTransactionList from "@/components/logMoney/DailyTransactionList.vue"
-import type { Category } from "@/types/category"
-import { getBanks } from "@/services/bank"
-import { getCategories } from "@/services/category"
-import type { Bank } from "@/types/bank"
-import type { Account } from "@/types/account"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
-import { createTransaction } from "@/services/transaction"
+import { createTransaction, getTransactions } from "@/services/transaction"
 const selectedDate = ref<Date>(new Date())
-// const dialogRef = ref<HTMLDialogElement | null>(null)
 const isDialogOpen = ref(false)
-// const transactions = ref<Transaction[]>([])
-const transactions = ref<Transaction[]>([
-  {
-    id: 1,
-    type: "expense",
-    amount: 120,
-    category: "อาหาร",
-    bankName: "KBank",
-    title: "ข้าวกลางวัน",
-    note: "",
-    transactionDate: formatDate(new Date()),
-  },
-  {
-    id: 2,
-    type: "income",
-    amount: 500,
-    category: "รายได้",
-    bankName: "SCB",
-    title: "ค่าขนม",
-    note: "",
-    transactionDate: formatDate(new Date()),
-  },
-])
+const transactions = ref<Transaction[]>([])
+// const transactions = ref<Transaction[]>([
+//   {
+//     id: 1,
+//     type: "expense",
+//     amount: 120,
+//     category: "อาหาร",
+//     bankName: "KBank",
+//     title: "ข้าวกลางวัน",
+//     note: "",
+//     transactionDate: formatDate(new Date()),
+//   },
+//   {
+//     id: 2,
+//     type: "income",
+//     amount: 500,
+//     category: "รายได้",
+//     bankName: "SCB",
+//     title: "ค่าขนม",
+//     note: "",
+//     transactionDate: formatDate(new Date()),
+//   },
+// ])
 // const banks = ref<Bank[]>([])
 // const accounts = ref<Account[]>([])
 // const categories = ref<Category[]>([])
@@ -54,12 +48,6 @@ const form = ref<TransactionForm>({
   note: "",
   transactionDate: formatDate(new Date()),
   slipImage: null,
-})
-
-onMounted(() => {
-  // loadFormOptions()
-  categoryStore.loadCategories()
-  accountStore.loadAccounts()
 })
 
 const selectedDateText = computed(() => {
@@ -125,8 +113,49 @@ function resetForm() {
 function closeDialog() {
   isDialogOpen.value = false
 }
+async function loadTransactions(
+  year: number,
+  month: number,
+) {
+  try {
+    isLoadingTransactions.value = true
+
+    transactions.value = await getTransactions(
+      year,
+      month,
+    )
+  } catch (error) {
+    console.error(
+      "Failed to load transactions:",
+      error,
+    )
+  } finally {
+    isLoadingTransactions.value = false
+  }
+}
+
+const selectedDayTransactions = computed(() => {
+  const date = formatDate(selectedDate.value)
+
+  return transactions.value.filter(
+    transaction =>
+      transaction.transactionDate.startsWith(date)
+  )
+})
 
 console.log(localStorage.getItem("token"))
+onMounted(() => {
+  const now = new Date()
+
+  loadTransactions(
+    now.getFullYear(),
+    now.getMonth() + 1,
+  )
+  // loadFormOptions()
+  categoryStore.loadCategories()
+  accountStore.loadAccounts()
+})
+
 </script>
 
 <template>
@@ -187,7 +216,7 @@ console.log(localStorage.getItem("token"))
         </VCalendar>
       </div>
     </div>
-    <DailyTransactionList :selected-date-text="selectedDateText" :transactions="transactions"
+    <DailyTransactionList :selected-date-text="selectedDateText" :transactions="selectedDayTransactions"
       :loading="isLoadingTransactions" @add="isDialogOpen = true" />
 
     <!-- Transaction dialog -->

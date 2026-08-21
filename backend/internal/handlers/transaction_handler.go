@@ -37,7 +37,6 @@ func CreateTransaction(c *gin.Context) {
 	transactionType := c.PostForm("type")
 	amountString := c.PostForm("amount")
 	category := c.PostForm("category")
-	// bankIDString := c.PostForm("bankId")
 	accountIDString := c.PostForm("accountId")
 	title := c.PostForm("title")
 	note := c.PostForm("note")
@@ -69,17 +68,6 @@ func CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	// bankId string -> uint
-	// bankID64, err := strconv.ParseUint(bankIDString, 10, 64)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "ธนาคารไม่ถูกต้อง",
-	// 	})
-	// 	return
-	// }
-
-	// bankID := uint(bankID64)
-
 	accountID64, err := strconv.ParseUint(accountIDString, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -103,17 +91,6 @@ func CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	// 3. เช็ก Bank ก่อน
-	// var bank models.Bank
-
-	// if err := database.DB.First(&bank, bankID).Error; err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "ไม่พบธนาคาร",
-	// 	})
-	// 	return
-	// }
-
-	// 7. เช็กว่า account เป็นของ user นี้จริง
 	var account models.Account
 
 	if err := database.DB.
@@ -164,11 +141,8 @@ func CreateTransaction(c *gin.Context) {
 
 	// 5. Create Transaction
 	transaction := models.Transaction{
-		// UserID:          userID,
-		// BankID:          bankID,
-		AccountID: accountID,
-		Category:  category,
-		// Type:            models.TransactionType(transactionType),
+		AccountID:       accountID,
+		Category:        category,
 		Type:            transactionType,
 		Amount:          amount,
 		Title:           title,
@@ -220,7 +194,7 @@ func CreateTransaction(c *gin.Context) {
 
 		return nil
 	})
-	
+
 	if err != nil {
 		if err.Error() == "ยอดเงินในบัญชีไม่เพียงพอ" {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -237,5 +211,76 @@ func CreateTransaction(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message":     "เพิ่มรายการสำเร็จ",
 		"transaction": transaction,
+	})
+}
+
+func GetTransactions(c *gin.Context) {
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Unauthorized",
+		})
+		return
+	}
+
+	userID, ok := userIDValue.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Invalid user ID",
+		})
+		return
+	}
+
+	yearString := c.Query("year")
+	monthString := c.Query("month")
+
+	year, err := strconv.Atoi(yearString)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "ปีไม่ถูกต้อง",
+		})
+		return
+	}
+
+	month, err := strconv.Atoi(monthString)
+	if err != nil || month < 1 || month > 12 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "เดือนไม่ถูกต้อง",
+		})
+		return
+	}
+
+	startDate := time.Date(
+		year,
+		time.Month(month),
+		1,
+		0, 0, 0, 0,
+		time.Local,
+	)
+
+	endDate := startDate.AddDate(0, 1, 0)
+
+	var transactions []models.Transaction
+
+	if err := database.DB.
+		Preload("Account").
+		Joins("JOIN accounts ON accounts.id = transactions.account_id").
+		Where("accounts.user_id = ?", userID).
+		Where(
+			"transactions.transaction_date >= ? AND transactions.transaction_date < ?",
+			startDate,
+			endDate,
+		).
+		Order("transactions.transaction_date DESC").
+		Find(&transactions).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถโหลดรายการได้",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"transactions": transactions,
 	})
 }

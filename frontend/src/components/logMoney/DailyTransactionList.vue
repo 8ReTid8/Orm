@@ -158,7 +158,7 @@ function formatMoney(amount: number) {
             >
               <span>{{ transaction.category }}</span>
               <span>•</span>
-              <span>{{ transaction.bankName }}</span>
+              <span>{{ transaction.account.name }}</span>
             </div>
           </div>
 

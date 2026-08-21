@@ -104,3 +104,4 @@ func GetAccounts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, accounts)
 }
+

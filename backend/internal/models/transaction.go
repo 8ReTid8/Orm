@@ -2,23 +2,16 @@ package models
 
 import "time"
 
-
 type Transaction struct {
-	
-	// UserID uint
-	// User User
-	// BankID uint
-	// Bank Bank
 	AccountID uint
-	Account Account
+	Account   Account `json:"account"`
 
-	ID uint `gorm:"primaryKey"`
-	Title	string `gorm:"size:255;not null"`
-	Note	string `gorm:"type:text"`
-	Amount float64 `gorm:"not null"`
-	Category string `gorm:"size:20;not null"`
-	Type string `gorm:"size:20;not null"`
-	TransactionDate time.Time `gorm:"not null"`
-	Image string `gorm:"size:255"`
-
+	ID              uint      `gorm:"primaryKey" json:"id"`
+	Title           string    `gorm:"size:255;not null" json:"title"`
+	Note            string    `gorm:"type:text" json:"note"`
+	Amount          float64   `gorm:"not null" json:"amount"`
+	Category        string    `gorm:"size:20;not null" json:"category"`
+	Type            string    `gorm:"size:20;not null" json:"type"`
+	TransactionDate time.Time `gorm:"not null" json:"transactionDate"`
+	Image           string    `gorm:"size:255" json:"image"`
 }

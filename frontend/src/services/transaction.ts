@@ -10,6 +10,11 @@ interface CreateTransactionResponse {
   transaction: Transaction
 }
 
+interface GetTransactionsResponse {
+  transactions: Transaction[]
+}
+
+
 export async function createTransaction(
   form: TransactionForm,
 ) {
@@ -18,7 +23,6 @@ export async function createTransaction(
   payload.append("type", form.type)
   payload.append("amount", String(form.amount))
   payload.append("category", form.category)
-  // payload.append("bankId", String(form.bankId))
   payload.append("accountId", String(form.accountId))
   payload.append("title", form.title)
   payload.append("note", form.note)
@@ -43,4 +47,22 @@ export async function createTransaction(
     )
 
   return response.data
+}
+
+export async function getTransactions(
+  year: number,
+  month: number,
+) {
+  const response =
+    await api.get<GetTransactionsResponse>(
+      "/transactions",
+      {
+        params: {
+          year,
+          month,
+        },
+      },
+    )
+
+  return response.data.transactions
 }

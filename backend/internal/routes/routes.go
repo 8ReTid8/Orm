@@ -26,5 +26,6 @@ func SetupRoutes(router *gin.Engine) {
 			"/transactions",
 			handlers.CreateTransaction,
 		)
+		protected.GET("/transactions", handlers.GetTransactions)
 	}
 }
