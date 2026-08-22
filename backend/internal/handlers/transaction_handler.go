@@ -3,90 +3,100 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
+	// "os"
+	// "path/filepath"
 	"strconv"
 	"time"
 
 	"backend/internal/database"
 	"backend/internal/models"
+	"backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func CreateTransaction(c *gin.Context) {
+	fmt.Print(c)
 	// 1. User จาก JWT
-	userIDValue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Unauthorized",
-		})
-		return
-	}
+	// userIDValue, exists := c.Get("userID")
+	// if !exists {
+	// 	c.JSON(http.StatusUnauthorized, gin.H{
+	// 		"message": "Unauthorized",
+	// 	})
+	// 	return
+	// }
 
-	userID, ok := userIDValue.(uint)
+	// userID, ok := userIDValue.(uint)
+	// if !ok {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"message": "Invalid user ID",
+	// 	})
+	// 	return
+	// }
+	userID, ok := getUserID(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Invalid user ID",
-		})
 		return
 	}
 
 	// 2. รับค่าจาก multipart/form-data
-	transactionType := c.PostForm("type")
-	amountString := c.PostForm("amount")
-	category := c.PostForm("category")
-	accountIDString := c.PostForm("accountId")
-	title := c.PostForm("title")
-	note := c.PostForm("note")
-	transactionDateString := c.PostForm("transactionDate")
-	fmt.Printf(
-		"transactionType = [%s]\n",
-		transactionType,
-	)
-	if transactionType != "income" && transactionType != "expense" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "ประเภท transaction ไม่ถูกต้อง",
-		})
-		return
-	}
+	// transactionType := c.PostForm("type")
+	// amountString := c.PostForm("amount")
+	// category := c.PostForm("category")
+	// accountIDString := c.PostForm("accountId")
+	// title := c.PostForm("title")
+	// note := c.PostForm("note")
+	// transactionDateString := c.PostForm("transactionDate")
 
-	if title == "" || category == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "กรุณากรอกข้อมูลให้ครบ",
-		})
-		return
-	}
+	// if transactionType != "income" && transactionType != "expense" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "ประเภท transaction ไม่ถูกต้อง",
+	// 	})
+	// 	return
+	// }
 
-	// amount string -> float64
-	amount, err := strconv.ParseFloat(amountString, 64)
-	if err != nil || amount <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "จำนวนเงินไม่ถูกต้อง",
-		})
-		return
-	}
+	// if title == "" || category == "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "กรุณากรอกข้อมูลให้ครบ",
+	// 	})
+	// 	return
+	// }
 
-	accountID64, err := strconv.ParseUint(accountIDString, 10, 64)
+	// // amount string -> float64
+	// amount, err := strconv.ParseFloat(amountString, 64)
+	// if err != nil || amount <= 0 {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "จำนวนเงินไม่ถูกต้อง",
+	// 	})
+	// 	return
+	// }
+
+	// accountID64, err := strconv.ParseUint(accountIDString, 10, 64)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "บัญชีไม่ถูกต้อง",
+	// 	})
+	// 	return
+	// }
+
+	// accountID := uint(accountID64)
+
+	// // วันที่
+	// transactionDate, err := time.Parse(
+	// 	"2006-01-02",
+	// 	transactionDateString,
+	// )
+
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "วันที่ไม่ถูกต้อง",
+	// 	})
+	// 	return
+	// }
+	input, err := parseTransactionForm(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "บัญชีไม่ถูกต้อง",
-		})
-		return
-	}
-
-	accountID := uint(accountID64)
-
-	// วันที่
-	transactionDate, err := time.Parse(
-		"2006-01-02",
-		transactionDateString,
-	)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "วันที่ไม่ถูกต้อง",
+			"message": err.Error(),
 		})
 		return
 	}
@@ -94,7 +104,7 @@ func CreateTransaction(c *gin.Context) {
 	var account models.Account
 
 	if err := database.DB.
-		Where("id = ? AND user_id = ?", accountID, userID).
+		Where("id = ? AND user_id = ?", input.AccountID, userID).
 		First(&account).Error; err != nil {
 
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -104,51 +114,29 @@ func CreateTransaction(c *gin.Context) {
 	}
 
 	// 4. Upload slip (optional)
-	slipPath := ""
+	// slipPath := ""
+	slipPath, err := utils.SaveSlip(
+		c,
+		userID,
+	)
 
-	file, err := c.FormFile("slipImage")
-
-	if err == nil {
-		uploadDir := "uploads/slips"
-
-		if err := os.MkdirAll(uploadDir, 0755); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "ไม่สามารถสร้างโฟลเดอร์รูปได้",
-			})
-			return
-		}
-
-		extension := filepath.Ext(file.Filename)
-
-		filename := fmt.Sprintf(
-			"%d_%d%s",
-			userID,
-			time.Now().UnixNano(),
-			extension,
-		)
-
-		filePath := filepath.Join(uploadDir, filename)
-
-		if err := c.SaveUploadedFile(file, filePath); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "ไม่สามารถบันทึกรูปสลิปได้",
-			})
-			return
-		}
-
-		slipPath = "/" + filepath.ToSlash(filePath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถบันทึกรูปสลิปได้",
+		})
+		return
 	}
 
 	// 5. Create Transaction
 	transaction := models.Transaction{
-		AccountID:       accountID,
-		Category:        category,
-		Type:            transactionType,
-		Amount:          amount,
-		Title:           title,
-		Note:            note,
+		AccountID:       input.AccountID,
+		Category:        input.Category,
+		Type:            input.Type,
+		Amount:          input.Amount,
+		Title:           input.Title,
+		Note:            input.Note,
 		Image:           slipPath,
-		TransactionDate: transactionDate,
+		TransactionDate: input.TransactionDate,
 	}
 
 	// if err := database.DB.Create(&transaction).Error; err != nil {
@@ -160,28 +148,28 @@ func CreateTransaction(c *gin.Context) {
 	err = database.DB.Transaction(func(tx *gorm.DB) error {
 
 		// expense ต้องเช็กยอดก่อน
-		if transactionType == "expense" {
-			if account.Balance < amount {
+		if input.Type == "expense" {
+			if account.Balance < input.Amount {
 				return fmt.Errorf("ยอดเงินในบัญชีไม่เพียงพอ")
 			}
 
 			if err := tx.Model(&models.Account{}).
-				Where("id = ?", accountID).
+				Where("id = ?", input.AccountID).
 				Update(
 					"balance",
-					gorm.Expr("balance - ?", amount),
+					gorm.Expr("balance - ?", input.Amount),
 				).Error; err != nil {
 				return err
 			}
 		}
 
 		// income
-		if transactionType == "income" {
+		if input.Type == "income" {
 			if err := tx.Model(&models.Account{}).
-				Where("id = ?", accountID).
+				Where("id = ?", input.AccountID).
 				Update(
 					"balance",
-					gorm.Expr("balance + ?", amount),
+					gorm.Expr("balance + ?", input.Amount),
 				).Error; err != nil {
 				return err
 			}
@@ -215,19 +203,9 @@ func CreateTransaction(c *gin.Context) {
 }
 
 func GetTransactions(c *gin.Context) {
-	userIDValue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Unauthorized",
-		})
-		return
-	}
 
-	userID, ok := userIDValue.(uint)
+	userID, ok := getUserID(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Invalid user ID",
-		})
 		return
 	}
 
@@ -287,19 +265,8 @@ func GetTransactions(c *gin.Context) {
 
 func UpdateTransaction(c *gin.Context) {
 	// 1. user จาก JWT
-	userIDValue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Unauthorized",
-		})
-		return
-	}
-
-	userID, ok := userIDValue.(uint)
+	userID, ok := getUserID(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Invalid user ID",
-		})
 		return
 	}
 
@@ -320,68 +287,11 @@ func UpdateTransaction(c *gin.Context) {
 	transactionID := uint(transactionID64)
 
 	// 3. รับข้อมูลใหม่
-	transactionType := c.PostForm("type")
-	amountString := c.PostForm("amount")
-	category := c.PostForm("category")
-	accountIDString := c.PostForm("accountId")
-	title := c.PostForm("title")
-	note := c.PostForm("note")
-	transactionDateString := c.PostForm("transactionDate")
 
-	if transactionType != "income" &&
-		transactionType != "expense" {
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "ประเภท transaction ไม่ถูกต้อง",
-		})
-		return
-	}
-
-	if title == "" ||
-		category == "" ||
-		accountIDString == "" {
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "กรุณากรอกข้อมูลให้ครบ",
-		})
-		return
-	}
-
-	amount, err := strconv.ParseFloat(
-		amountString,
-		64,
-	)
-
-	if err != nil || amount <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "จำนวนเงินไม่ถูกต้อง",
-		})
-		return
-	}
-
-	accountID64, err := strconv.ParseUint(
-		accountIDString,
-		10,
-		64,
-	)
-
+	input, err := parseTransactionForm(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "บัญชีไม่ถูกต้อง",
-		})
-		return
-	}
-
-	newAccountID := uint(accountID64)
-
-	transactionDate, err := time.Parse(
-		"2006-01-02",
-		transactionDateString,
-	)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "วันที่ไม่ถูกต้อง",
+			"message": err.Error(),
 		})
 		return
 	}
@@ -413,7 +323,8 @@ func UpdateTransaction(c *gin.Context) {
 	if err := database.DB.
 		Where(
 			"id = ? AND user_id = ?",
-			newAccountID,
+			// newAccountID,
+			input.AccountID,
 			userID,
 		).
 		First(&newAccount).Error; err != nil {
@@ -426,53 +337,23 @@ func UpdateTransaction(c *gin.Context) {
 
 	// 6. รูปเดิมเป็น default
 	newImagePath := oldTransaction.Image
+	slipPath, err := utils.SaveSlip(
+		c,
+		userID,
+	)
 
-	// ถ้ามีรูปใหม่ค่อยเปลี่ยน
-	file, fileErr := c.FormFile("slipImage")
-
-	if fileErr == nil {
-		uploadDir := "uploads/slips"
-
-		if err := os.MkdirAll(
-			uploadDir,
-			0755,
-		); err != nil {
-
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "ไม่สามารถสร้างโฟลเดอร์รูปได้",
-			})
-			return
-		}
-
-		extension := filepath.Ext(file.Filename)
-
-		filename := fmt.Sprintf(
-			"%d_%d%s",
-			userID,
-			time.Now().UnixNano(),
-			extension,
-		)
-
-		filePath := filepath.Join(
-			uploadDir,
-			filename,
-		)
-
-		if err := c.SaveUploadedFile(
-			file,
-			filePath,
-		); err != nil {
-
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "ไม่สามารถบันทึกรูปได้",
-			})
-			return
-		}
-
-		newImagePath =
-			"/" + filepath.ToSlash(filePath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถบันทึกรูปสลิปได้",
+		})
+		return
 	}
 
+	if slipPath != "" {
+		newImagePath = slipPath
+	}
+
+	
 	// 7. Database transaction
 	err = database.DB.Transaction(
 		func(tx *gorm.DB) error {
@@ -532,7 +413,8 @@ func UpdateTransaction(c *gin.Context) {
 			if err := tx.
 				Where(
 					"id = ? AND user_id = ?",
-					newAccountID,
+					// newAccountID,
+					input.AccountID,
 					userID,
 				).
 				First(&account).Error; err != nil {
@@ -544,8 +426,8 @@ func UpdateTransaction(c *gin.Context) {
 			// ใช้ transaction ใหม่
 			// ---------------------------
 
-			if transactionType == "expense" {
-				if account.Balance < amount {
+			if input.Type == "expense" {
+				if account.Balance < input.Amount {
 					return fmt.Errorf(
 						"ยอดเงินในบัญชีไม่เพียงพอ",
 					)
@@ -553,12 +435,12 @@ func UpdateTransaction(c *gin.Context) {
 
 				if err := tx.
 					Model(&models.Account{}).
-					Where("id = ?", newAccountID).
+					Where("id = ?", input.AccountID).
 					Update(
 						"balance",
 						gorm.Expr(
 							"balance - ?",
-							amount,
+							input.Amount,
 						),
 					).Error; err != nil {
 
@@ -566,15 +448,15 @@ func UpdateTransaction(c *gin.Context) {
 				}
 			}
 
-			if transactionType == "income" {
+			if input.Type == "income" {
 				if err := tx.
 					Model(&models.Account{}).
-					Where("id = ?", newAccountID).
+					Where("id = ?", input.AccountID).
 					Update(
 						"balance",
 						gorm.Expr(
 							"balance + ?",
-							amount,
+							input.Amount,
 						),
 					).Error; err != nil {
 
@@ -586,20 +468,13 @@ func UpdateTransaction(c *gin.Context) {
 			// update transaction
 			// ---------------------------
 
-			oldTransaction.AccountID = newAccountID
-
-			oldTransaction.Type = transactionType
-
-			oldTransaction.Amount = amount
-
-			oldTransaction.Category = category
-
-			oldTransaction.Title = title
-
-			oldTransaction.Note = note
-
-			oldTransaction.TransactionDate = transactionDate
-
+			oldTransaction.AccountID = input.AccountID
+			oldTransaction.Type = input.Type
+			oldTransaction.Amount = input.Amount
+			oldTransaction.Category = input.Category
+			oldTransaction.Title = input.Title
+			oldTransaction.Note = input.Note
+			oldTransaction.TransactionDate = input.TransactionDate
 			oldTransaction.Image = newImagePath
 
 			return tx.Save(
