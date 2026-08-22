@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue"
+import { computed, nextTick, onMounted, ref } from "vue"
 import { Plus } from "lucide-vue-next"
 import type { TransactionForm, Transaction } from "@/types/transaction"
 import LogMoneyForm from "@/components/logMoney/LogMoneyForm.vue"
 import DailyTransactionList from "@/components/logMoney/DailyTransactionList.vue"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
-import { createTransaction, getTransactions } from "@/services/transaction"
+import { createTransaction, getTransactions, updateTransaction } from "@/services/transaction"
 import TransCalendar from "@/components/logMoney/TransCalendar.vue"
 const selectedDate = ref<Date>(new Date())
 const isDialogOpen = ref(false)
+const dailyTransactionSection = ref<HTMLElement | null>(null)
 const transactions = ref<Transaction[]>([])
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
@@ -36,12 +37,12 @@ const selectedDateText = computed(() => {
 
 const selectedDayTransactions = computed(() => {
   const date = formatDate(selectedDate.value)
-
   return transactions.value.filter(
     transaction =>
       transaction.transactionDate.startsWith(date)
   )
 })
+
 function openEditTransaction(transaction: Transaction) {
   editingTransactionId.value = transaction.id
   form.value = {
@@ -56,6 +57,7 @@ function openEditTransaction(transaction: Transaction) {
   }
   isDialogOpen.value = true
 }
+
 function openAddTransaction() {
   editingTransactionId.value = null
   resetForm()
@@ -65,6 +67,7 @@ function openAddTransaction() {
 
   isDialogOpen.value = true
 }
+
 function formatDate(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -73,9 +76,15 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
-function selectDate(date: Date) {
+async function selectDate(date: Date) {
   selectedDate.value = date
   form.value.transactionDate = formatDate(date)
+  await nextTick()
+
+  dailyTransactionSection.value?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  })
 }
 
 function addTodayTransaction() {
@@ -88,21 +97,34 @@ async function saveTransaction() {
   if (!form.value.amount || !form.value.title || !form.value.category || !form.value.accountId) {
     return
   }
-
   try {
-    console.log("form before send:", form.value)
-    const result = await createTransaction(form.value)
-    console.log("Transaction:", result.transaction)
+    if (editingTransactionId.value) {
+      await updateTransaction(
+        editingTransactionId.value,
+        form.value,
+      )
+    } else {
+      await createTransaction(
+        form.value,
+      )
+    }
 
+    await Promise.all([
+      loadTransactions(
+        selectedDate.value.getFullYear(),
+        selectedDate.value.getMonth() + 1,
+      ),
+
+      accountStore.loadAccounts(true),
+    ])
+
+    editingTransactionId.value = null
+    // const result = await createTransaction(form.value)
     isDialogOpen.value = false
     resetForm()
   } catch (error) {
     console.error("Create transaction failed:", error)
   }
-  // console.log("Transaction:", form.value)
-
-  // isDialogOpen.value = false
-  // resetForm()
 }
 
 function resetForm() {
@@ -159,7 +181,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="space-y-6">
+  <section class="!space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
@@ -175,8 +197,10 @@ onMounted(() => {
       </button>
     </div>
     <TransCalendar :selected-date="selectedDate" :transactions="transactions" @select="selectDate" />
-    <DailyTransactionList :selected-date-text="selectedDateText" :transactions="selectedDayTransactions"
-      :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" />
+    <div ref="dailyTransactionSection">
+      <DailyTransactionList :selected-date-text="selectedDateText" :transactions="selectedDayTransactions"
+        :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" />
+    </div>
   </section>
   <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
     :categories="categoryStore.categories" :selected-date-text="selectedDateText" @close="closeDialog"

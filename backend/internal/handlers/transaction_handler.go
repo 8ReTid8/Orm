@@ -284,3 +284,348 @@ func GetTransactions(c *gin.Context) {
 		"transactions": transactions,
 	})
 }
+
+func UpdateTransaction(c *gin.Context) {
+	// 1. user จาก JWT
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Unauthorized",
+		})
+		return
+	}
+
+	userID, ok := userIDValue.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Invalid user ID",
+		})
+		return
+	}
+
+	// 2. transaction id จาก URL
+	transactionID64, err := strconv.ParseUint(
+		c.Param("id"),
+		10,
+		64,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "transaction id ไม่ถูกต้อง",
+		})
+		return
+	}
+
+	transactionID := uint(transactionID64)
+
+	// 3. รับข้อมูลใหม่
+	transactionType := c.PostForm("type")
+	amountString := c.PostForm("amount")
+	category := c.PostForm("category")
+	accountIDString := c.PostForm("accountId")
+	title := c.PostForm("title")
+	note := c.PostForm("note")
+	transactionDateString := c.PostForm("transactionDate")
+
+	if transactionType != "income" &&
+		transactionType != "expense" {
+
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "ประเภท transaction ไม่ถูกต้อง",
+		})
+		return
+	}
+
+	if title == "" ||
+		category == "" ||
+		accountIDString == "" {
+
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "กรุณากรอกข้อมูลให้ครบ",
+		})
+		return
+	}
+
+	amount, err := strconv.ParseFloat(
+		amountString,
+		64,
+	)
+
+	if err != nil || amount <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "จำนวนเงินไม่ถูกต้อง",
+		})
+		return
+	}
+
+	accountID64, err := strconv.ParseUint(
+		accountIDString,
+		10,
+		64,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "บัญชีไม่ถูกต้อง",
+		})
+		return
+	}
+
+	newAccountID := uint(accountID64)
+
+	transactionDate, err := time.Parse(
+		"2006-01-02",
+		transactionDateString,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "วันที่ไม่ถูกต้อง",
+		})
+		return
+	}
+
+	// 4. หา transaction เก่า
+	// และต้องเป็น transaction ของ user คนนี้
+	var oldTransaction models.Transaction
+
+	if err := database.DB.
+		Joins(
+			"JOIN accounts ON accounts.id = transactions.account_id",
+		).
+		Where(
+			"transactions.id = ? AND accounts.user_id = ?",
+			transactionID,
+			userID,
+		).
+		First(&oldTransaction).Error; err != nil {
+
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "ไม่พบ transaction",
+		})
+		return
+	}
+
+	// 5. เช็ก account ใหม่ว่าเป็นของ user
+	var newAccount models.Account
+
+	if err := database.DB.
+		Where(
+			"id = ? AND user_id = ?",
+			newAccountID,
+			userID,
+		).
+		First(&newAccount).Error; err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "ไม่พบบัญชี",
+		})
+		return
+	}
+
+	// 6. รูปเดิมเป็น default
+	newImagePath := oldTransaction.Image
+
+	// ถ้ามีรูปใหม่ค่อยเปลี่ยน
+	file, fileErr := c.FormFile("slipImage")
+
+	if fileErr == nil {
+		uploadDir := "uploads/slips"
+
+		if err := os.MkdirAll(
+			uploadDir,
+			0755,
+		); err != nil {
+
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "ไม่สามารถสร้างโฟลเดอร์รูปได้",
+			})
+			return
+		}
+
+		extension := filepath.Ext(file.Filename)
+
+		filename := fmt.Sprintf(
+			"%d_%d%s",
+			userID,
+			time.Now().UnixNano(),
+			extension,
+		)
+
+		filePath := filepath.Join(
+			uploadDir,
+			filename,
+		)
+
+		if err := c.SaveUploadedFile(
+			file,
+			filePath,
+		); err != nil {
+
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "ไม่สามารถบันทึกรูปได้",
+			})
+			return
+		}
+
+		newImagePath =
+			"/" + filepath.ToSlash(filePath)
+	}
+
+	// 7. Database transaction
+	err = database.DB.Transaction(
+		func(tx *gorm.DB) error {
+
+			// ---------------------------
+			// คืนผลของ transaction เก่า
+			// ---------------------------
+
+			if oldTransaction.Type == "income" {
+				// income เก่าเคย + balance
+				// ต้องคืนด้วยการ -
+				if err := tx.
+					Model(&models.Account{}).
+					Where(
+						"id = ?",
+						oldTransaction.AccountID,
+					).
+					Update(
+						"balance",
+						gorm.Expr(
+							"balance - ?",
+							oldTransaction.Amount,
+						),
+					).Error; err != nil {
+
+					return err
+				}
+			}
+
+			if oldTransaction.Type == "expense" {
+				// expense เก่าเคย - balance
+				// ต้องคืนด้วยการ +
+				if err := tx.
+					Model(&models.Account{}).
+					Where(
+						"id = ?",
+						oldTransaction.AccountID,
+					).
+					Update(
+						"balance",
+						gorm.Expr(
+							"balance + ?",
+							oldTransaction.Amount,
+						),
+					).Error; err != nil {
+
+					return err
+				}
+			}
+
+			// ---------------------------
+			// โหลด account ใหม่หลังคืนยอด
+			// ---------------------------
+
+			var account models.Account
+
+			if err := tx.
+				Where(
+					"id = ? AND user_id = ?",
+					newAccountID,
+					userID,
+				).
+				First(&account).Error; err != nil {
+
+				return err
+			}
+
+			// ---------------------------
+			// ใช้ transaction ใหม่
+			// ---------------------------
+
+			if transactionType == "expense" {
+				if account.Balance < amount {
+					return fmt.Errorf(
+						"ยอดเงินในบัญชีไม่เพียงพอ",
+					)
+				}
+
+				if err := tx.
+					Model(&models.Account{}).
+					Where("id = ?", newAccountID).
+					Update(
+						"balance",
+						gorm.Expr(
+							"balance - ?",
+							amount,
+						),
+					).Error; err != nil {
+
+					return err
+				}
+			}
+
+			if transactionType == "income" {
+				if err := tx.
+					Model(&models.Account{}).
+					Where("id = ?", newAccountID).
+					Update(
+						"balance",
+						gorm.Expr(
+							"balance + ?",
+							amount,
+						),
+					).Error; err != nil {
+
+					return err
+				}
+			}
+
+			// ---------------------------
+			// update transaction
+			// ---------------------------
+
+			oldTransaction.AccountID = newAccountID
+
+			oldTransaction.Type = transactionType
+
+			oldTransaction.Amount = amount
+
+			oldTransaction.Category = category
+
+			oldTransaction.Title = title
+
+			oldTransaction.Note = note
+
+			oldTransaction.TransactionDate = transactionDate
+
+			oldTransaction.Image = newImagePath
+
+			return tx.Save(
+				&oldTransaction,
+			).Error
+		},
+	)
+
+	if err != nil {
+		if err.Error() ==
+			"ยอดเงินในบัญชีไม่เพียงพอ" {
+
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถแก้ไขรายการได้",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "แก้ไขรายการสำเร็จ",
+		"transaction": oldTransaction,
+	})
+}

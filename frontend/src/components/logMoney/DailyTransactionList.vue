@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -17,7 +17,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
+const dailyTransactionSection = ref<HTMLElement | null>(null)
 const emit = defineEmits<{
   add: []
   edit: [transaction: Transaction]

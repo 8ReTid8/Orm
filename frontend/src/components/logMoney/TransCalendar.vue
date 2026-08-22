@@ -89,7 +89,16 @@ function getDaySummary(date: Date) {
                             getDaySummary(day.date).expense > 0
                         ">
                             <div class="absolute bottom-3 left-3 right-3">
+                                <!-- Label -->
+                                <div class="mb-1 flex justify-between text-xs">
+                                    <span class="font-medium text-success">
+                                        รับ
+                                    </span>
 
+                                    <span class="font-medium text-error">
+                                        จ่าย
+                                    </span>
+                                </div>
                                 <!-- Bar -->
                                 <div class="flex h-2 w-full overflow-hidden rounded-full bg-base-200">
 
