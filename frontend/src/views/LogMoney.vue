@@ -115,7 +115,7 @@ async function saveTransaction() {
         selectedDate.value.getMonth() + 1,
       ),
 
-      accountStore.loadAccounts(true),
+      // accountStore.loadAccounts(true),
     ])
 
     editingTransactionId.value = null

@@ -11,9 +11,12 @@ import (
 	"strconv"
 	"time"
 
+	"backend/internal/database"
 	"backend/internal/dto"
+	"backend/internal/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func getUserID(c *gin.Context) (uint, bool) {
@@ -95,4 +98,80 @@ func parseTransactionForm(c *gin.Context,) (dto.TransactionInput, error) {
 		Note:            note,
 		TransactionDate: transactionDate,
 	}, nil
+}
+
+func findUserAccount(userID uint,accountID uint,) (*models.Account, error) {
+
+    var account models.Account
+
+    if err := database.DB.
+        Where(
+            "id = ? AND user_id = ?",
+            accountID,
+            userID,
+        ).
+        First(&account).Error; err != nil {
+
+        return nil, err
+    }
+
+    return &account, nil
+}
+
+func addTransactionToBalance(
+	tx *gorm.DB,
+	accountID uint,
+	transactionType string,
+	amount float64,
+) error {
+
+	var expression string
+
+	switch transactionType {
+	case "income":
+		expression = "balance + ?"
+
+	case "expense":
+		expression = "balance - ?"
+
+	default:
+		return fmt.Errorf("ประเภท transaction ไม่ถูกต้อง")
+	}
+
+	return tx.Model(&models.Account{}).
+		Where("id = ?", accountID).
+		Update(
+			"balance",
+			gorm.Expr(expression, amount),
+		).Error
+}
+
+func removeTransactionFromBalance(
+	tx *gorm.DB,
+	accountID uint,
+	transactionType string,
+	amount float64,
+) error {
+
+	var expression string
+
+	switch transactionType {
+	case "income":
+		// เดิม + → ย้อนกลับด้วย -
+		expression = "balance - ?"
+
+	case "expense":
+		// เดิม - → ย้อนกลับด้วย +
+		expression = "balance + ?"
+
+	default:
+		return fmt.Errorf("ประเภท transaction ไม่ถูกต้อง")
+	}
+
+	return tx.Model(&models.Account{}).
+		Where("id = ?", accountID).
+		Update(
+			"balance",
+			gorm.Expr(expression, amount),
+		).Error
 }

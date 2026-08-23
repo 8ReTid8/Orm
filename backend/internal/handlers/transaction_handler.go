@@ -101,12 +101,23 @@ func CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	var account models.Account
+	// var account models.Account
 
-	if err := database.DB.
-		Where("id = ? AND user_id = ?", input.AccountID, userID).
-		First(&account).Error; err != nil {
+	// if err := database.DB.
+	// 	Where("id = ? AND user_id = ?", input.AccountID, userID).
+	// 	First(&account).Error; err != nil {
 
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "ไม่พบบัญชี",
+	// 	})
+	// 	return
+	// }
+	account, err := findUserAccount(
+		userID,
+		input.AccountID,
+	)
+
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "ไม่พบบัญชี",
 		})
@@ -139,42 +150,49 @@ func CreateTransaction(c *gin.Context) {
 		TransactionDate: input.TransactionDate,
 	}
 
-	// if err := database.DB.Create(&transaction).Error; err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{
-	// 		"message": "ไม่สามารถบันทึกรายการได้",
-	// 	})
-	// 	return
-	// }
 	err = database.DB.Transaction(func(tx *gorm.DB) error {
 
-		// expense ต้องเช็กยอดก่อน
-		if input.Type == "expense" {
-			if account.Balance < input.Amount {
-				return fmt.Errorf("ยอดเงินในบัญชีไม่เพียงพอ")
-			}
+		// // expense ต้องเช็กยอดก่อน
+		// if input.Type == "expense" {
+		// 	if account.Balance < input.Amount {
+		// 		return fmt.Errorf("ยอดเงินในบัญชีไม่เพียงพอ")
+		// 	}
 
-			if err := tx.Model(&models.Account{}).
-				Where("id = ?", input.AccountID).
-				Update(
-					"balance",
-					gorm.Expr("balance - ?", input.Amount),
-				).Error; err != nil {
-				return err
-			}
+		// 	if err := tx.Model(&models.Account{}).
+		// 		Where("id = ?", input.AccountID).
+		// 		Update(
+		// 			"balance",
+		// 			gorm.Expr("balance - ?", input.Amount),
+		// 		).Error; err != nil {
+		// 		return err
+		// 	}
+		// }
+
+		// // income
+		// if input.Type == "income" {
+		// 	if err := tx.Model(&models.Account{}).
+		// 		Where("id = ?", input.AccountID).
+		// 		Update(
+		// 			"balance",
+		// 			gorm.Expr("balance + ?", input.Amount),
+		// 		).Error; err != nil {
+		// 		return err
+		// 	}
+		// }
+		if input.Type == "expense" &&
+			account.Balance < input.Amount {
+
+			return fmt.Errorf("ยอดเงินในบัญชีไม่เพียงพอ")
 		}
 
-		// income
-		if input.Type == "income" {
-			if err := tx.Model(&models.Account{}).
-				Where("id = ?", input.AccountID).
-				Update(
-					"balance",
-					gorm.Expr("balance + ?", input.Amount),
-				).Error; err != nil {
-				return err
-			}
+		if err := addTransactionToBalance(
+			tx,
+			input.AccountID,
+			input.Type,
+			input.Amount,
+		); err != nil {
+			return err
 		}
-
 		// สร้าง transaction
 		if err := tx.Create(&transaction).Error; err != nil {
 			return err
@@ -318,17 +336,12 @@ func UpdateTransaction(c *gin.Context) {
 	}
 
 	// 5. เช็ก account ใหม่ว่าเป็นของ user
-	var newAccount models.Account
+	_, err = findUserAccount(
+		userID,
+		input.AccountID,
+	)
 
-	if err := database.DB.
-		Where(
-			"id = ? AND user_id = ?",
-			// newAccountID,
-			input.AccountID,
-			userID,
-		).
-		First(&newAccount).Error; err != nil {
-
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "ไม่พบบัญชี",
 		})
@@ -353,7 +366,6 @@ func UpdateTransaction(c *gin.Context) {
 		newImagePath = slipPath
 	}
 
-	
 	// 7. Database transaction
 	err = database.DB.Transaction(
 		func(tx *gorm.DB) error {
@@ -362,48 +374,55 @@ func UpdateTransaction(c *gin.Context) {
 			// คืนผลของ transaction เก่า
 			// ---------------------------
 
-			if oldTransaction.Type == "income" {
-				// income เก่าเคย + balance
-				// ต้องคืนด้วยการ -
-				if err := tx.
-					Model(&models.Account{}).
-					Where(
-						"id = ?",
-						oldTransaction.AccountID,
-					).
-					Update(
-						"balance",
-						gorm.Expr(
-							"balance - ?",
-							oldTransaction.Amount,
-						),
-					).Error; err != nil {
+			// if oldTransaction.Type == "income" {
+			// 	// income เก่าเคย + balance
+			// 	// ต้องคืนด้วยการ -
+			// 	if err := tx.
+			// 		Model(&models.Account{}).
+			// 		Where(
+			// 			"id = ?",
+			// 			oldTransaction.AccountID,
+			// 		).
+			// 		Update(
+			// 			"balance",
+			// 			gorm.Expr(
+			// 				"balance - ?",
+			// 				oldTransaction.Amount,
+			// 			),
+			// 		).Error; err != nil {
 
-					return err
-				}
+			// 		return err
+			// 	}
+			// }
+
+			// if oldTransaction.Type == "expense" {
+			// 	// expense เก่าเคย - balance
+			// 	// ต้องคืนด้วยการ +
+			// 	if err := tx.
+			// 		Model(&models.Account{}).
+			// 		Where(
+			// 			"id = ?",
+			// 			oldTransaction.AccountID,
+			// 		).
+			// 		Update(
+			// 			"balance",
+			// 			gorm.Expr(
+			// 				"balance + ?",
+			// 				oldTransaction.Amount,
+			// 			),
+			// 		).Error; err != nil {
+
+			// 		return err
+			// 	}
+			// }
+			if err := removeTransactionFromBalance(
+				tx,
+				oldTransaction.AccountID,
+				oldTransaction.Type,
+				oldTransaction.Amount,
+			); err != nil {
+				return err
 			}
-
-			if oldTransaction.Type == "expense" {
-				// expense เก่าเคย - balance
-				// ต้องคืนด้วยการ +
-				if err := tx.
-					Model(&models.Account{}).
-					Where(
-						"id = ?",
-						oldTransaction.AccountID,
-					).
-					Update(
-						"balance",
-						gorm.Expr(
-							"balance + ?",
-							oldTransaction.Amount,
-						),
-					).Error; err != nil {
-
-					return err
-				}
-			}
-
 			// ---------------------------
 			// โหลด account ใหม่หลังคืนยอด
 			// ---------------------------
@@ -426,42 +445,56 @@ func UpdateTransaction(c *gin.Context) {
 			// ใช้ transaction ใหม่
 			// ---------------------------
 
-			if input.Type == "expense" {
-				if account.Balance < input.Amount {
-					return fmt.Errorf(
-						"ยอดเงินในบัญชีไม่เพียงพอ",
-					)
-				}
+			// if input.Type == "expense" {
+			// 	if account.Balance < input.Amount {
+			// 		return fmt.Errorf(
+			// 			"ยอดเงินในบัญชีไม่เพียงพอ",
+			// 		)
+			// 	}
 
-				if err := tx.
-					Model(&models.Account{}).
-					Where("id = ?", input.AccountID).
-					Update(
-						"balance",
-						gorm.Expr(
-							"balance - ?",
-							input.Amount,
-						),
-					).Error; err != nil {
+			// 	if err := tx.
+			// 		Model(&models.Account{}).
+			// 		Where("id = ?", input.AccountID).
+			// 		Update(
+			// 			"balance",
+			// 			gorm.Expr(
+			// 				"balance - ?",
+			// 				input.Amount,
+			// 			),
+			// 		).Error; err != nil {
 
-					return err
-				}
+			// 		return err
+			// 	}
+			// }
+
+			// if input.Type == "income" {
+			// 	if err := tx.
+			// 		Model(&models.Account{}).
+			// 		Where("id = ?", input.AccountID).
+			// 		Update(
+			// 			"balance",
+			// 			gorm.Expr(
+			// 				"balance + ?",
+			// 				input.Amount,
+			// 			),
+			// 		).Error; err != nil {
+
+			// 		return err
+			// 	}
+			// }
+			if input.Type == "expense" &&
+				account.Balance < input.Amount {
+
+				return fmt.Errorf("ยอดเงินในบัญชีไม่เพียงพอ")
 			}
 
-			if input.Type == "income" {
-				if err := tx.
-					Model(&models.Account{}).
-					Where("id = ?", input.AccountID).
-					Update(
-						"balance",
-						gorm.Expr(
-							"balance + ?",
-							input.Amount,
-						),
-					).Error; err != nil {
-
-					return err
-				}
+			if err := addTransactionToBalance(
+				tx,
+				input.AccountID,
+				input.Type,
+				input.Amount,
+			); err != nil {
+				return err
 			}
 
 			// ---------------------------
