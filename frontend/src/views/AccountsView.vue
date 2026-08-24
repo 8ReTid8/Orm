@@ -60,7 +60,7 @@ async function saveAccount(data: {
 //     }
 // }
 onMounted(() => {
-    accountStore.loadAccounts()
+    accountStore.loadAccounts(true)
 })
 </script>
 
