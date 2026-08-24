@@ -1,66 +1,99 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from "vue"
 import { Plus } from "lucide-vue-next"
-import type { TransactionForm, Transaction } from "@/types/transaction"
+import type { Transaction } from "@/types/transaction"
 import LogMoneyForm from "@/components/logMoney/LogMoneyForm.vue"
 import DailyTransactionList from "@/components/logMoney/DailyTransactionList.vue"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
-import { createTransaction, getTransactions, updateTransaction } from "@/services/transaction"
 import TransCalendar from "@/components/logMoney/TransCalendar.vue"
-const selectedDate = ref<Date>(new Date())
+import TransactionSummary from "@/components/account/TransactionSummary.vue"
+import { useTransactions } from "@/composables/useTransaction"
+import { useTransactionForm } from "@/composables/useTransactionForm"
+import { useTransactionDate } from "@/composables/useTransactionDate"
+
+// const selectedDate = ref<Date>(new Date())
 const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)
-const transactions = ref<Transaction[]>([])
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
-const editingTransactionId = ref<number | null>(null)
-const isLoadingTransactions = ref(false)
-const form = ref<TransactionForm>({
-  type: "expense",
-  amount: null,
-  category: "",
-  accountId: null,
-  title: "",
-  note: "",
-  transactionDate: formatDate(new Date()),
-  slipImage: null,
-})
 
-const selectedDateText = computed(() => {
-  return selectedDate.value.toLocaleDateString("th-TH", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
-})
+const {
+  transactions,
+  isLoadingTransactions,
+  editingTransactionId,
+  loadTransactions,
+  saveTransaction: saveTransactionApi,
+  startEdit,
+  cancelEdit,
+} = useTransactions()
+const {
+  form,
+  resetForm,
+  setEditForm,
+} = useTransactionForm()
+const {
+  selectedDate,
+  selectedDateText,
+  selectedDayTransactions,
+  formatDate,
+  selectDate,
+} = useTransactionDate(transactions)
+// const transactions = ref<Transaction[]>([])
+// const editingTransactionId = ref<number | null>(null)
+// const isLoadingTransactions = ref(false)
+// const form = ref<TransactionForm>({
+//   type: "expense",
+//   amount: null,
+//   category: "",
+//   accountId: null,
+//   title: "",
+//   note: "",
+//   transactionDate: formatDate(new Date()),
+//   slipImage: null,
+// })
 
-const selectedDayTransactions = computed(() => {
-  const date = formatDate(selectedDate.value)
-  return transactions.value.filter(
-    transaction =>
-      transaction.transactionDate.startsWith(date)
-  )
-})
+// const selectedDateText = computed(() => {
+//   return selectedDate.value.toLocaleDateString("th-TH", {
+//     day: "numeric",
+//     month: "long",
+//     year: "numeric",
+//   })
+// })
+
+// const selectedDayTransactions = computed(() => {
+//   const date = formatDate(selectedDate.value)
+//   return transactions.value.filter(
+//     transaction =>
+//       transaction.transactionDate.startsWith(date)
+//   )
+// })
 
 function openEditTransaction(transaction: Transaction) {
-  editingTransactionId.value = transaction.id
-  form.value = {
-    type: transaction.type,
-    amount: transaction.amount,
-    category: transaction.category,
-    accountId: transaction.account.id,
-    title: transaction.title,
-    note: transaction.note,
-    transactionDate: transaction.transactionDate.slice(0, 10),
-    slipImage: null,
-  }
+  // editingTransactionId.value = transaction.id
+  startEdit(transaction)
+  setEditForm(transaction)
+  // form.value = {
+  //   type: transaction.type,
+  //   amount: transaction.amount,
+  //   category: transaction.category,
+  //   accountId: transaction.account.id,
+  //   title: transaction.title,
+  //   note: transaction.note,
+  //   transactionDate: transaction.transactionDate.slice(0, 10),
+  //   slipImage: null,
+  // }
   isDialogOpen.value = true
 }
 
 function openAddTransaction() {
-  editingTransactionId.value = null
-  resetForm()
+  // editingTransactionId.value = null
+  cancelEdit()
+  // resetForm()  
+  resetForm(
+    formatDate(selectedDate.value),
+  )
+
 
   form.value.transactionDate =
     formatDate(selectedDate.value)
@@ -68,17 +101,23 @@ function openAddTransaction() {
   isDialogOpen.value = true
 }
 
-function formatDate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
+// async function selectDate(date: Date) {
+//   selectedDate.value = date
+//   form.value.transactionDate = formatDate(date)
+//   await nextTick()
 
-  return `${year}-${month}-${day}`
-}
+//   dailyTransactionSection.value?.scrollIntoView({
+//     behavior: "smooth",
+//     block: "start",
+//   })
+// }
 
-async function selectDate(date: Date) {
-  selectedDate.value = date
-  form.value.transactionDate = formatDate(date)
+async function handleSelectDate(date: Date) {
+  selectDate(date)
+
+  form.value.transactionDate =
+    formatDate(date)
+
   await nextTick()
 
   dailyTransactionSection.value?.scrollIntoView({
@@ -93,79 +132,68 @@ function addTodayTransaction() {
   isDialogOpen.value = true
 }
 
+// async function saveTransaction() {
+//   if (!form.value.amount || !form.value.title || !form.value.category || !form.value.accountId) {
+//     return
+//   }
+//   try {
+//     if (editingTransactionId.value) {
+//       await updateTransaction(
+//         editingTransactionId.value,
+//         form.value,
+//       )
+//     } else {
+//       await createTransaction(
+//         form.value,
+//       )
+//     }
+
+//     await Promise.all([
+//       loadTransactions(
+//         selectedDate.value.getFullYear(),
+//         selectedDate.value.getMonth() + 1,
+//       ),
+
+//     ])
+
+//     editingTransactionId.value = null
+//     isDialogOpen.value = false
+//     resetForm()
+//   } catch (error) {
+//     console.error("Create transaction failed:", error)
+//   }
+// }
+
 async function saveTransaction() {
-  if (!form.value.amount || !form.value.title || !form.value.category || !form.value.accountId) {
-    return
-  }
   try {
-    if (editingTransactionId.value) {
-      await updateTransaction(
-        editingTransactionId.value,
-        form.value,
-      )
-    } else {
-      await createTransaction(
-        form.value,
-      )
-    }
+    await saveTransactionApi(form.value)
 
-    await Promise.all([
-      loadTransactions(
-        selectedDate.value.getFullYear(),
-        selectedDate.value.getMonth() + 1,
-      ),
+    await loadTransactions(
+      selectedDate.value.getFullYear(),
+      selectedDate.value.getMonth() + 1,
+    )
 
-      // accountStore.loadAccounts(true),
-    ])
+    cancelEdit()
 
-    editingTransactionId.value = null
-    // const result = await createTransaction(form.value)
     isDialogOpen.value = false
-    resetForm()
+
+    // resetForm()
+    resetForm(
+      formatDate(selectedDate.value),
+    )
   } catch (error) {
-    console.error("Create transaction failed:", error)
+    console.error(
+      "Transaction failed:",
+      error,
+    )
   }
 }
 
-function resetForm() {
-  form.value = {
-    type: "expense",
-    amount: null,
-    category: "",
-    accountId: null,
-    title: "",
-    note: "",
-    transactionDate: formatDate(selectedDate.value),
-    slipImage: null,
-  }
-}
 
 function closeDialog() {
   isDialogOpen.value = false
 }
 
-async function loadTransactions(
-  year: number,
-  month: number,
-) {
-  try {
-    isLoadingTransactions.value = true
-
-    transactions.value = await getTransactions(
-      year,
-      month,
-    )
-  } catch (error) {
-    console.error(
-      "Failed to load transactions:",
-      error,
-    )
-  } finally {
-    isLoadingTransactions.value = false
-  }
-}
-
-console.log(localStorage.getItem("token"))
 onMounted(() => {
   const now = new Date()
 
@@ -173,7 +201,7 @@ onMounted(() => {
     now.getFullYear(),
     now.getMonth() + 1,
   )
-  // loadFormOptions()
+
   categoryStore.loadCategories()
   accountStore.loadAccounts()
 })
@@ -196,13 +224,21 @@ onMounted(() => {
         เพิ่มรายการวันนี้
       </button>
     </div>
-    <TransCalendar :selected-date="selectedDate" :transactions="transactions" @select="selectDate" />
+
+    <!-- Monthly Summary -->
+    <TransactionSummary :transactions="transactions" />
+
+    <!-- Calendar -->
+    <TransCalendar :selected-date="selectedDate" :transactions="transactions" @select="handleSelectDate" />
+
     <div ref="dailyTransactionSection">
       <DailyTransactionList :selected-date-text="selectedDateText" :transactions="selectedDayTransactions"
         :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" />
     </div>
   </section>
+
   <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
     :categories="categoryStore.categories" :selected-date-text="selectedDateText" @close="closeDialog"
     @save="saveTransaction" />
+
 </template>
