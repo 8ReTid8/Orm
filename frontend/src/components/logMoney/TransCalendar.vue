@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import type { Transaction } from '@/types/transaction';
 import { CalendarDays } from 'lucide-vue-next';
-interface Props {
-    selectedDate: Date
-}
 
 interface Props {
     selectedDate: Date

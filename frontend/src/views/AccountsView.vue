@@ -3,7 +3,6 @@ import { onMounted, ref } from "vue"
 import {
     Plus,
 } from "lucide-vue-next"
-import type { Account } from "@/types/account"
 import AddAccountForm from "@/components/account/AddAccountForm.vue"
 import { createAccount, getAccounts } from "@/services/account"
 import AccountCard from "@/components/account/AccountCard.vue"
@@ -33,7 +32,6 @@ async function saveAccount(data: {
         const result = await createAccount(data)
 
         console.log(result.account)
-        // accounts.value.push(result.account)
         accountStore.addAccount(result.account)
         isAddAccountOpen.value = false
 
@@ -118,7 +116,6 @@ onMounted(() => {
                 </div>
             </div> -->
 
-            <!-- <AccountCard v-for="account in accounts" :key="account.id" :account="account" @detail="openAccountDetail" /> -->
             <AccountCard v-for="account in accountStore.accounts" :key="account.id" :account="account" @detail="openAccountDetail" />
 
             <!-- Add account card -->

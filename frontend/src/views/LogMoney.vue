@@ -10,11 +10,13 @@ import TransCalendar from "@/components/logMoney/TransCalendar.vue"
 
 import { useTransactions } from "@/composables/useTransaction"
 import { useTransactionForm } from "@/composables/useTransactionForm"
-import { useTransactionDate } from "@/composables/useTransactionDate"
+import { useTransactionFilter } from "@/composables/useTransactionFilter"
 import { formatDate } from "@/utils/date"
 import TransactionSummary from "@/components/logMoney/TransactionSummary.vue"
+import AccountFilter from "@/components/filter/accountFilter.vue"
 
 // const selectedDate = ref<Date>(new Date())
+// const selectedAccountId = ref<number | null>(null)
 const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)
 const accountStore = useAccountStore()
@@ -35,24 +37,12 @@ const {
 } = useTransactionForm()
 const {
   selectedDate,
+  selectedAccountId,
+  filteredTransactions,
   selectedDateText,
   selectedDayTransactions,
   selectDate,
-} = useTransactionDate(transactions)
-// const transactions = ref<Transaction[]>([])
-// const editingTransactionId = ref<number | null>(null)
-// const isLoadingTransactions = ref(false)
-// const form = ref<TransactionForm>({
-//   type: "expense",
-//   amount: null,
-//   category: "",
-//   accountId: null,
-//   title: "",
-//   note: "",
-//   transactionDate: formatDate(new Date()),
-//   slipImage: null,
-// })
-
+} = useTransactionFilter(transactions)
 
 function openEditTransaction(transaction: Transaction) {
   // editingTransactionId.value = transaction.id
@@ -171,26 +161,34 @@ onMounted(() => {
 <template>
   <section class="!space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <!-- Title -->
       <div>
-        <h1 class="text-2xl font-bold">Finance Calendar</h1>
+        <h1 class="text-2xl font-bold">
+          Finance Calendar
+        </h1>
+
         <p class="text-base-content/60">
           เลือกวันที่เพื่อบันทึกรายรับหรือรายจ่าย
         </p>
       </div>
 
-      <button class="btn btn-primary" type="button" @click="openTodayTransaction">
-       
-        <Plus class="size-4" />
-        เพิ่มรายการวันนี้
-      </button>
+      <!-- Actions -->
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
+
+        <button class="btn btn-primary" type="button" @click="openTodayTransaction">
+          <Plus class="size-4" />
+          เพิ่มรายการวันนี้
+        </button>
+      </div>
     </div>
 
     <!-- Monthly Summary -->
-    <TransactionSummary :transactions="transactions" />
+    <TransactionSummary :transactions="filteredTransactions" />
 
     <!-- Calendar -->
-    <TransCalendar :selected-date="selectedDate" :transactions="transactions" @select="handleSelectDate" />
+    <TransCalendar :selected-date="selectedDate" :transactions="filteredTransactions" @select="handleSelectDate" />
 
     <div ref="dailyTransactionSection">
       <DailyTransactionList :selected-date-text="selectedDateText" :transactions="selectedDayTransactions"
