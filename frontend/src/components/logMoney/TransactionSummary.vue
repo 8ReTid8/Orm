@@ -6,6 +6,7 @@ import {
 } from "lucide-vue-next"
 
 import type { Transaction } from "@/types/transaction"
+import { formatMoney } from "@/utils/number";
 
 interface Props {
   transactions: Transaction[]
@@ -29,12 +30,7 @@ const balance = computed(() => {
   return totalIncome.value - totalExpense.value
 })
 
-function formatMoney(amount: number) {
-  return new Intl.NumberFormat("th-TH", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
+
 </script>
 
 <template>

@@ -45,27 +45,14 @@ async function saveAccount(data: {
         )
     }
 }
-// async function loadAccounts() {
-//     try {
-//         isLoading.value = true
 
-//         accounts.value = await getAccounts()
-//     } catch (error) {
-//         console.error(
-//             "Failed to load accounts:",
-//             error,
-//         )
-//     } finally {
-//         isLoading.value = false
-//     }
-// }
 onMounted(() => {
     accountStore.loadAccounts(true)
 })
 </script>
 
 <template>
-    <section class="space-y-6">
+    <section class="!space-y-6">
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div>
@@ -77,11 +64,6 @@ onMounted(() => {
                     จัดการบัญชีและแหล่งเงินทั้งหมดของคุณ
                 </p>
             </div>
-
-            <button type="button" class="btn btn-primary" @click="openAddAccount">
-                <Plus class="size-5" />
-                เพิ่มบัญชี
-            </button>
         </div>
 
         <!-- Account grid -->

@@ -9,7 +9,8 @@ import {
 } from "lucide-vue-next"
 
 import type { Transaction } from "@/types/transaction"
-import TransactionSummary from "../account/TransactionSummary.vue"
+import { formatMoney } from "@/utils/number.ts"
+import TransactionSummary from "./TransactionSummary.vue"
 
 interface Props {
   selectedDateText: string
@@ -24,12 +25,6 @@ const emit = defineEmits<{
   edit: [transaction: Transaction]
 }>()
 
-function formatMoney(amount: number) {
-  return new Intl.NumberFormat("th-TH", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
 </script>
 
 <template>

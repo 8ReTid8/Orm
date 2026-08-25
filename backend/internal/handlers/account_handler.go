@@ -15,21 +15,9 @@ type CreateAccountRequest struct {
 }
 
 func CreateAccount(c *gin.Context) {
-	userIDValue, exists := c.Get("userID")
-
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Unauthorized",
-		})
-		return
-	}
-
-	userID, ok := userIDValue.(uint)
-
+	
+	userID, ok := getUserID(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Invalid user ID",
-		})
 		return
 	}
 
@@ -71,21 +59,9 @@ func CreateAccount(c *gin.Context) {
 }
 
 func GetAccounts(c *gin.Context) {
-	userIDValue, exists := c.Get("userID")
-
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Unauthorized",
-		})
-		return
-	}
-
-	userID, ok := userIDValue.(uint)
-
+	
+	userID, ok := getUserID(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Invalid user ID",
-		})
 		return
 	}
 

@@ -10,6 +10,7 @@ import {
     User,
     LogOut,
     CalendarDays,
+    WalletMinimal,
 } from "lucide-vue-next"
 const authStore = useAuthStore()
 const router = useRouter()
@@ -22,7 +23,7 @@ const menuItems = [
     {
         name: "Accounts",
         path: "/accounts",
-        icon: ArrowLeftRight,
+        icon: WalletMinimal,
     },
     {
         name: "Budgets",

@@ -7,17 +7,18 @@ import DailyTransactionList from "@/components/logMoney/DailyTransactionList.vue
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
 import TransCalendar from "@/components/logMoney/TransCalendar.vue"
-import TransactionSummary from "@/components/account/TransactionSummary.vue"
+
 import { useTransactions } from "@/composables/useTransaction"
 import { useTransactionForm } from "@/composables/useTransactionForm"
 import { useTransactionDate } from "@/composables/useTransactionDate"
+import { formatDate } from "@/utils/date"
+import TransactionSummary from "@/components/logMoney/TransactionSummary.vue"
 
 // const selectedDate = ref<Date>(new Date())
 const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
-
 const {
   transactions,
   isLoadingTransactions,
@@ -36,7 +37,6 @@ const {
   selectedDate,
   selectedDateText,
   selectedDayTransactions,
-  formatDate,
   selectDate,
 } = useTransactionDate(transactions)
 // const transactions = ref<Transaction[]>([])
@@ -53,64 +53,26 @@ const {
 //   slipImage: null,
 // })
 
-// const selectedDateText = computed(() => {
-//   return selectedDate.value.toLocaleDateString("th-TH", {
-//     day: "numeric",
-//     month: "long",
-//     year: "numeric",
-//   })
-// })
-
-// const selectedDayTransactions = computed(() => {
-//   const date = formatDate(selectedDate.value)
-//   return transactions.value.filter(
-//     transaction =>
-//       transaction.transactionDate.startsWith(date)
-//   )
-// })
 
 function openEditTransaction(transaction: Transaction) {
   // editingTransactionId.value = transaction.id
   startEdit(transaction)
   setEditForm(transaction)
-  // form.value = {
-  //   type: transaction.type,
-  //   amount: transaction.amount,
-  //   category: transaction.category,
-  //   accountId: transaction.account.id,
-  //   title: transaction.title,
-  //   note: transaction.note,
-  //   transactionDate: transaction.transactionDate.slice(0, 10),
-  //   slipImage: null,
-  // }
   isDialogOpen.value = true
 }
 
 function openAddTransaction() {
   // editingTransactionId.value = null
   cancelEdit()
-  // resetForm()  
   resetForm(
     formatDate(selectedDate.value),
   )
-
 
   form.value.transactionDate =
     formatDate(selectedDate.value)
 
   isDialogOpen.value = true
 }
-
-// async function selectDate(date: Date) {
-//   selectedDate.value = date
-//   form.value.transactionDate = formatDate(date)
-//   await nextTick()
-
-//   dailyTransactionSection.value?.scrollIntoView({
-//     behavior: "smooth",
-//     block: "start",
-//   })
-// }
 
 async function handleSelectDate(date: Date) {
   selectDate(date)
@@ -126,10 +88,10 @@ async function handleSelectDate(date: Date) {
   })
 }
 
-function addTodayTransaction() {
-  selectedDate.value = new Date()
-  form.value.transactionDate = formatDate(new Date())
-  isDialogOpen.value = true
+function openTodayTransaction() {
+  const today = new Date()
+  handleSelectDate(today)
+  openAddTransaction()
 }
 
 // async function saveTransaction() {
@@ -177,7 +139,6 @@ async function saveTransaction() {
 
     isDialogOpen.value = false
 
-    // resetForm()
     resetForm(
       formatDate(selectedDate.value),
     )
@@ -188,7 +149,6 @@ async function saveTransaction() {
     )
   }
 }
-
 
 function closeDialog() {
   isDialogOpen.value = false
@@ -219,7 +179,8 @@ onMounted(() => {
         </p>
       </div>
 
-      <button class="btn btn-primary" type="button" @click="selectDate(new Date())">
+      <button class="btn btn-primary" type="button" @click="openTodayTransaction">
+       
         <Plus class="size-4" />
         เพิ่มรายการวันนี้
       </button>
