@@ -58,9 +58,9 @@ function resetForm() {
     <div class="modal-box max-w-md">
       <div class="mb-6 flex items-center gap-3">
         <div
-          class="flex size-11 items-center justify-center rounded-xl bg-primary/15 text-primary"
+          class="flex size-11 items-center justify-center rounded-xl  bg-lime-300 text-green-700"
         >
-          <WalletCards class="size-6" />
+          <WalletCards class="size-6 " />
         </div>
 
         <div>
@@ -103,7 +103,7 @@ function resetForm() {
 
           <button
             type="submit"
-            class="btn btn-primary"
+            class="btn text-white bg-green-700"
           >
             เพิ่มบัญชี
           </button>

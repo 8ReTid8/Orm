@@ -24,7 +24,9 @@ func main() {
 	router.Use(func(c *gin.Context) {
 		c.Writer.Header().Set(
 			"Access-Control-Allow-Origin",
-			"http://localhost:5173",
+			// "http://localhost:5173",
+			"http://192.168.1.102:5173",
+
 		)
 		c.Writer.Header().Set(
 			"Access-Control-Allow-Headers",

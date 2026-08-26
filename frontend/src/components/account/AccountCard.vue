@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { MoreVertical, Wallet } from "lucide-vue-next"
 import type { Account } from "@/types/account"
+import { formatMoney } from "@/utils/number";
 
 interface Props {
   account: Account
@@ -11,13 +12,6 @@ defineProps<Props>()
 const emit = defineEmits<{
   detail: [accountId: number]
 }>()
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("th-TH", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)
-}
 </script>
 
 <template>

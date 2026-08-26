@@ -202,7 +202,7 @@ function closeDialog() {
                         ยกเลิก
                     </button>
 
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn text-white bg-green-700">
                         บันทึก
                     </button>
                 </div>

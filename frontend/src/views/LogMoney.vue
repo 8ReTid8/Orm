@@ -7,7 +7,6 @@ import DailyTransactionList from "@/components/logMoney/DailyTransactionList.vue
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
 import TransCalendar from "@/components/logMoney/TransCalendar.vue"
-
 import { useTransactions } from "@/composables/useTransaction"
 import { useTransactionForm } from "@/composables/useTransactionForm"
 import { useTransactionFilter } from "@/composables/useTransactionFilter"
@@ -177,7 +176,7 @@ onMounted(() => {
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
         <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
 
-        <button class="btn btn-primary" type="button" @click="openTodayTransaction">
+        <button class="btn text-white bg-green-700" type="button" @click="openTodayTransaction">
           <Plus class="size-4" />
           เพิ่มรายการวันนี้
         </button>

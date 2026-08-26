@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
   Plus,
   ReceiptText,
   Pencil
@@ -42,7 +40,7 @@ const emit = defineEmits<{
           </p>
         </div>
 
-        <button type="button" class="btn btn-primary" @click="emit('add')">
+        <button type="button" class="btn text-white bg-green-700" @click="emit('add')">
           <Plus class="size-4" />
           เพิ่มรายการ
         </button>

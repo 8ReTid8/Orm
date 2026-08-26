@@ -120,7 +120,7 @@ onMounted(() => {
 
             <!-- Add account card -->
             <button type="button"
-                class="flex min-h-52 flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 bg-base-100 text-base-content/50 transition hover:border-primary hover:bg-primary/5 hover:text-primary"
+                class="flex min-h-52 flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 bg-base-100 text-base-content/50 transition hover:border-lime-600 hover:bg-lime-600/5 hover:text-lime-600"
                 @click="openAddAccount">
                 <div class="flex size-12 items-center justify-center rounded-full bg-base-200">
                     <Plus class="size-6" />

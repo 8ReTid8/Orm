@@ -1,6 +1,6 @@
 package models
 
-// import "time"
+import "time"
 
 type Budget struct {
 	ID uint `gorm:"primaryKey"`
@@ -8,10 +8,10 @@ type Budget struct {
 	UserID uint
 	User User
 
-	LimitAmount float64 `gorm:"not null"`
+	Amount float64 `gorm:"not null"`
 	Category string `gorm:"size:20;not null"`
-	Month int `gorm:"not null"`
-	Year int `gorm:"not null"`
+	StartDate time.Time
+	EndDate time.Time
 
 	// CreatedAt time.Time
 	// UpdatedAt time.Time
