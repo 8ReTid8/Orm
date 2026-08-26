@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue"
+import { nextTick, onMounted, ref } from "vue"
 import { Plus } from "lucide-vue-next"
 import type { Transaction } from "@/types/transaction"
-import LogMoneyForm from "@/components/logMoney/LogMoneyForm.vue"
-import DailyTransactionList from "@/components/logMoney/DailyTransactionList.vue"
+import { formatDate } from "@/utils/date"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
-import TransCalendar from "@/components/logMoney/TransCalendar.vue"
-import { useTransactions } from "@/composables/useTransaction"
-import { useTransactionForm } from "@/composables/useTransactionForm"
-import { useTransactionFilter } from "@/composables/useTransactionFilter"
-import { formatDate } from "@/utils/date"
-import TransactionSummary from "@/components/logMoney/TransactionSummary.vue"
+import { useTransactions } from "@/composables/transaction/useTransaction"
+import { useTransactionForm } from "@/composables/transaction/useTransactionForm"
+import { useTransactionFilter } from "@/composables/transaction/useTransactionFilter"
+import DailyTransactionList from "@/components/transaction/DailyTransactionList.vue"
+import TransCalendar from "@/components/transaction/TransCalendar.vue"
+import TransactionSummary from "@/components/transaction/TransactionSummary.vue"
+import TransactionForm from "@/components/transaction/TransactionForm.vue"
 import AccountFilter from "@/components/filter/accountFilter.vue"
 
-// const selectedDate = ref<Date>(new Date())
-// const selectedAccountId = ref<number | null>(null)
 const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)
 const accountStore = useAccountStore()
@@ -29,11 +27,13 @@ const {
   startEdit,
   cancelEdit,
 } = useTransactions()
+
 const {
   form,
   resetForm,
   setEditForm,
 } = useTransactionForm()
+
 const {
   selectedDate,
   selectedAccountId,
@@ -82,38 +82,6 @@ function openTodayTransaction() {
   handleSelectDate(today)
   openAddTransaction()
 }
-
-// async function saveTransaction() {
-//   if (!form.value.amount || !form.value.title || !form.value.category || !form.value.accountId) {
-//     return
-//   }
-//   try {
-//     if (editingTransactionId.value) {
-//       await updateTransaction(
-//         editingTransactionId.value,
-//         form.value,
-//       )
-//     } else {
-//       await createTransaction(
-//         form.value,
-//       )
-//     }
-
-//     await Promise.all([
-//       loadTransactions(
-//         selectedDate.value.getFullYear(),
-//         selectedDate.value.getMonth() + 1,
-//       ),
-
-//     ])
-
-//     editingTransactionId.value = null
-//     isDialogOpen.value = false
-//     resetForm()
-//   } catch (error) {
-//     console.error("Create transaction failed:", error)
-//   }
-// }
 
 async function saveTransaction() {
   try {
@@ -175,7 +143,6 @@ onMounted(() => {
       <!-- Actions -->
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
         <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
-
         <button class="btn text-white bg-green-700" type="button" @click="openTodayTransaction">
           <Plus class="size-4" />
           เพิ่มรายการวันนี้
@@ -195,7 +162,7 @@ onMounted(() => {
     </div>
   </section>
 
-  <LogMoneyForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
+  <TransactionForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
     :categories="categoryStore.categories" :selected-date-text="selectedDateText" @close="closeDialog"
     @save="saveTransaction" />
 
