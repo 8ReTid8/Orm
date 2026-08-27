@@ -2,7 +2,6 @@
 import type { Account } from "@/types/account";
 import type { BudgetForm } from "@/types/budget";
 import type { Category } from "@/types/category";
-import { ImagePlus } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 
 interface Props {
@@ -184,7 +183,7 @@ function resetForm() {
             </p>
             <form class="mt-6 space-y-4" @submit.prevent="submitForm">
 
-                <!-- Account -->
+                Account
                 <fieldset class="fieldset gap-0.5">
                     <label class="label text-base font-medium">บัญชี</label>
                     <select v-model.number="form.accountId" class="select select-bordered w-full" required>
@@ -194,7 +193,7 @@ function resetForm() {
                         </option>
                     </select>
                 </fieldset>
-                <!-- Category -->
+                Category
                 <fieldset class="fieldset gap-0.5">
                     <label class="label text-base font-medium">หมวดหมู่ (รายจ่าย)</label>
                     <select v-model="form.category" class="select select-bordered w-full" required>
@@ -205,13 +204,13 @@ function resetForm() {
                         </option>
                     </select>
                 </fieldset>
-                <!-- Amount -->
+                Amount
                 <fieldset class="fieldset gap-0.5">
                     <label class="label text-base font-medium">จำนวนเงิน</label>
                     <input v-model.number="form.amount" type="number" min="0" step="0.01"
                         class="input input-bordered w-full" placeholder="0.00" required />
                 </fieldset>
-                <!-- Date Range -->
+                Date Range
                 <div class="grid grid-cols-2 gap-4">
                     <fieldset class="fieldset gap-0.5">
                         <label class="label text-base font-medium">วันเริ่มต้น</label>
