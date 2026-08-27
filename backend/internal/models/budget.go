@@ -8,8 +8,8 @@ type Budget struct {
 	UserID uint
 	User   User
 
-	AccountID *uint
-	Account   *Account
+	AccountID uint
+	Account   Account
 
 	Amount   float64 `gorm:"not null"`
 	Category string  `gorm:"size:20;not null"`

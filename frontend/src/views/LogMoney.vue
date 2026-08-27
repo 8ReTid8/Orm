@@ -18,6 +18,7 @@ const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
+
 const {
   transactions,
   isLoadingTransactions,

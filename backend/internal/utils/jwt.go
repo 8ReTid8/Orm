@@ -10,10 +10,11 @@ import (
 
 type UserClaims struct {
 	UserID uint `json:"userId"`
+	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID uint) (string, error) {
+func GenerateToken(userID uint, role string) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 
 	if secret == "" {
@@ -22,6 +23,7 @@ func GenerateToken(userID uint) (string, error) {
 
 	claims := UserClaims{
 		UserID: userID,
+		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(
 				time.Now().Add(24 * time.Hour),

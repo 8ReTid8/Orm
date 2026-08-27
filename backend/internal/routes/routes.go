@@ -19,16 +19,15 @@ func SetupRoutes(router *gin.Engine) {
 	protected.Use(middleware.AuthMiddleware())
 	{
 		protected.GET("/categories", handlers.GetCategories)
+		
+		//Account
 		protected.POST("/accounts", handlers.CreateAccount)
 		protected.GET("/accounts", handlers.GetAccounts)
-		protected.POST(
-			"/transactions",
-			handlers.CreateTransaction,
-		)
+		
+		//Transaction
+		protected.POST("/transactions",handlers.CreateTransaction,)
 		protected.GET("/transactions", handlers.GetTransactions)
-		protected.PATCH(
-			"/transactions/:id",
-			handlers.UpdateTransaction,
-		)
+		protected.PATCH("/transactions/:id",handlers.UpdateTransaction,)
+		protected.DELETE("/transactions/:id",handlers.DeleteTransaction,)
 	}
 }

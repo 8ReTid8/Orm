@@ -13,6 +13,7 @@ type User struct {
 	Email     string `gorm:"size:255;uniqueIndex;not null" json:"email"`
 	Password  string `gorm:"size:255;not null" json:"-"`
 	CreatedAt time.Time
+	Role      string `gorm:"type:varchar(20);not null;default:'user'"`
 
 	// Transactions []Transaction `gorm:"foreignKey:UserID"`
 	Accounts    []Account    `gorm:"foreignKey:UserID"`

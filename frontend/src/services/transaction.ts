@@ -2,17 +2,10 @@ import api from "./api"
 
 import type {
   TransactionForm,
-  Transaction,
+  CreateTransactionResponse,
+  GetTransactionsResponse,
+  DeleteTransactionResponse,
 } from "@/types/transaction"
-
-interface CreateTransactionResponse {
-  message: string
-  transaction: Transaction
-}
-
-interface GetTransactionsResponse {
-  transactions: Transaction[]
-}
 
 
 export async function createTransaction(
@@ -98,4 +91,14 @@ export async function getTransactions(
     )
 
   return response.data.transactions
+}
+
+export async function deleteTransaction(
+  id: number
+) {
+  const response = await api.delete<DeleteTransactionResponse>(
+    `/transactions/${id}`,
+  )
+
+  return response.data
 }

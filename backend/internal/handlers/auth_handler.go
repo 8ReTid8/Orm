@@ -66,6 +66,7 @@ func Register(c *gin.Context) {
 		// Name:     name,
 		Email:    email,
 		Password: string(hashedPassword),
+		Role:     "user",
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
@@ -116,7 +117,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateToken(user.ID)
+	token, err := utils.GenerateToken(user.ID, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "ไม่สามารถสร้าง token ได้",
@@ -131,6 +132,7 @@ func Login(c *gin.Context) {
 			"id":    user.ID,
 			// "name":  user.Name,
 			"email": user.Email,
+			"role":  user.Role,
 		},
 	})
 }

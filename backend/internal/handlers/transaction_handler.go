@@ -17,7 +17,6 @@ import (
 )
 
 func CreateTransaction(c *gin.Context) {
-	fmt.Print(c)
 	// 1. User จาก JWT
 	// userIDValue, exists := c.Get("userID")
 	// if !exists {
@@ -535,5 +534,93 @@ func UpdateTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":     "แก้ไขรายการสำเร็จ",
 		"transaction": oldTransaction,
+	})
+}
+
+func DeleteTransaction(c *gin.Context) {
+	// 1. user จาก JWT
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	// 2. transaction id จาก URL
+	transactionID64, err := strconv.ParseUint(
+		c.Param("id"),
+		10,
+		64,
+	)
+
+	if err != nil || transactionID64 == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "transaction id ไม่ถูกต้อง",
+		})
+		return
+	}
+
+	transactionID := uint(transactionID64)
+
+	// 3. หา transaction
+	// และต้องเป็น transaction ของ user คนนี้
+	var transaction models.Transaction
+
+	if err := database.DB.
+		Joins(
+			"JOIN accounts ON accounts.id = transactions.account_id",
+		).
+		Where(
+			"transactions.id = ? AND accounts.user_id = ?",
+			transactionID,
+			userID,
+		).
+		First(&transaction).Error; err != nil {
+
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"message": "ไม่พบ transaction",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถค้นหารายการได้",
+		})
+		return
+	}
+
+	// 4. Database transaction
+	err = database.DB.Transaction(
+		func(tx *gorm.DB) error {
+
+			// คืนผลของ transaction ออกจาก balance
+			if err := removeTransactionFromBalance(
+				tx,
+				transaction.AccountID,
+				transaction.Type,
+				transaction.Amount,
+			); err != nil {
+				return err
+			}
+
+			// ลบ transaction
+			if err := tx.Delete(
+				&transaction,
+			).Error; err != nil {
+				return err
+			}
+
+			return nil
+		},
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถลบรายการได้",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "ลบรายการสำเร็จ",
 	})
 }

@@ -26,3 +26,15 @@ export interface Transaction {
   slipImage?: string | null
 }
 
+export interface CreateTransactionResponse {
+  message: string
+  transaction: Transaction
+}
+
+export interface GetTransactionsResponse {
+  transactions: Transaction[]
+}
+
+export interface DeleteTransactionResponse {
+  message: string
+}

@@ -108,3 +108,44 @@ function formatMoney(value: number) {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, watch } from "vue"
+import type { Account } from "@/types/account"
+import type { Category } from "@/types/category"
+import type { BudgetForm } from "@/types/budget"
+interface Props {
+  open: boolean
+  accounts: Account[]
+  categories: Category[]
+}
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  close: []
+  save: [form: BudgetForm]
+}>()
+const dialogRef = ref<HTMLDialogElement | null>(null)
+const form = ref<BudgetForm>({
+  accountId: null,
+  category: "",
+  amount: null,
+  startDate: "",
+  endDate: "",
+})
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      dialogRef.value?.showModal()
+    } else {
+      dialogRef.value?.close()
+    }
+  },
+)
+function submitForm() {
+  if (!form.value.category || !form.value.amount || !form.value.startDate || !form.value.endDate || !form.value.accountId) {
+    return
+  }
+  emit("save", { ...form.value })
+  resetForm()
+}

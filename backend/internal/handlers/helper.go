@@ -1,10 +1,5 @@
 package handlers
 
-// import (
-// 	"net/http"
-
-// 	"github.com/gin-gonic/gin"
-// )
 import (
 	"fmt"
 	"net/http"
@@ -39,7 +34,7 @@ func getUserID(c *gin.Context) (uint, bool) {
 	return userID, true
 }
 
-func parseTransactionForm(c *gin.Context,) (dto.TransactionInput, error) {
+func parseTransactionForm(c *gin.Context) (dto.TransactionInput, error) {
 
 	transactionType := c.PostForm("type")
 	category := c.PostForm("category")
@@ -100,22 +95,22 @@ func parseTransactionForm(c *gin.Context,) (dto.TransactionInput, error) {
 	}, nil
 }
 
-func findUserAccount(userID uint,accountID uint,) (*models.Account, error) {
+func findUserAccount(userID uint, accountID uint) (*models.Account, error) {
 
-    var account models.Account
+	var account models.Account
 
-    if err := database.DB.
-        Where(
-            "id = ? AND user_id = ?",
-            accountID,
-            userID,
-        ).
-        First(&account).Error; err != nil {
+	if err := database.DB.
+		Where(
+			"id = ? AND user_id = ?",
+			accountID,
+			userID,
+		).
+		First(&account).Error; err != nil {
 
-        return nil, err
-    }
+		return nil, err
+	}
 
-    return &account, nil
+	return &account, nil
 }
 
 func addTransactionToBalance(
@@ -174,4 +169,80 @@ func removeTransactionFromBalance(
 			"balance",
 			gorm.Expr(expression, amount),
 		).Error
+}
+
+func parseBudgetForm(c *gin.Context) (dto.BudgetInput, error) {
+	category := c.PostForm("category")
+	amount, err := strconv.ParseFloat(
+		c.PostForm("amount"),
+		64,
+	)
+	if category == "" {
+		return dto.BudgetInput{},
+			fmt.Errorf("กรุณากรอกข้อมูลให้ครบ")
+	}
+
+	if err != nil || amount <= 0 {
+		return dto.BudgetInput{},
+			fmt.Errorf("จำนวนเงินไม่ถูกต้อง")
+	}
+
+	accountID64, err := strconv.ParseUint(
+		c.PostForm("accountId"),
+		10,
+		64,
+	)
+
+	if err != nil {
+		return dto.BudgetInput{},
+			fmt.Errorf("บัญชีไม่ถูกต้อง")
+	}
+
+	startDate, err := time.Parse(
+		"2006-01-02",
+		c.PostForm("startDate"),
+	)
+
+	if err != nil {
+		return dto.BudgetInput{},
+			fmt.Errorf("วันที่เริ่มต้นไม่ถูกต้อง")
+	}
+
+	endDate, err := time.Parse(
+		"2006-01-02",
+		c.PostForm("endDate"),
+	)
+
+	if err != nil {
+		return dto.BudgetInput{},
+			fmt.Errorf("วันที่สิ้นสุดไม่ถูกต้อง")
+	}
+	now := time.Now()
+
+	today := time.Date(
+		now.Year(),
+		now.Month(),
+		now.Day(),
+		0, 0, 0, 0,
+		now.Location(),
+	)
+
+	if startDate.Before(today) {
+		return dto.BudgetInput{},
+			fmt.Errorf("วันที่เริ่มต้นต้องไม่ก่อนวันที่ปัจจุบัน")
+	}
+
+	// วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น
+	if endDate.Before(startDate) {
+		return dto.BudgetInput{},
+			fmt.Errorf("วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น")
+	}
+
+	return dto.BudgetInput{
+		Amount:    amount,
+		Category:  category,
+		AccountID: uint(accountID64),
+		StartDate: startDate,
+		EndDate:   endDate,
+	}, nil
 }

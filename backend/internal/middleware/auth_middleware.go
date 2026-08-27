@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"strings"
@@ -49,6 +50,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			tokenString,
 			claims,
 			func(token *jwt.Token) (interface{}, error) {
+
+				if token.Method != jwt.SigningMethodHS256 {
+					return nil, errors.New("unexpected signing method")
+				}
 				return []byte(secret), nil
 			},
 			jwt.WithValidMethods([]string{
@@ -65,7 +70,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// เก็บ user id ไว้ให้ handler ตัวถัดไปใช้
 		c.Set("userID", claims.UserID)
-
+		c.Set("role", claims.Role)
 		c.Next()
 	}
 }

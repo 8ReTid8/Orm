@@ -11,3 +11,11 @@ type TransactionInput struct {
 	Note            string
 	TransactionDate time.Time
 }
+
+type BudgetInput struct {
+	Amount    float64
+	Category  string
+	AccountID uint
+	StartDate time.Time
+	EndDate   time.Time
+}
