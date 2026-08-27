@@ -12,4 +12,5 @@ type Account struct {
 	Balance float64 `gorm:"not null" json:"balance"`
 
 	Transactions []Transaction `gorm:"foreignKey:AccountID" json:"-"`
+	Budgets []Budget `gorm:"foreignKey:AccountID" json:"-"`
 } 

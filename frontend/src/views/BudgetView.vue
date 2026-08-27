@@ -19,7 +19,7 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-vue-next"
         </p>
       </div>
 
-      <button class="btn btn-primary">
+      <button class="btn text-white bg-green-700" type="button">
         <Plus class="size-4" />
         สร้าง Budget
       </button>

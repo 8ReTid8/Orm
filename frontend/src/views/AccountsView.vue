@@ -9,7 +9,6 @@ import { useAccount } from "@/composables/account/useAccount"
 
 // const accountStore = useAccountStore()
 // const isAddAccountOpen = ref(false)
-// console.log(localStorage.getItem("token"))
 // function openAddAccount() {
 //     isAddAccountOpen.value = true
 // }
