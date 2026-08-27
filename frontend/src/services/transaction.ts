@@ -11,6 +11,7 @@ import type {
 export async function createTransaction(
   form: TransactionForm,
 ) {
+  console.log("CREATE TRANSACTION SERVICE CALLED")
   const payload = new FormData()
 
   payload.append("type", form.type)
@@ -47,11 +48,11 @@ export async function updateTransaction(
   form: TransactionForm,
 ) {
   const payload = new FormData()
-
+  console.log("UPDATE TRANSACTION SERVICE CALLED")
   payload.append("type", form.type)
   payload.append("amount", String(form.amount))
   payload.append("category", form.category)
-  payload.append("accountId",String(form.accountId),)
+  payload.append("accountId", String(form.accountId),)
   payload.append("title", form.title)
   payload.append("note", form.note)
   payload.append(

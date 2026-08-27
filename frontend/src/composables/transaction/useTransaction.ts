@@ -40,12 +40,19 @@ export function useTransactions() {
   async function saveTransaction(
     form: TransactionForm,
   ) {
+    console.log("FORM:", form)
+    console.log(
+      "EDITING ID:",
+      editingTransactionId.value,
+    )
+
     if (
       !form.amount ||
       !form.title ||
       !form.category ||
       !form.accountId
     ) {
+      console.log("VALIDATION FAILED")
       return
     }
 
@@ -55,6 +62,7 @@ export function useTransactions() {
         form,
       )
     } else {
+      console.log("CREATE")
       await createTransaction(form)
     }
   }

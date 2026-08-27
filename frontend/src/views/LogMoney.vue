@@ -85,6 +85,8 @@ function openTodayTransaction() {
 }
 
 async function saveTransaction() {
+  console.log("SAVE CLICK")
+  console.log("ACCOUNT BEFORE SAVE:", form.value.accountId)
   try {
     await saveTransactionApi(form.value)
 
