@@ -9,6 +9,7 @@ import {
   createTransaction,
   getTransactions,
   updateTransaction,
+  deleteTransaction as deleteTransactionApi,
 } from "@/services/transaction"
 
 export function useTransactions() {
@@ -67,6 +68,15 @@ export function useTransactions() {
     }
   }
 
+  async function deleteTransaction(id: number) {
+    try {
+      await deleteTransactionApi(id)
+    } catch (error) {
+      console.error("Delete transaction failed:", error)
+      throw error
+    }
+  }
+
   function startEdit(transaction: Transaction) {
     editingTransactionId.value = transaction.id
   }
@@ -81,6 +91,7 @@ export function useTransactions() {
     editingTransactionId,
 
     loadTransactions,
+    deleteTransaction,
     saveTransaction,
     startEdit,
     cancelEdit,

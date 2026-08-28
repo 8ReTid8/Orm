@@ -1,27 +1,40 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { ref } from "vue"
 import {
   Plus,
   ReceiptText,
-  Pencil
+  Pencil,
+  Trash2,
+  ArrowUpRight,
+  ArrowDownLeft,
+  FileText
 } from "lucide-vue-next"
 
 import type { Transaction } from "@/types/transaction"
 import { formatMoney } from "@/utils/number.ts"
 import TransactionSummary from "./TransactionSummary.vue"
+import { resolveCategoryIcon } from "@/utils/categoryIcons.ts"
+import type { Category } from "@/types/category.ts"
 
 interface Props {
   selectedDateText: string
   transactions: Transaction[]
+  categories: Category[]
   loading?: boolean
 }
 
 const props = defineProps<Props>()
-const dailyTransactionSection = ref<HTMLElement | null>(null)
+// const dailyTransactionSection = ref<HTMLElement | null>(null)
 const emit = defineEmits<{
   add: []
   edit: [transaction: Transaction]
+  delete: [id: number]
 }>()
+
+function getCategoryIcon(categoryName: string) {
+  const cat = props.categories.find(c => c.name === categoryName)
+  return resolveCategoryIcon(cat?.icon)
+}
 
 </script>
 
@@ -69,7 +82,7 @@ const emit = defineEmits<{
       </div>
 
       <!-- Transactions -->
-      <div v-else class="mt-6 divide-y divide-base-300">
+      <!-- <div v-else class="mt-6 divide-y divide-base-300">
         <div v-for="transaction in transactions" :key="transaction.id"
           class="flex items-center justify-between gap-4 py-4">
           <div class="min-w-0">
@@ -96,6 +109,70 @@ const emit = defineEmits<{
               @click="emit('edit', transaction)">
               <Pencil class="size-4" />
             </button>
+          </div>
+        </div>
+      </div> -->
+      <!-- Transactions -->
+      <div v-else class="mt-4 space-y-2">
+        <div v-for="transaction in transactions" :key="transaction.id"
+          class="group flex items-center justify-between gap-4 rounded-xl border border-transparent p-3.5 transition-all hover:border-base-300 hover:bg-base-200/50">
+          <!-- Left: Icon & Info -->
+          <div class="flex items-center gap-3.5 min-w-0">
+            <!-- Type Icon Circle -->
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl font-bold" :class="transaction.type === 'income'
+                ? 'bg-success/15 text-success'
+                : 'bg-error/15 text-error'
+              ">
+              <!-- <ArrowDownLeft v-if="transaction.type === 'income'" class="size-5" /> -->
+              <!-- <ArrowUpRight v-else class="size-5" /> -->
+              <!-- Render dynamic Lucide icon ตามชื่อที่ดึงมา -->
+              <component :is="getCategoryIcon(transaction.category)" class="size-5" />
+            </div>
+
+            <!-- Title & Details -->
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <p class="truncate font-semibold text-base">
+                  {{ transaction.title }}
+                </p>
+                <!-- Badge ถ้ามี note หรือ slip -->
+                <FileText v-if="transaction.note" class="size-3.5 text-base-content/40 shrink-0"
+                  title="มีบันทึกข้อความ" />
+              </div>
+
+              <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-base-content/60">
+                <span class="badge badge-sm badge-ghost font-normal">{{ transaction.category }}</span>
+                <span>•</span>
+                <span class="text-sm">{{ transaction.account.name }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Amount & Action Buttons -->
+          <div class="flex items-center gap-3 shrink-0">
+            <p class="text-right font-bold text-base md:text-lg" :class="transaction.type === 'income'
+                ? 'text-success'
+                : 'text-error'
+              ">
+              {{ transaction.type === 'income' ? '+' : '-' }}฿{{ formatMoney(transaction.amount) }}
+            </p>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-1">
+              <!-- Edit Button -->
+              <button type="button"
+                class="btn btn-ghost btn-xs sm:btn-sm btn-square text-base-content/60 hover:bg-base-300 hover:text-base-content"
+                title="แก้ไขรายการ" @click="emit('edit', transaction)">
+                <Pencil class="size-4" />
+              </button>
+
+              <!-- Delete Button -->
+              <button type="button"
+                class="btn btn-ghost btn-xs sm:btn-sm btn-square text-base-content/60 hover:bg-error/10 hover:text-error"
+                title="ลบรายการ" @click="emit('delete', transaction.id)">
+                <Trash2 class="size-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

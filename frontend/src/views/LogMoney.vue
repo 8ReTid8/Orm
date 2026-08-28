@@ -24,6 +24,7 @@ const {
   isLoadingTransactions,
   editingTransactionId,
   loadTransactions,
+  deleteTransaction,
   saveTransaction: saveTransactionApi,
   startEdit,
   cancelEdit,
@@ -110,18 +111,32 @@ async function saveTransaction() {
   }
 }
 
+async function handleDeleteTransaction(id: number) {
+  try {
+    await deleteTransaction(id)
+
+    await loadTransactions(
+      selectedDate.value.getFullYear(),
+      selectedDate.value.getMonth() + 1,
+    )
+  } catch (error) {
+    console.error(
+      "Delete transaction failed:",
+      error,
+    )
+  }
+}
+
 function closeDialog() {
   isDialogOpen.value = false
 }
 
 onMounted(() => {
   const now = new Date()
-
   loadTransactions(
     now.getFullYear(),
     now.getMonth() + 1,
   )
-
   categoryStore.loadCategories()
   accountStore.loadAccounts()
 })
@@ -160,8 +175,8 @@ onMounted(() => {
     <TransCalendar :selected-date="selectedDate" :transactions="filteredTransactions" @select="handleSelectDate" />
 
     <div ref="dailyTransactionSection">
-      <DailyTransactionList :selected-date-text="selectedDateText" :transactions="selectedDayTransactions"
-        :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" />
+      <DailyTransactionList :selected-date-text="selectedDateText" :categories="categoryStore.categories" :transactions="selectedDayTransactions"
+        :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" @delete="handleDeleteTransaction"/>
     </div>
   </section>
 

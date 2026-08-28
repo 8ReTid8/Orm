@@ -2,7 +2,8 @@
 import type { Account } from "@/types/account";
 import type { Category } from "@/types/category";
 import type { TransactionForm } from "@/types/transaction"
-import { ImagePlus } from "lucide-vue-next";
+import { resolveCategoryIcon } from "@/utils/categoryIcons";
+import { ImagePlus, Tag } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 
 interface Props {
@@ -37,7 +38,36 @@ watch(
         immediate: true,
     },
 )
+
+// watch(
+//     () => props.form.type,
+//     () => {
+//         props.form.category = ""
+//     }
+// )
+
+watch(
+    () => props.form.type,
+    (newType, oldType) => {
+        // ทำงานเฉพาะตอนที่มีการสลับ type จริงๆ
+        if (oldType && newType !== oldType) {
+            // เช็คว่า category ปัจจุบัน มีอยู่ในหมวดหมู่ของประเภทใหม่หรือไม่
+            const isValidForNewType = props.categories.some(
+                (c) => c.type === newType && c.name === props.form.category
+            )
+            // ถ้า category เดิมไม่ตรงกับประเภทใหม่ ถึงจะล้างค่า
+            if (!isValidForNewType) {
+                props.form.category = ""
+            }
+        }
+    }
+)
 const slipPreview = ref<string | null>(null)
+
+const selectedCategoryIcon = computed(() => {
+    const selectedCat = filteredCategories.value.find((c) => c.name === props.form.category)
+    return selectedCat?.icon ? resolveCategoryIcon(selectedCat.icon) : Tag
+})
 
 function handleSlipChange(event: Event) {
     const input = event.target as HTMLInputElement
@@ -135,16 +165,25 @@ function closeDialog() {
                     <!-- Category -->
                     <fieldset class="fieldset gap-0.5">
                         <label class="label text-base">หมวดหมู่</label>
-
-                        <select v-model="form.category" class="select w-full" required>
+                        <!-- <select v-model="form.category" class="select w-full" required>
                             <option disabled value="">เลือกหมวดหมู่</option>
                             <option v-for="category in filteredCategories" :key="category.id" :value="category.name">
                                 {{ category.name }}
                             </option>
-                            <!-- <option v-for="category in categories" :key="category.id" :value="category.id">
-                                {{ category.name }}
-                            </option> -->
-                        </select>
+                        </select> -->
+                        <div class="relative flex items-center">
+                            <!-- Icon ฝั่งซ้าย (จะเปลี่ยนตาม Category ที่เลือก) -->
+                            <component :is="selectedCategoryIcon"
+                                class="pointer-events-none absolute left-3 size-5 text-base-content/50 z-10" />
+                            <!-- เพิ่ม pl-10 เพื่อเว้นที่ให้ Icon ฝั่งซ้าย -->
+                            <select v-model="form.category" class="select w-full pl-10" required>
+                                <option disabled value="">เลือกหมวดหมู่</option>
+                                <option v-for="category in filteredCategories" :key="category.id"
+                                    :value="category.name">
+                                    {{ category.name }}
+                                </option>
+                            </select>
+                        </div>
                     </fieldset>
                 </div>
                 <fieldset class="fieldset gap-0.5">
