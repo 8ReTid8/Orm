@@ -92,12 +92,10 @@ async function saveTransaction() {
   console.log("ACCOUNT BEFORE SAVE:", form.value.accountId)
   try {
     await saveTransactionApi(form.value)
-
     await loadTransactions(
       selectedDate.value.getFullYear(),
       selectedDate.value.getMonth() + 1,
     )
-
     cancelEdit()
 
     isDialogOpen.value = false

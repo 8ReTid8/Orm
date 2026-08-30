@@ -112,24 +112,28 @@ function formatMoney(value: number) {
 </template> -->
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
-import { Pencil, Trash2, Calendar, WalletCards, AlertCircle, PiggyBank } from "lucide-vue-next"
+import { ref } from "vue"
+import { Calendar, WalletCards, AlertCircle, PiggyBank } from "lucide-vue-next"
 import { useCategoryStore } from "@/stores/category"
 import { useAccountStore } from "@/stores/account"
 import { resolveCategoryIcon } from "@/utils/categoryIcons"
 import type { Budget } from "@/types/budget"
 import { formatDate } from "@/utils/format"
+import ActionButton from "../common/ActionButton.vue"
+import ConfirmModal from "../common/ConfirmModal.vue"
 
 interface Props {
   budgets: Budget[]
 }
 
-const props = defineProps<Props>()
+const targetBudget = ref<Budget | null>(null)
 
-// const emit = defineEmits<{
-//   edit: [budget: Budget]
-//   delete: [budget: Budget]
-// }>()
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  // add: []
+  edit: [budget: Budget]
+  delete: [id: number]
+}>()
 
 const categoryStore = useCategoryStore()
 const accountStore = useAccountStore()
@@ -212,12 +216,22 @@ function getDaysRemaining(endDateStr: string) {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   return diffDays > 0 ? `เหลือ ${diffDays} วัน` : "สิ้นสุดแล้ว"
 }
+
+function openDeleteModal(budget: Budget) {
+  targetBudget.value = budget
+}
+function handleConfirmDelete() {
+  if (targetBudget.value) {
+    emit("delete", targetBudget.value.id)
+    targetBudget.value = null
+  }
+}
 </script>
 
 <template>
   <div class="card border border-base-300 bg-base-100 shadow-sm">
     <div class="card-body p-5 sm:p-6">
-      
+
       <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
@@ -234,10 +248,8 @@ function getDaysRemaining(endDateStr: string) {
       </div>
 
       <!-- Empty State -->
-      <div
-        v-if="budgets.length === 0"
-        class="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 py-12 text-center"
-      >
+      <div v-if="budgets.length === 0"
+        class="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-base-300 py-12 text-center">
         <div class="flex size-14 items-center justify-center rounded-2xl bg-base-200 text-base-content/40">
           <PiggyBank class="size-7" />
         </div>
@@ -251,14 +263,11 @@ function getDaysRemaining(endDateStr: string) {
 
       <!-- Budget Cards Grid / List -->
       <div v-else class="mt-6 space-y-4">
-        <div
-          v-for="budget in budgets"
-          :key="budget.id"
-          class="group rounded-2xl border border-base-200 bg-base-100 p-4 transition-all hover:border-base-300 hover:shadow-md"
-        >
+        <div v-for="budget in budgets" :key="budget.id"
+          class="group rounded-2xl border border-base-200 bg-base-100 p-4 transition-all hover:border-base-300 hover:shadow-md">
           <!-- Top Row: Icon + Category + Badges + Actions -->
           <div class="flex items-start justify-between gap-3">
-            
+
             <!-- Category & Account Info -->
             <div class="flex items-center gap-3 min-w-0">
               <!-- Category Icon -->
@@ -294,22 +303,8 @@ function getDaysRemaining(endDateStr: string) {
 
             <!-- Action Buttons (Edit / Delete) -->
             <div class="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
-                class="btn btn-ghost btn-xs sm:btn-sm btn-square text-base-content/60 hover:bg-base-200"
-                title="แก้ไขงบประมาณ"
-                @click="emit('edit', budget)"
-              >
-                <Pencil class="size-4" />
-              </button>
-              <button
-                type="button"
-                class="btn btn-ghost btn-xs sm:btn-sm btn-square text-base-content/60 hover:bg-error/10 hover:text-error"
-                title="ลบงบประมาณ"
-                @click="emit('delete', budget)"
-              >
-                <Trash2 class="size-4" />
-              </button>
+              <ActionButton edit-title="แก้ไขรายการ" delete-title="ลบรายการ" @edit="emit('edit', budget)"
+                @delete="openDeleteModal(budget)" />
             </div>
           </div>
 
@@ -317,10 +312,8 @@ function getDaysRemaining(endDateStr: string) {
           <div class="mt-4 flex items-baseline justify-between text-sm">
             <div>
               <span class="text-xs text-base-content/50">ใช้ไปแล้ว: </span>
-              <span
-                class="font-bold text-base"
-                :class="budget.spent > budget.amount ? 'text-error' : 'text-base-content'"
-              >
+              <span class="font-bold text-base"
+                :class="budget.spent > budget.amount ? 'text-error' : 'text-base-content'">
                 ฿{{ formatMoney(budget.spent) }}
               </span>
               <span class="text-xs text-base-content/50"> / ฿{{ formatMoney(budget.amount) }}</span>
@@ -328,20 +321,15 @@ function getDaysRemaining(endDateStr: string) {
 
             <!-- Percentage / Over-budget warning -->
             <div class="text-right">
-              <span
-                v-if="budget.spent > budget.amount"
-                class="inline-flex items-center gap-1 text-xs font-bold text-error"
-              >
+              <span v-if="budget.spent > budget.amount"
+                class="inline-flex items-center gap-1 text-xs font-bold text-error">
                 <AlertCircle class="size-3.5" />
                 เกินงบ ฿{{ formatMoney(budget.spent - budget.amount) }}
               </span>
               <span v-else class="text-xs font-semibold text-base-content/70">
                 เหลือ ฿{{ formatMoney(budget.amount - budget.spent) }}
               </span>
-              <span
-                class="ml-2 font-bold"
-                :class="budget.spent > budget.amount ? 'text-error' : 'text-base-content'"
-              >
+              <span class="ml-2 font-bold" :class="budget.spent > budget.amount ? 'text-error' : 'text-base-content'">
                 ({{ getRealPercent(budget.spent, budget.amount).toFixed(0) }}%)
               </span>
             </div>
@@ -349,20 +337,16 @@ function getDaysRemaining(endDateStr: string) {
 
           <!-- Bottom Row: Progress Bar (เปลี่ยนสีตาม % ที่ใช้ไป) -->
           <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-base-200">
-            <div
-              class="h-full rounded-full transition-all duration-300"
-              :class="{
-                'bg-error': budget.spent > budget.amount,
-                'bg-warning': budget.spent <= budget.amount && getRealPercent(budget.spent, budget.amount) >= 80,
-                'bg-success': getRealPercent(budget.spent, budget.amount) < 80,
-              }"
-              :style="{ width: getPercent(budget.spent, budget.amount) + '%' }"
-            />
+            <div class="h-full rounded-full transition-all duration-300" :class="{
+              'bg-error': budget.spent > budget.amount,
+              'bg-warning': budget.spent <= budget.amount && getRealPercent(budget.spent, budget.amount) >= 80,
+              'bg-success': getRealPercent(budget.spent, budget.amount) < 80,
+            }" :style="{ width: getPercent(budget.spent, budget.amount) + '%' }" />
           </div>
-
         </div>
       </div>
-
     </div>
   </div>
+  <ConfirmModal :open="targetBudget !== null" title="ยืนยันการลบรายการ?" confirm-text="ลบรายการ" type="danger"
+    @close="targetBudget = null" @confirm="handleConfirmDelete" />
 </template>

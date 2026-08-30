@@ -33,7 +33,7 @@ func SetupRoutes(router *gin.Engine) {
 		//Budget
 		protected.POST("/budgets", handlers.CreateBudget)
 		protected.GET("/budgets", handlers.GetBudgets)
-		// protected.PATCH("/budgets/:id", handlers.UpdateBudget)
-		// protected.DELETE("/budgets/:id", handlers.DeleteBudget)
+		protected.PATCH("/budgets/:id", handlers.UpdateBudget)
+		protected.DELETE("/budgets/:id", handlers.DeleteBudget)
 	}
 }

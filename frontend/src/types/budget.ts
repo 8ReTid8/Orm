@@ -24,3 +24,7 @@ export interface CreateBudgetResponse {
 export interface GetBudgetsResponse {
   budgets: Budget[]
 }
+
+export interface DeleteBudgetResponse {
+  message: string
+}

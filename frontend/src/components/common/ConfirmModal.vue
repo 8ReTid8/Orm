@@ -55,7 +55,7 @@ function handleClose() {
   <dialog ref="dialogRef" class="modal" @close="handleClose">
     <div class="modal-box max-w-sm text-center">
       <!-- Icon ตามประเภท (danger / warning / info) -->
-      <div
+      <!-- <div
         class="mx-auto mb-4 flex size-14 items-center justify-center rounded-full"
         :class="{
           'bg-error/15 text-error': type === 'danger',
@@ -65,7 +65,7 @@ function handleClose() {
       >
         <AlertTriangle v-if="type === 'danger' || type === 'warning'" class="size-7" />
         <Info v-else class="size-7" />
-      </div>
+      </div> -->
 
       <!-- Title -->
       <h3 class="text-lg font-bold">

@@ -10,6 +10,7 @@ import BudgetFilter from "@/components/filter/budgetFilter.vue";
 import BudgetOverview from "@/components/budget/BudgetOverview.vue";
 import { useBudget } from "@/composables/budget/useBudget";
 import AccountFilter from "@/components/filter/accountFilter.vue";
+import type { Budget } from "@/types/budget";
 const isDialogOpen = ref(false)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
@@ -26,40 +27,75 @@ const {
 const {
   budgets,
   isLoadingBudgets,
+  editingBudgetId,
   loadBudgets,
+  deleteBudget,
   saveBudget: saveBudgetApi,
+  startEdit,
+  cancelEdit,
 } = useBudget()
 
-function closeDialog() {
-  isDialogOpen.value = false
+function openEditBudget(budget: Budget) {
+  console.log("openEditBudget", budget)
+  startEdit(budget)
+  setEditForm(budget)
+  isDialogOpen.value = true
 }
+
 function openAddBudget() {
 
-  // cancelEdit()
-  // resetForm(
-  //   formatDate(selectedDate.value),
-  // )
+  cancelEdit()
+  resetForm(  )
 
   // form.value.transactionDate =
   //   formatDate(selectedDate.value)
 
   isDialogOpen.value = true
 }
+
 async function saveBudget() {
   try {
     await saveBudgetApi(form.value)
+
+    cancelEdit()
+
     isDialogOpen.value = false
+
     resetForm()
   } catch (error) {
     console.error("Error saving budget:", error)
   }
 }
 
+async function handleDeleteBudget(id: number) {
+  const now = new Date()
+  try {
+    await deleteBudget(id)
+
+    await loadBudgets(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      "active",
+      // status.value,
+      // selectedAccountId.value
+    )
+  } catch (error) {
+    console.error(
+      "Delete budget failed:",
+      error,
+    )
+  }
+}
+
+function closeDialog() {
+  isDialogOpen.value = false
+}
+
 onMounted(() => {
   const now = new Date()
   loadBudgets(
-    now.getFullYear(), 
-    now.getMonth() + 1, 
+    now.getFullYear(),
+    now.getMonth() + 1,
     "active",
     // status.value, 
     // selectedAccountId.value
@@ -133,7 +169,7 @@ onMounted(() => {
     <BudgetOverview />
 
     <!-- Categories -->
-    <BudgetCategoryList :budgets="budgets" />
+    <BudgetCategoryList :budgets="budgets" @delete="handleDeleteBudget" @edit="openEditBudget" />
 
   </section>
   <BudgetForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts" :categories="categoryStore.categories"

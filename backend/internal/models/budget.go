@@ -9,7 +9,7 @@ type Budget struct {
 	User   User
 
 	AccountID uint
-	Account   Account
+	Account   Account `json:"account"`
 
 	Amount   float64 `gorm:"not null" json:"amount"`
 	Category string  `gorm:"size:20;not null" json:"category"`

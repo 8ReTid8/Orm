@@ -14,6 +14,7 @@ import TransactionSummary from "./TransactionSummary.vue"
 import { resolveCategoryIcon } from "@/utils/categoryIcons.ts"
 import type { Category } from "@/types/category.ts"
 import ConfirmModal from "../common/ConfirmModal.vue"
+import ActionButton from "../common/ActionButton.vue"
 
 interface Props {
   selectedDateText: string
@@ -24,7 +25,7 @@ interface Props {
 
 // เก็บ transaction ที่ต้องการลบ
 const targetTransaction = ref<Transaction | null>(null)
-  
+
 const props = defineProps<Props>()
 const emit = defineEmits<{
   add: []
@@ -136,26 +137,28 @@ function handleConfirmDelete() {
             </p>
 
             <!-- Actions -->
-            <div class="flex items-center gap-1">
-              <!-- Edit Button -->
-              <button type="button"
+            <!-- <div class="flex items-center gap-1"> -->
+            <!-- Edit Button -->
+            <!-- <button type="button"
                 class="btn btn-ghost btn-xs sm:btn-sm btn-square text-base-content/60 hover:bg-base-300 hover:text-base-content"
                 title="แก้ไขรายการ" @click="emit('edit', transaction)">
                 <Pencil class="size-4" />
-              </button>
+              </button> -->
 
-              <!-- Delete Button -->
-              <button type="button"
+            <!-- Delete Button -->
+            <!-- <button type="button"
                 class="btn btn-ghost btn-xs sm:btn-sm btn-square text-base-content/60 hover:bg-error/10 hover:text-error"
                 title="ลบรายการ" @click="openDeleteModal(transaction)">
                 <Trash2 class="size-4" />
-              </button>
-            </div>
+              </button> -->
+            <!-- </div> -->
+            <ActionButton edit-title="แก้ไขรายการ" delete-title="ลบรายการ" @edit="emit('edit', transaction)"
+              @delete="openDeleteModal(transaction)" />
           </div>
         </div>
       </div>
     </div>
-    <ConfirmModal :open="targetTransaction !== null" title="ยืนยันการลบรายการ?" confirm-text="ลบรายการ" type="danger"
-      @close="targetTransaction = null" @confirm="handleConfirmDelete" />
   </div>
+  <ConfirmModal :open="targetTransaction !== null" title="ยืนยันการลบรายการ?" confirm-text="ลบรายการ" type="danger"
+    @close="targetTransaction = null" @confirm="handleConfirmDelete" />
 </template>

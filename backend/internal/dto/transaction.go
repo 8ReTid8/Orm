@@ -1,6 +1,10 @@
 package dto
 
-import "time"
+import (
+	"backend/internal/models"
+	
+	"time"
+)
 
 type TransactionInput struct {
 	Type            string
@@ -18,4 +22,19 @@ type BudgetInput struct {
 	AccountID uint
 	StartDate time.Time
 	EndDate   time.Time
+}
+
+type BudgetResponse struct {
+	ID        uint      `json:"id"`
+	AccountID uint      `json:"accountId"`
+	Category  string    `json:"category"`
+	Amount    float64   `json:"amount"`
+	StartDate time.Time `json:"startDate"`
+	EndDate   time.Time `json:"endDate"`
+
+	Spent     float64 `json:"spent"`
+	Remaining float64 `json:"remaining"`
+	IsActive  bool    `json:"isActive"`
+
+	Account models.Account `json:"account"`
 }

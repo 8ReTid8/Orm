@@ -19,13 +19,6 @@ const emit = defineEmits<{
 }>()
 const dialogRef = ref<HTMLDialogElement | null>(null)
 
-// const form = ref<BudgetForm>({
-//     accountId: null,
-//     category: "",
-//     amount: null,
-//     startDate: "",
-//     endDate: "",
-// })
 watch(
     () => props.open,
     (isOpen) => {
@@ -47,15 +40,7 @@ function submitForm() {
 function closeDialog() {
     emit("close")
 }
-// function resetForm() {
-//     form.value = {
-//         accountId: null,
-//         category: "",
-//         amount: null,
-//         startDate: "",
-//         endDate: "",
-//     }
-// }
+
 </script>
 <template>
     <dialog ref="dialogRef" class="modal">
