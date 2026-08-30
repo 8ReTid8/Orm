@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { MoreVertical, Wallet } from "lucide-vue-next"
 import type { Account } from "@/types/account"
-import { formatMoney } from "@/utils/number";
+import { formatMoney } from "@/utils/format.ts";
 
 interface Props {
   account: Account

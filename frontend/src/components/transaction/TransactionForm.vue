@@ -34,17 +34,8 @@ watch(
             dialogRef.value?.close()
         }
     },
-    {
-        immediate: true,
-    },
+    { immediate: true },
 )
-
-// watch(
-//     () => props.form.type,
-//     () => {
-//         props.form.category = ""
-//     }
-// )
 
 watch(
     () => props.form.type,

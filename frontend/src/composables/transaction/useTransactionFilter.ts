@@ -1,6 +1,6 @@
 import { computed, ref } from "vue"
 import type { Transaction } from "@/types/transaction"
-import { formatDate } from "@/utils/date"
+import { formatDate } from "@/utils/format"
 
 export function useTransactionFilter(
   transactions: {
@@ -9,15 +9,30 @@ export function useTransactionFilter(
 ) {
   const selectedDate = ref<Date>(new Date())
   const selectedAccountId = ref<number | null>(null)
-  const filteredTransactions = computed(() => {
-    if (selectedAccountId.value === null) {
-      return transactions.value
-    }
+  const selectedCategory = ref<string | null>(null)
+  // const filteredTransactions = computed(() => {
+  //   if (selectedAccountId.value === null) {
+  //     return transactions.value
+  //   }
 
-    return transactions.value.filter(
-      transaction =>
+  //   return transactions.value.filter(
+  //     transaction =>
+  //       transaction.account.id === selectedAccountId.value
+  //   )
+  // })
+  const filteredTransactions = computed(() => {
+    return transactions.value.filter(transaction => {
+
+      const accountMatch =
+        selectedAccountId.value === null ||
         transaction.account.id === selectedAccountId.value
-    )
+
+      const categoryMatch =
+        selectedCategory.value === null ||
+        transaction.category === selectedCategory.value
+
+      return accountMatch && categoryMatch
+    })
   })
 
   const selectedDateText = computed(() => {
@@ -48,6 +63,7 @@ export function useTransactionFilter(
   return {
     selectedDate,
     selectedAccountId,
+    selectedCategory,
     filteredTransactions,
     selectedDayTransactions,
     selectedDateText,

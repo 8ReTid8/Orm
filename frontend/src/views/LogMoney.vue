@@ -2,7 +2,7 @@
 import { nextTick, onMounted, ref } from "vue"
 import { Plus } from "lucide-vue-next"
 import type { Transaction } from "@/types/transaction"
-import { formatDate } from "@/utils/date"
+import { formatDate } from "@/utils/format"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
 import { useTransactions } from "@/composables/transaction/useTransaction"
@@ -13,6 +13,7 @@ import TransCalendar from "@/components/transaction/TransCalendar.vue"
 import TransactionSummary from "@/components/transaction/TransactionSummary.vue"
 import TransactionForm from "@/components/transaction/TransactionForm.vue"
 import AccountFilter from "@/components/filter/accountFilter.vue"
+import CategoryFilter from "@/components/filter/categoryFilter.vue"
 
 const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)
@@ -39,6 +40,7 @@ const {
 const {
   selectedDate,
   selectedAccountId,
+  selectedCategory,
   filteredTransactions,
   selectedDateText,
   selectedDayTransactions,
@@ -160,6 +162,7 @@ onMounted(() => {
 
       <!-- Actions -->
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <CategoryFilter v-model="selectedCategory" :categories="categoryStore.categories" />
         <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
         <button class="btn text-white bg-green-700" type="button" @click="openTodayTransaction">
           <Plus class="size-4" />

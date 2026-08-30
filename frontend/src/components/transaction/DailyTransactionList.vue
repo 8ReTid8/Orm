@@ -5,17 +5,15 @@ import {
   ReceiptText,
   Pencil,
   Trash2,
-  ArrowUpRight,
-  ArrowDownLeft,
   FileText,
-  AlertTriangle
 } from "lucide-vue-next"
 
 import type { Transaction } from "@/types/transaction"
-import { formatMoney } from "@/utils/number.ts"
+import { formatMoney } from "@/utils/format"
 import TransactionSummary from "./TransactionSummary.vue"
 import { resolveCategoryIcon } from "@/utils/categoryIcons.ts"
 import type { Category } from "@/types/category.ts"
+import ConfirmModal from "../common/ConfirmModal.vue"
 
 interface Props {
   selectedDateText: string
@@ -24,26 +22,10 @@ interface Props {
   loading?: boolean
 }
 
-// เก็บ transaction ที่กำลังจะถูกลบ (ถ้าเป็น null แปลว่า modal ปิดอยู่)
-const transactionToDelete = ref<Transaction | null>(null)
-// เมื่อกดปุ่มถังขยะ ให้เปิด modal ยืนยัน
-function openConfirmDelete(transaction: Transaction) {
-  transactionToDelete.value = transaction
-}
-// เมื่อกดยกเลิก
-function closeConfirmDelete() {
-  transactionToDelete.value = null
-}
-// เมื่อกดยืนยันการลบ
-function handleConfirmDelete() {
-  if (transactionToDelete.value) {
-    emit("delete", transactionToDelete.value.id)
-    closeConfirmDelete()
-  }
-}
-
+// เก็บ transaction ที่ต้องการลบ
+const targetTransaction = ref<Transaction | null>(null)
+  
 const props = defineProps<Props>()
-// const dailyTransactionSection = ref<HTMLElement | null>(null)
 const emit = defineEmits<{
   add: []
   edit: [transaction: Transaction]
@@ -54,37 +36,18 @@ function getCategoryIcon(categoryName: string) {
   const cat = props.categories.find(c => c.name === categoryName)
   return resolveCategoryIcon(cat?.icon)
 }
-
+function openDeleteModal(transaction: Transaction) {
+  targetTransaction.value = transaction
+}
+function handleConfirmDelete() {
+  if (targetTransaction.value) {
+    emit("delete", targetTransaction.value.id)
+    targetTransaction.value = null
+  }
+}
 </script>
 
 <template>
-  <dialog :class="{ 'modal-open': transactionToDelete !== null }" class="modal">
-    <div class="modal-box max-w-sm text-center">
-      <!-- Icon เตือน -->
-      <!-- <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-error/10 text-error">
-        <AlertTriangle class="size-7" />
-      </div> -->
-      <h3 class="text-lg font-bold">ยืนยันการลบรายการ?</h3>
-
-      <p v-if="transactionToDelete" class="mt-2 text-sm text-base-content/70">
-        คุณต้องการลบรายการ
-        <span class="font-semibold text-base-content">"{{ transactionToDelete.title }}"</span>
-        จำนวน <span class="font-semibold text-error">฿{{ formatMoney(transactionToDelete.amount) }}</span> ใช่หรือไม่?
-      </p>
-      <div class="modal-action justify-center gap-3 mt-6">
-        <button type="button" class="btn btn-ghost" @click="closeConfirmDelete">
-          ยกเลิก
-        </button>
-        <button type="button" class="btn btn-error text-white" @click="handleConfirmDelete">
-          ลบรายการ
-        </button>
-      </div>
-    </div>
-    <!-- Backdrop คลิกข้างนอกเพื่อปิด -->
-    <form method="dialog" class="modal-backdrop" @submit.prevent="closeConfirmDelete">
-      <button>close</button>
-    </form>
-  </dialog>
   <div class="card border border-base-300 bg-base-100 shadow-sm">
     <div class="card-body">
       <!-- Header -->
@@ -127,37 +90,6 @@ function getCategoryIcon(categoryName: string) {
         </p>
       </div>
 
-      <!-- Transactions -->
-      <!-- <div v-else class="mt-6 divide-y divide-base-300">
-        <div v-for="transaction in transactions" :key="transaction.id"
-          class="flex items-center justify-between gap-4 py-4">
-          <div class="min-w-0">
-            <p class="font-semibold">
-              {{ transaction.title }}
-            </p>
-
-            <div class="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-base-content/50">
-              <span>{{ transaction.category }}</span>
-              <span>•</span>
-              <span>{{ transaction.account.name }}</span>
-            </div>
-          </div>
-
-          <div class="shrink-0 text-right">
-            <p class="font-bold" :class="transaction.type === 'income'
-                ? 'text-success'
-                : 'text-error'
-              ">
-              {{ transaction.type === "income" ? "+" : "-" }}
-              ฿{{ formatMoney(transaction.amount) }}
-            </p>
-            <button type="button" class="btn btn-square btn-ghost btn-sm" aria-label="แก้ไขรายการ"
-              @click="emit('edit', transaction)">
-              <Pencil class="size-4" />
-            </button>
-          </div>
-        </div>
-      </div> -->
       <!-- Transactions -->
       <div v-else class="mt-4 space-y-2">
         <div v-for="transaction in transactions" :key="transaction.id"
@@ -215,7 +147,7 @@ function getCategoryIcon(categoryName: string) {
               <!-- Delete Button -->
               <button type="button"
                 class="btn btn-ghost btn-xs sm:btn-sm btn-square text-base-content/60 hover:bg-error/10 hover:text-error"
-                title="ลบรายการ" @click="openConfirmDelete(transaction)">
+                title="ลบรายการ" @click="openDeleteModal(transaction)">
                 <Trash2 class="size-4" />
               </button>
             </div>
@@ -223,5 +155,7 @@ function getCategoryIcon(categoryName: string) {
         </div>
       </div>
     </div>
+    <ConfirmModal :open="targetTransaction !== null" title="ยืนยันการลบรายการ?" confirm-text="ลบรายการ" type="danger"
+      @close="targetTransaction = null" @confirm="handleConfirmDelete" />
   </div>
 </template>

@@ -6,7 +6,7 @@ import {
 } from "lucide-vue-next"
 
 import type { Transaction } from "@/types/transaction"
-import { formatMoney } from "@/utils/number";
+import { formatMoney } from "@/utils/format.ts"
 
 interface Props {
   transactions: Transaction[]

@@ -8,6 +8,8 @@ import { useBudgetForm } from "@/composables/budget/useBudgetForm";
 import BudgetForm from "@/components/budget/BudgetForm.vue";
 import BudgetFilter from "@/components/filter/budgetFilter.vue";
 import BudgetOverview from "@/components/budget/BudgetOverview.vue";
+import { useBudget } from "@/composables/budget/useBudget";
+import AccountFilter from "@/components/filter/accountFilter.vue";
 const isDialogOpen = ref(false)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
@@ -20,6 +22,13 @@ const {
   resetForm,
   setEditForm,
 } = useBudgetForm()
+
+const {
+  budgets,
+  isLoadingBudgets,
+  loadBudgets,
+  saveBudget: saveBudgetApi,
+} = useBudget()
 
 function closeDialog() {
   isDialogOpen.value = false
@@ -37,11 +46,24 @@ function openAddBudget() {
   isDialogOpen.value = true
 }
 async function saveBudget() {
-  // await saveTransactionApi()
-  isDialogOpen.value = false
+  try {
+    await saveBudgetApi(form.value)
+    isDialogOpen.value = false
+    resetForm()
+  } catch (error) {
+    console.error("Error saving budget:", error)
+  }
 }
 
 onMounted(() => {
+  const now = new Date()
+  loadBudgets(
+    now.getFullYear(), 
+    now.getMonth() + 1, 
+    "active",
+    // status.value, 
+    // selectedAccountId.value
+  )
   categoryStore.loadCategories()
   accountStore.loadAccounts()
 })
@@ -69,107 +91,51 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- Month selector -->
-    <!-- <div class="flex items-center justify-center gap-4">
-      <button class="btn btn-ghost btn-sm btn-circle">
-        <ChevronLeft class="size-4" />
-      </button>
-
-      <div class="text-center">
-        <p class="font-semibold">
-          สิงหาคม 2569
-        </p>
-
-        <p class="text-xs text-base-content/50">
-          1 ส.ค. - 31 ส.ค.
-        </p>
-      </div>
-
-      <button class="btn btn-ghost btn-sm btn-circle">
-        <ChevronRight class="size-4" />
-      </button>
-    </div> -->
-    <!-- Period Navigation -->
+    <!-- <BudgetFilter v-model:start-date="startDate" v-model:end-date="endDate"
+      v-model:selected-account-id="selectedAccountId" v-model:status="status" :accounts="accountStore.accounts" /> -->
+    <!-- 1. Period Navigator (เลือกเดือน) -->
     <div class="flex items-center justify-center">
-      <button class="btn btn-ghost btn-sm btn-circle" type="button">
+      <button class="btn btn-ghost btn-sm btn-circle" type="button" @click="prevMonth">
         <ChevronLeft class="size-4" />
       </button>
-
       <div class="mx-6 min-w-36 text-center">
-        <p class="font-semibold">
-          สิงหาคม 2569
-        </p>
-
-        <p class="mt-1 text-xs text-base-content/50">
-          Budgets ในเดือนนี้
+        <p class="text-lg font-bold">
+          {{ selectedMonthText }} <!-- เช่น "สิงหาคม 2569" -->
         </p>
       </div>
-
-      <button class="btn btn-ghost btn-sm btn-circle" type="button">
+      <button class="btn btn-ghost btn-sm btn-circle" type="button" @click="nextMonth">
         <ChevronRight class="size-4" />
       </button>
     </div>
-
-    <!-- Filters -->
-    <div class="flex flex-wrap items-center justify-between gap-3">
-
-      <div>
-        <h2 class="text-lg font-semibold">
-          Budgets
-        </h2>
-
-        <p class="text-sm text-base-content/50">
-          ดูงบประมาณที่อยู่ในช่วงเวลานี้
-        </p>
+    <!-- 2. Controls & Filters -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mt-4">
+      <!-- Status Toggle (สลับ Active / Ended) -->
+      <div class="join bg-base-200 p-1 rounded-xl">
+        <button class="btn btn-sm join-item border-none"
+          :class="status === 'active' ? 'btn-success text-white shadow-sm' : 'btn-ghost'" @click="status = 'active'">
+          🟢 กำลังใช้งาน
+        </button>
+        <button class="btn btn-sm join-item border-none"
+          :class="status === 'ended' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'" @click="status = 'ended'">
+          📁 สิ้นสุดแล้ว
+        </button>
       </div>
-      <div class="flex flex-wrap gap-2">
-
-        <!-- Account -->
-        <select class="select select-bordered select-sm">
-          <option value="">
-            ทุกบัญชี
-          </option>
-
-          <option>
-            เงินสด
-          </option>
-
-          <option>
-            KBank
-          </option>
-        </select>
-
-        <!-- Status -->
-        <select class="select select-bordered select-sm">
-          <option value="">
-            ทุกสถานะ
-          </option>
-
-          <option value="active">
-            Active
-          </option>
-
-          <option value="upcoming">
-            Upcoming
-          </option>
-
-          <option value="completed">
-            Completed
-          </option>
-        </select>
-
-      </div>
+      <!-- Account Filter -->
+      <!-- <select v-model="selectedAccountId" class="select select-bordered select-sm">
+        <option :value="null">ทุกบัญชี</option>
+        <option v-for="acc in accountStore.accounts" :key="acc.id" :value="acc.id">
+          {{ acc.name }}
+        </option>
+      </select> -->
+      <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
     </div>
-    <BudgetFilter v-model:start-date="startDate" v-model:end-date="endDate"
-      v-model:selected-account-id="selectedAccountId" v-model:status="status" :accounts="accountStore.accounts" />
     <!-- Overview -->
     <BudgetOverview />
 
     <!-- Categories -->
-    <BudgetCategoryList />
+    <BudgetCategoryList :budgets="budgets" />
 
   </section>
-  <BudgetForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
-    :categories="categoryStore.categories" :selected-date-text="selectedDateText" @close="closeDialog"
-    @save="saveBudget" />
+  <BudgetForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts" :categories="categoryStore.categories"
+    @close="closeDialog" @save="saveBudget" />
 </template>

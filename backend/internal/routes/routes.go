@@ -29,5 +29,11 @@ func SetupRoutes(router *gin.Engine) {
 		protected.GET("/transactions", handlers.GetTransactions)
 		protected.PATCH("/transactions/:id",handlers.UpdateTransaction,)
 		protected.DELETE("/transactions/:id",handlers.DeleteTransaction,)
+
+		//Budget
+		protected.POST("/budgets", handlers.CreateBudget)
+		protected.GET("/budgets", handlers.GetBudgets)
+		// protected.PATCH("/budgets/:id", handlers.UpdateBudget)
+		// protected.DELETE("/budgets/:id", handlers.DeleteBudget)
 	}
 }

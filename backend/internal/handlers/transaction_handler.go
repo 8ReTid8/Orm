@@ -3,8 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	// "os"
-	// "path/filepath"
 	"strconv"
 	"time"
 

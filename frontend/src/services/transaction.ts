@@ -20,10 +20,7 @@ export async function createTransaction(
   payload.append("accountId", String(form.accountId))
   payload.append("title", form.title)
   payload.append("note", form.note)
-  payload.append(
-    "transactionDate",
-    form.transactionDate,
-  )
+  payload.append("transactionDate",form.transactionDate)
 
   if (form.slipImage) {
     payload.append(
@@ -55,10 +52,7 @@ export async function updateTransaction(
   payload.append("accountId", String(form.accountId),)
   payload.append("title", form.title)
   payload.append("note", form.note)
-  payload.append(
-    "transactionDate",
-    form.transactionDate,
-  )
+  payload.append("transactionDate",form.transactionDate)
 
   if (form.slipImage) {
     payload.append(

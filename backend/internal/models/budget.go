@@ -11,11 +11,11 @@ type Budget struct {
 	AccountID uint
 	Account   Account
 
-	Amount   float64 `gorm:"not null"`
-	Category string  `gorm:"size:20;not null"`
+	Amount   float64 `gorm:"not null" json:"amount"`
+	Category string  `gorm:"size:20;not null" json:"category"`
 
-	StartDate time.Time `gorm:"not null"`
-	EndDate   time.Time `gorm:"not null"`
+	StartDate time.Time `gorm:"not null" json:"startDate"`
+	EndDate   time.Time `gorm:"not null" json:"endDate"`
 
 	// CreatedAt time.Time
 	// UpdatedAt time.Time
