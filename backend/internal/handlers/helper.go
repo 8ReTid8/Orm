@@ -217,20 +217,20 @@ func parseBudgetForm(c *gin.Context) (dto.BudgetInput, error) {
 		return dto.BudgetInput{},
 			fmt.Errorf("วันที่สิ้นสุดไม่ถูกต้อง")
 	}
-	now := time.Now()
+	// now := time.Now()
 
-	today := time.Date(
-		now.Year(),
-		now.Month(),
-		now.Day(),
-		0, 0, 0, 0,
-		now.Location(),
-	)
+	// today := time.Date(
+	// 	now.Year(),
+	// 	now.Month(),
+	// 	now.Day(),
+	// 	0, 0, 0, 0,
+	// 	now.Location(),
+	// )
 
-	if startDate.Before(today) {
-		return dto.BudgetInput{},
-			fmt.Errorf("วันที่เริ่มต้นต้องไม่ก่อนวันที่ปัจจุบัน")
-	}
+	// if startDate.Before(today) {
+	// 	return dto.BudgetInput{},
+	// 		fmt.Errorf("วันที่เริ่มต้นต้องไม่ก่อนวันที่ปัจจุบัน")
+	// }
 
 	// วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น
 	if endDate.Before(startDate) {

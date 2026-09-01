@@ -5,7 +5,7 @@ export interface Budget {
   amount: number
   startDate: string // "YYYY-MM-DD"
   endDate: string   // "YYYY-MM-DD"
-  spent?: number
+  spent: number
 }
 
 export interface BudgetForm {

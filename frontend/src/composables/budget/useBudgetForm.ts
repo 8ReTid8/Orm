@@ -27,8 +27,8 @@ export function useBudgetForm() {
             category: budget.category,
             amount: budget.amount,
             accountId: budget.accountId,
-            startDate: budget.startDate,
-            endDate: budget.endDate,
+            startDate: budget.startDate.slice(0, 10),
+            endDate: budget.endDate.slice(0, 10),
         }
     }
 

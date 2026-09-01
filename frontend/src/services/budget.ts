@@ -24,6 +24,7 @@ export async function updateBudget(
   id: number,
   form: BudgetForm,
 ) {
+  console.log("updateBudget", id, form)
   const payload = new FormData()
   payload.append("category", form.category)
   payload.append("amount", String(form.amount))
@@ -46,6 +47,7 @@ export async function getBudgets(
   status: string,
 
 ) {
+  
   const response =
     await api.get<GetBudgetsResponse>(
       "/budgets",

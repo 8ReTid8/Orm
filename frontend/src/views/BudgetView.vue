@@ -6,7 +6,6 @@ import { useAccountStore } from "@/stores/account";
 import { useCategoryStore } from "@/stores/category";
 import { useBudgetForm } from "@/composables/budget/useBudgetForm";
 import BudgetForm from "@/components/budget/BudgetForm.vue";
-import BudgetFilter from "@/components/filter/budgetFilter.vue";
 import BudgetOverview from "@/components/budget/BudgetOverview.vue";
 import { useBudget } from "@/composables/budget/useBudget";
 import AccountFilter from "@/components/filter/accountFilter.vue";

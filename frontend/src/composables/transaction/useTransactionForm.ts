@@ -39,8 +39,7 @@ export function useTransactionForm() {
       accountId: transaction.account.id,
       title: transaction.title,
       note: transaction.note,
-      transactionDate:
-        transaction.transactionDate.slice(0, 10),
+      transactionDate: transaction.transactionDate.slice(0, 10),
       slipImage: null,
     }
   }

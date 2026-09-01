@@ -6,6 +6,7 @@ import {
   Pencil,
   Trash2,
   FileText,
+  Wallet,
 } from "lucide-vue-next"
 
 import type { Transaction } from "@/types/transaction"
@@ -122,7 +123,10 @@ function handleConfirmDelete() {
               <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-base-content/60">
                 <span class="badge badge-sm badge-ghost font-normal">{{ transaction.category }}</span>
                 <span>•</span>
-                <span class="text-sm">{{ transaction.account.name }}</span>
+                <span class="text-sm flex items-center gap-1">
+                  <Wallet class="size-3.5" />
+                  {{ transaction.account.name }}
+                </span>
               </div>
             </div>
           </div>

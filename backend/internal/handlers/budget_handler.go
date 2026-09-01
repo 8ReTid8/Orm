@@ -17,7 +17,7 @@ func CreateBudget(c *gin.Context) {
 	if !ok {
 		return
 	}
-	
+
 	input, err := parseBudgetForm(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -138,7 +138,6 @@ func GetBudgets(c *gin.Context) {
 
 	year := now.Year()
 	month := int(now.Month())
-
 	if value := c.Query("year"); value != "" {
 		if parsed, err := strconv.Atoi(value); err == nil && parsed > 0 {
 			year = parsed
@@ -149,6 +148,14 @@ func GetBudgets(c *gin.Context) {
 		if parsed, err := strconv.Atoi(value); err == nil && parsed >= 1 && parsed <= 12 {
 			month = parsed
 		}
+	}
+	status := c.Query("status")
+
+	if status != "" && status != "active" && status != "ended" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "status ไม่ถูกต้อง",
+		})
+		return
 	}
 
 	// ---------------------------
@@ -167,12 +174,6 @@ func GetBudgets(c *gin.Context) {
 		AddDate(0, 1, 0).
 		Add(-time.Nanosecond)
 
-	// ---------------------------
-	// 3. Account filter
-	// ---------------------------
-
-	accountIDStr := c.Query("accountId")
-
 	query := database.DB.
 		Table("budgets").
 		Where("budgets.user_id = ?", userID).
@@ -181,9 +182,28 @@ func GetBudgets(c *gin.Context) {
 			monthEnd,
 			monthStart,
 		)
+		
+	switch status {
+	case "active":
+		query = query.Where(
+			"budgets.start_date <= ? AND budgets.end_date >= ?",
+			now,
+			now,
+		)
+
+	case "ended":
+		query = query.Where(
+			"budgets.end_date < ?",
+			now,
+		)
+	}
+	// ---------------------------
+	// 3. Account filter
+	// ---------------------------
+
+	accountIDStr := c.Query("accountId")
 
 	if accountIDStr != "" {
-
 		accountID, err := strconv.ParseUint(
 			accountIDStr,
 			10,
@@ -264,7 +284,7 @@ func GetBudgets(c *gin.Context) {
 
 		isActive :=
 			!now.Before(budget.StartDate) &&
-			!now.After(budget.EndDate)
+				!now.After(budget.EndDate)
 
 		responses = append(
 			responses,
