@@ -1,25 +1,46 @@
 <script setup lang="ts">
+import type { Budget } from "@/types/budget"
+import { formatMoney } from "@/utils/format"
 import { computed } from "vue"
 
-const budget = 20000
-const spent = 14088.15
+interface Props {
+  budgets: Budget[]
+}
+const props = defineProps<Props>()
+
+const totalBudget = computed(() => {
+  return props.budgets.reduce(
+    (sum, budget) => sum + budget.amount,
+    0
+  )
+})
+
+const totalSpent = computed(() => {
+  return props.budgets.reduce(
+    (sum, budget) => sum + budget.spent,
+    0
+  )
+})
 
 const remaining = computed(() => {
-  return budget - spent
+  return totalBudget.value - totalSpent.value
 })
 
 const percent = computed(() => {
-  if (budget === 0) return 0
+  if (totalBudget.value === 0) return 0
 
-  return Math.min((spent / budget) * 100, 100)
+  return Math.min(
+    (totalSpent.value / totalBudget.value) * 100,
+    100
+  )
 })
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("th-TH", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)
-}
+const statusColor = computed(() => {
+  const p = (totalSpent.value / totalBudget.value) * 100
+  if (p >= 100) return 'error'    // over/at budget — red
+  if (p >= 80) return 'warning'   // getting close — yellow/orange
+  return 'success'                // healthy — green
+})
 </script>
 
 <template>
@@ -33,30 +54,41 @@ function formatMoney(value: number) {
 
           <div class="relative flex size-48 items-center justify-center">
 
-            <!-- background circle -->
-            <div
-              class="absolute inset-0 rounded-full border-[18px] border-base-200"
-            />
+            <!-- base track -->
+            <div class="absolute inset-0 rounded-full bg-base-200" />
 
-            <!-- progress -->
-            <div
-              class="absolute inset-0 rounded-full border-[18px] border-success"
-              :style="{
-                clipPath: `inset(0 ${100 - percent}% 0 0)`
-              }"
-            />
+            <!-- progress fill, shaped via mask instead of background -->
+            <!-- <div class="absolute inset-0 rounded-full bg-success" :style="{
+              mask: `conic-gradient(#000 ${percent}%, transparent ${percent}% 100%)`,
+              WebkitMask: `conic-gradient(#000 ${percent}%, transparent ${percent}% 100%)`
+            }" /> -->
+            <div class="absolute inset-0 rounded-full transition-colors duration-300" :class="{
+              'bg-success': statusColor === 'success',
+              'bg-warning': statusColor === 'warning',
+              'bg-error': statusColor === 'error',
+            }" :style="{
+              mask: `conic-gradient(#000 ${percent}%, transparent ${percent}% 100%)`,
+              WebkitMask: `conic-gradient(#000 ${percent}%, transparent ${percent}% 100%)`
+            }" />
+            <!-- inner mask to turn the filled disc into a ring -->
+            <div class="absolute inset-[18px] rounded-full bg-base-100" />
 
-            <div class="text-center">
+            <div class="relative text-center">
               <p class="text-sm text-base-content/50">
                 ใช้ไป
               </p>
 
-              <p class="text-2xl font-bold">
-                ฿{{ formatMoney(spent) }}
+              <!-- <p class="text-2xl font-bold"> -->
+              <p class="text-2xl font-bold transition-colors duration-300" :class="{
+                'text-success': statusColor === 'success',
+                'text-warning': statusColor === 'warning',
+                'text-error': statusColor === 'error',
+              }">
+                ฿{{ formatMoney(totalSpent) }}
               </p>
 
               <p class="text-xs text-base-content/50">
-                จาก ฿{{ formatMoney(budget) }}
+                จาก ฿{{ formatMoney(totalBudget) }}
               </p>
             </div>
 
@@ -77,7 +109,7 @@ function formatMoney(value: number) {
             </p>
 
             <p class="mt-2 text-xl font-bold">
-              ฿{{ formatMoney(budget) }}
+              ฿{{ formatMoney(totalBudget) }}
             </p>
           </div>
 
@@ -87,7 +119,7 @@ function formatMoney(value: number) {
             </p>
 
             <p class="mt-2 text-xl font-bold text-error">
-              ฿{{ formatMoney(spent) }}
+              ฿{{ formatMoney(totalSpent) }}
             </p>
           </div>
 

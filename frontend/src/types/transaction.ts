@@ -15,7 +15,8 @@ export interface TransactionForm {
 
 export interface Transaction {
   id: number
-  account: Account
+  // account: Account
+  accountId: number
   type: TransactionType
   amount: number
   category: string

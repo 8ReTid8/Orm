@@ -127,6 +127,13 @@ async function handleDeleteTransaction(id: number) {
   }
 }
 
+async function handleMonthChange(
+  year: number,
+  month: number,
+) {
+  await loadTransactions(year, month)
+}
+
 function closeDialog() {
   isDialogOpen.value = false
 }
@@ -173,11 +180,11 @@ onMounted(() => {
     <TransactionSummary :transactions="filteredTransactions" />
 
     <!-- Calendar -->
-    <TransCalendar :selected-date="selectedDate" :transactions="filteredTransactions" @select="handleSelectDate" />
+    <TransCalendar :selected-date="selectedDate" :transactions="filteredTransactions" @select="handleSelectDate" @month-change="handleMonthChange" />
 
     <div ref="dailyTransactionSection">
       <DailyTransactionList :selected-date-text="selectedDateText" :categories="categoryStore.categories" :transactions="selectedDayTransactions"
-        :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" @delete="handleDeleteTransaction"/>
+        :accounts="accountStore.accounts" :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" @delete="handleDeleteTransaction"/>
     </div>
   </section>
 

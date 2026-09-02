@@ -12,10 +12,9 @@ type User struct {
 	ID        uint   `gorm:"primaryKey" json:"id"`
 	Email     string `gorm:"size:255;uniqueIndex;not null" json:"email"`
 	Password  string `gorm:"size:255;not null" json:"-"`
-	CreatedAt time.Time
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
 	Role      string `gorm:"type:varchar(20);not null;default:'user'"`
 
-	// Transactions []Transaction `gorm:"foreignKey:UserID"`
 	Accounts    []Account    `gorm:"foreignKey:UserID"`
 	Budgets     []Budget     `gorm:"foreignKey:UserID"`
 	SavingGoals []SavingGoal `gorm:"foreignKey:UserID"`

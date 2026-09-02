@@ -1,6 +1,6 @@
 export interface Budget {
   id: number
-  accountId: number | null
+  accountId: number
   category: string
   amount: number
   startDate: string // "YYYY-MM-DD"

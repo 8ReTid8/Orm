@@ -3,12 +3,9 @@ import { ref } from "vue"
 import {
   Plus,
   ReceiptText,
-  Pencil,
-  Trash2,
   FileText,
   Wallet,
 } from "lucide-vue-next"
-
 import type { Transaction } from "@/types/transaction"
 import { formatMoney } from "@/utils/format"
 import TransactionSummary from "./TransactionSummary.vue"
@@ -16,10 +13,12 @@ import { resolveCategoryIcon } from "@/utils/categoryIcons.ts"
 import type { Category } from "@/types/category.ts"
 import ConfirmModal from "../common/ConfirmModal.vue"
 import ActionButton from "../common/ActionButton.vue"
+import type { Account } from "@/types/account.ts"
 
 interface Props {
   selectedDateText: string
   transactions: Transaction[]
+  accounts: Account[]
   categories: Category[]
   loading?: boolean
 }
@@ -38,6 +37,12 @@ function getCategoryIcon(categoryName: string) {
   const cat = props.categories.find(c => c.name === categoryName)
   return resolveCategoryIcon(cat?.icon)
 }
+
+function getAccountName(accountId: number) {
+  const acc = props.accounts.find((a) => a.id === accountId)
+  return acc ? acc.name : "ไม่พบบัญชี"
+}
+
 function openDeleteModal(transaction: Transaction) {
   targetTransaction.value = transaction
 }
@@ -125,7 +130,7 @@ function handleConfirmDelete() {
                 <span>•</span>
                 <span class="text-sm flex items-center gap-1">
                   <Wallet class="size-3.5" />
-                  {{ transaction.account.name }}
+                  {{ getAccountName(transaction.accountId) }}
                 </span>
               </div>
             </div>

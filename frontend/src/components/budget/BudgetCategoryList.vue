@@ -1,68 +1,30 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { Calendar, WalletCards, AlertCircle, PiggyBank } from "lucide-vue-next"
-import { useCategoryStore } from "@/stores/category"
-import { useAccountStore } from "@/stores/account"
+import { Calendar, WalletCards, AlertCircle, PiggyBank, Wallet } from "lucide-vue-next"
 import { resolveCategoryIcon } from "@/utils/categoryIcons"
 import type { Budget } from "@/types/budget"
-import { formatDate } from "@/utils/format"
+import { formatDate, formatMoney } from "@/utils/format"
 import ActionButton from "../common/ActionButton.vue"
 import ConfirmModal from "../common/ConfirmModal.vue"
+import type { Category } from "@/types/category.ts"
+import type { Account } from "@/types/account.ts"
 
 interface Props {
   budgets: Budget[]
+  categories: Category[]
+  accounts: Account[]
 }
 
 const targetBudget = ref<Budget | null>(null)
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  // add: []
   edit: [budget: Budget]
   delete: [id: number]
 }>()
 
-const categoryStore = useCategoryStore()
-const accountStore = useAccountStore()
-
-// const budgets = ref<Budget[]>([
-//   {
-//     id: 1,
-//     accountId: 1,
-//     category: "อาหาร",
-//     amount: 8000,
-//     spent: 6379,
-//     startDate: "2026-08-01",
-//     endDate: "2026-08-31",
-//   },
-//   {
-//     id: 2,
-//     accountId: 1,
-//     category: "เดินทาง",
-//     amount: 6000,
-//     spent: 7368, // ตัวอย่างใช้เกินงบ
-//     startDate: "2026-08-01",
-//     endDate: "2026-08-31",
-//   },
-//   {
-//     id: 3,
-//     accountId: 1,
-//     category: "ช้อปปิ้ง",
-//     amount: 4000,
-//     spent: 2341,
-//     startDate: "2026-08-01",
-//     endDate: "2026-08-31",
-//   },
-//   {
-//     id: 4,
-//     accountId: 1,
-//     category: "บันเทิง",
-//     amount: 2000,
-//     spent: 1200,
-//     startDate: "2026-08-15",
-//     endDate: "2026-08-20", // ตัวอย่าง Custom Date Range
-//   },
-// ])
+// const categoryStore = useCategoryStore()
+// const accountStore = useAccountStore()
 
 // คำนวณเปอร์เซ็นต์ (ไม่เกิน 100 สำหรับความกว้าง progress bar)
 function getPercent(spent: number, amount: number) {
@@ -76,20 +38,19 @@ function getRealPercent(spent: number, amount: number) {
   return (spent / amount) * 100
 }
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("th-TH").format(value)
-}
+// function formatMoney(value: number) {
+//   return new Intl.NumberFormat("th-TH").format(value)
+// }
 
 // หาชื่อบัญชีจาก accountId
-function getAccountName(accountId: number | null) {
-  if (!accountId) return "ทุกบัญชี"
-  const acc = accountStore.accounts.find((a) => a.id === accountId)
-  return acc?.name ?? "บัญชี"
+function getAccountName(accountId: number) {
+  const acc = props.accounts.find((a) => a.id === accountId)
+  return acc ? acc.name : "ไม่พบบัญชี"
 }
 
 // หา Icon หมวดหมู่
 function getCategoryIcon(categoryName: string) {
-  const cat = categoryStore.categories.find((c) => c.name === categoryName)
+  const cat = props.categories.find((c) => c.name === categoryName)
   return resolveCategoryIcon(cat?.icon)
 }
 
@@ -176,11 +137,11 @@ function handleConfirmDelete() {
                 <!-- Account & Date details -->
                 <div class="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-base-content/60">
                   <span class="text-sm flex items-center gap-1">
-                    <WalletCards class="size-3.5" />
+                    <Wallet class="size-3.5" />
                     {{ getAccountName(budget.accountId) }}
                   </span>
                   <span>•</span>
-                  <span class="flex items-center gap-1">
+                  <span class="text-sm flex items-center gap-1">
                     <Calendar class="size-3.5" />
                     {{ formatDate(new Date(budget.startDate)) }} ถึง {{ formatDate(new Date(budget.endDate)) }}
                   </span>
@@ -198,22 +159,22 @@ function handleConfirmDelete() {
           <!-- Middle Row: Spent vs Amount Money Display -->
           <div class="mt-4 flex items-baseline justify-between text-sm">
             <div>
-              <span class="text-xs text-base-content/50">ใช้ไปแล้ว: </span>
+              <span class="text-sm text-base-content/50">ใช้ไปแล้ว: </span>
               <span class="font-bold text-base"
                 :class="budget.spent > budget.amount ? 'text-error' : 'text-base-content'">
                 ฿{{ formatMoney(budget.spent) }}
               </span>
-              <span class="text-xs text-base-content/50"> / ฿{{ formatMoney(budget.amount) }}</span>
+              <span class="text-base text-base-content/50"> / ฿{{ formatMoney(budget.amount) }}</span>
             </div>
 
             <!-- Percentage / Over-budget warning -->
             <div class="text-right">
               <span v-if="budget.spent > budget.amount"
-                class="inline-flex items-center gap-1 text-xs font-bold text-error">
+                class="inline-flex items-center gap-1 text-base font-bold text-error">
                 <AlertCircle class="size-3.5" />
                 เกินงบ ฿{{ formatMoney(budget.spent - budget.amount) }}
               </span>
-              <span v-else class="text-xs font-semibold text-base-content/70">
+              <span v-else class="text-base font-semibold text-base-content/70">
                 เหลือ ฿{{ formatMoney(budget.amount - budget.spent) }}
               </span>
               <span class="ml-2 font-bold" :class="budget.spent > budget.amount ? 'text-error' : 'text-base-content'">

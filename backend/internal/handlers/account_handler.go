@@ -69,7 +69,7 @@ func GetAccounts(c *gin.Context) {
 
 	if err := database.DB.
 		Where("user_id = ?", userID).
-		Order("id ASC").
+		Order("created_at ASC").
 		Find(&accounts).Error; err != nil {
 
 		c.JSON(http.StatusInternalServerError, gin.H{

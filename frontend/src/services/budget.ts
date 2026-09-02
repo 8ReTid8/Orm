@@ -44,8 +44,8 @@ export async function updateBudget(
 export async function getBudgets(
   year: number,
   month: number,
-  status: string,
-
+  status: "active" | "ended",
+  accountId: number | null = null
 ) {
   
   const response =
@@ -56,6 +56,7 @@ export async function getBudgets(
           year,
           month,
           status,
+          accountId,
         },
       },
     )

@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Transaction struct {
-	AccountID uint `gorm:"not null;index" json:"accountId"`
+	AccountID uint    `gorm:"not null;index" json:"accountId"`
 	Account   Account `json:"account"`
 
 	ID              uint      `gorm:"primaryKey" json:"id"`
@@ -14,4 +14,6 @@ type Transaction struct {
 	Type            string    `gorm:"size:20;not null" json:"type"`
 	TransactionDate time.Time `gorm:"not null" json:"transactionDate"`
 	Image           string    `gorm:"size:255" json:"image"`
+
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
 }

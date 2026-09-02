@@ -136,19 +136,19 @@ func GetBudgets(c *gin.Context) {
 
 	now := time.Now()
 
-	year := now.Year()
-	month := int(now.Month())
-	if value := c.Query("year"); value != "" {
-		if parsed, err := strconv.Atoi(value); err == nil && parsed > 0 {
-			year = parsed
-		}
-	}
+	// year := now.Year()
+	// month := int(now.Month())
+	// if value := c.Query("year"); value != "" {
+	// 	if parsed, err := strconv.Atoi(value); err == nil && parsed > 0 {
+	// 		year = parsed
+	// 	}
+	// }
 
-	if value := c.Query("month"); value != "" {
-		if parsed, err := strconv.Atoi(value); err == nil && parsed >= 1 && parsed <= 12 {
-			month = parsed
-		}
-	}
+	// if value := c.Query("month"); value != "" {
+	// 	if parsed, err := strconv.Atoi(value); err == nil && parsed >= 1 && parsed <= 12 {
+	// 		month = parsed
+	// 	}
+	// }
 	status := c.Query("status")
 
 	if status != "" && status != "active" && status != "ended" {
@@ -162,26 +162,26 @@ func GetBudgets(c *gin.Context) {
 	// 2. Calculate selected month
 	// ---------------------------
 
-	monthStart := time.Date(
-		year,
-		time.Month(month),
-		1,
-		0, 0, 0, 0,
-		time.Local,
-	)
+	// monthStart := time.Date(
+	// 	year,
+	// 	time.Month(month),
+	// 	1,
+	// 	0, 0, 0, 0,
+	// 	time.Local,
+	// )
 
-	monthEnd := monthStart.
-		AddDate(0, 1, 0).
-		Add(-time.Nanosecond)
+	// monthEnd := monthStart.
+	// 	AddDate(0, 1, 0).
+	// 	Add(-time.Nanosecond)
 
 	query := database.DB.
 		Table("budgets").
-		Where("budgets.user_id = ?", userID).
-		Where(
-			"budgets.start_date <= ? AND budgets.end_date >= ?",
-			monthEnd,
-			monthStart,
-		)
+		Where("budgets.user_id = ?", userID)
+		// Where(
+		// 	"budgets.start_date <= ? AND budgets.end_date >= ?",
+		// 	monthEnd,
+		// 	monthStart,
+		// )
 		
 	switch status {
 	case "active":
@@ -230,7 +230,7 @@ func GetBudgets(c *gin.Context) {
 	var budgets []models.Budget
 
 	if err := query.
-		Preload("Account").
+		// Preload("Account").
 		Order("budgets.start_date ASC").
 		Find(&budgets).Error; err != nil {
 

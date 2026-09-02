@@ -256,7 +256,7 @@ func GetTransactions(c *gin.Context) {
 	var transactions []models.Transaction
 
 	if err := database.DB.
-		Preload("Account").
+		// Preload("Account").
 		Joins("JOIN accounts ON accounts.id = transactions.account_id").
 		Where("accounts.user_id = ?", userID).
 		Where(
@@ -264,7 +264,8 @@ func GetTransactions(c *gin.Context) {
 			startDate,
 			endDate,
 		).
-		Order("transactions.transaction_date DESC").
+		// Order("transactions.transaction_date DESC").
+		Order("transactions.created_at DESC").
 		Find(&transactions).Error; err != nil {
 
 		c.JSON(http.StatusInternalServerError, gin.H{

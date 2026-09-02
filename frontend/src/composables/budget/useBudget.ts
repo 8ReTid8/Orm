@@ -16,7 +16,8 @@ export function useBudget() {
     async function loadBudgets(
         year: number,
         month: number,
-        status: string
+        status: "active" | "ended",
+        accountId: number | null = null,
     ) {
         try {
             isLoadingBudgets.value = true
@@ -24,7 +25,8 @@ export function useBudget() {
             budgets.value = await getBudgets(
                 year,
                 month,
-                status
+                status,
+                accountId
             )
         } catch (error) {
             console.error(

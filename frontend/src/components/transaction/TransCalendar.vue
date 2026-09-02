@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Transaction } from '@/types/transaction';
+import { formatDate } from '@/utils/format';
 import { CalendarDays } from 'lucide-vue-next';
 
 interface Props {
@@ -8,17 +9,20 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-// defineProps<Props>()
 
 const emit = defineEmits<{
     select: [date: Date]
+    monthChange: [year: number, month: number]
 }>()
-function formatDate(date: Date): string {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, "0")
-    const day = String(date.getDate()).padStart(2, "0")
 
-    return `${year}-${month}-${day}`
+function handleMonthChange(pages: any[]) {
+  const page = pages[0]
+
+  emit(
+    "monthChange",
+    page.year,
+    page.month,
+  )
 }
 
 function getDaySummary(date: Date) {
@@ -59,7 +63,7 @@ function getDaySummary(date: Date) {
                 <CalendarDays class="size-5" />
                 <h2 class="card-title">ปฏิทินรายรับรายจ่าย</h2>
             </div>
-            <VCalendar class="finance-calendar w-full" expanded borderless>
+            <VCalendar class="finance-calendar w-full" expanded borderless @did-move="handleMonthChange">
                 <!-- <template #day-content="{ day }">
                     <button type="button"
                         class="relative block min-h-28 w-full cursor-pointer bg-base-100 p-3 pt-10 text-left transition-colors hover:bg-base-200"

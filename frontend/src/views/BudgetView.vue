@@ -13,10 +13,8 @@ import type { Budget } from "@/types/budget";
 const isDialogOpen = ref(false)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
-const startDate = ref("")
-const endDate = ref("")
 const selectedAccountId = ref<number | null>(null)
-const status = ref("")
+const status = ref<"active" | "ended">("active")
 const {
   form,
   resetForm,
@@ -44,7 +42,7 @@ function openEditBudget(budget: Budget) {
 function openAddBudget() {
 
   cancelEdit()
-  resetForm(  )
+  resetForm()
 
   // form.value.transactionDate =
   //   formatDate(selectedDate.value)
@@ -64,6 +62,24 @@ async function saveBudget() {
   } catch (error) {
     console.error("Error saving budget:", error)
   }
+}
+
+async function fetchBudgets() {
+  // const date = selectedMonth.value
+  const now = new Date()
+  await loadBudgets(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    status.value,
+    selectedAccountId.value,
+  )
+}
+
+async function selectStatus(
+  value: "active" | "ended"
+) {
+  status.value = value
+  await fetchBudgets()
 }
 
 async function handleDeleteBudget(id: number) {
@@ -147,11 +163,13 @@ onMounted(() => {
       <!-- Status Toggle (สลับ Active / Ended) -->
       <div class="join bg-base-200 p-1 rounded-xl">
         <button class="btn btn-sm join-item border-none"
-          :class="status === 'active' ? 'btn-success text-white shadow-sm' : 'btn-ghost'" @click="status = 'active'">
+          :class="status === 'active' ? 'btn-success text-white shadow-sm' : 'btn-ghost'"
+          @click="selectStatus('active')">
           🟢 กำลังใช้งาน
         </button>
         <button class="btn btn-sm join-item border-none"
-          :class="status === 'ended' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'" @click="status = 'ended'">
+          :class="status === 'ended' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'" 
+          @click="selectStatus('ended')">
           📁 สิ้นสุดแล้ว
         </button>
       </div>
@@ -165,10 +183,10 @@ onMounted(() => {
       <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
     </div>
     <!-- Overview -->
-    <BudgetOverview />
+    <BudgetOverview :budgets="budgets" />
 
     <!-- Categories -->
-    <BudgetCategoryList :budgets="budgets" @delete="handleDeleteBudget" @edit="openEditBudget" />
+    <BudgetCategoryList :budgets="budgets" :categories="categoryStore.categories" :accounts="accountStore.accounts" @delete="handleDeleteBudget" @edit="openEditBudget" />
 
   </section>
   <BudgetForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts" :categories="categoryStore.categories"

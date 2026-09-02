@@ -17,7 +17,7 @@ type Budget struct {
 	StartDate time.Time `gorm:"not null" json:"startDate"`
 	EndDate   time.Time `gorm:"not null" json:"endDate"`
 
-	// CreatedAt time.Time
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
 	// UpdatedAt time.Time
 	// DeletedAt *time.Time `gorm:"index"`
 }
