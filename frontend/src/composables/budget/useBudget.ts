@@ -7,18 +7,29 @@ import {
     deleteBudget as deleteBudgetApi
 } from "@/services/budget";
 
-
+interface BudgetFilter {
+    status: "active" | "ended"
+    accountId: number | null
+    year?: number | null
+    month?: number | null
+}
 export function useBudget() {
     const budgets = ref<Budget[]>([])
     const editingBudgetId = ref<number | null>(null)
     const isLoadingBudgets = ref(false)
 
-    async function loadBudgets(
-        year: number,
-        month: number,
-        status: "active" | "ended",
-        accountId: number | null = null,
-    ) {
+    // async function loadBudgets(
+    //     year: number | null = null,
+    //     month: number | null = null,
+    //     status: "active" | "ended",
+    //     accountId: number | null = null,
+    // ) {
+    async function loadBudgets({
+        year = null,
+        month = null,
+        status,
+        accountId = null,
+    }: BudgetFilter) {
         try {
             isLoadingBudgets.value = true
 

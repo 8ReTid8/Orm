@@ -20,3 +20,11 @@ export function formatMoney(
     maximumFractionDigits: 2,
   }).format(amount)
 }
+
+export function formatThaiDateLong(date: Date) {
+  return date.toLocaleDateString("th-TH", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}

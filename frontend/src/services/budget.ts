@@ -42,8 +42,8 @@ export async function updateBudget(
 }
 
 export async function getBudgets(
-  year: number,
-  month: number,
+  year: number | null = null,
+  month: number | null = null,
   status: "active" | "ended",
   accountId: number | null = null
 ) {

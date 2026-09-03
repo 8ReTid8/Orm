@@ -36,7 +36,7 @@ export function useTransactionForm() {
       type: transaction.type,
       amount: transaction.amount,
       category: transaction.category,
-      accountId: transaction.account.id,
+      accountId: transaction.accountId,
       title: transaction.title,
       note: transaction.note,
       transactionDate: transaction.transactionDate.slice(0, 10),

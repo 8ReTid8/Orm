@@ -135,7 +135,43 @@ func GetBudgets(c *gin.Context) {
 	// ---------------------------
 
 	now := time.Now()
+	yearStr := c.Query("year")
+	monthStr := c.Query("month")
+	var selectedYear *int
+	var selectedMonth *int
 
+	if yearStr != "" {
+		year, err := strconv.Atoi(yearStr)
+
+		if err != nil || year <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "ปีไม่ถูกต้อง",
+			})
+			return
+		}
+
+		selectedYear = &year
+	}
+
+	if monthStr != "" {
+		if selectedYear == nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "ต้องเลือกปีก่อนเลือกเดือน",
+			})
+			return
+		}
+
+		month, err := strconv.Atoi(monthStr)
+
+		if err != nil || month < 1 || month > 12 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "เดือนไม่ถูกต้อง",
+			})
+			return
+		}
+
+		selectedMonth = &month
+	}
 	// year := now.Year()
 	// month := int(now.Month())
 	// if value := c.Query("year"); value != "" {
@@ -182,7 +218,7 @@ func GetBudgets(c *gin.Context) {
 		// 	monthEnd,
 		// 	monthStart,
 		// )
-		
+
 	switch status {
 	case "active":
 		query = query.Where(
@@ -196,6 +232,43 @@ func GetBudgets(c *gin.Context) {
 			"budgets.end_date < ?",
 			now,
 		)
+		if selectedYear != nil {
+
+			var rangeStart time.Time
+			var rangeEnd time.Time
+
+			if selectedMonth != nil {
+				// เลือก ปี + เดือน
+				rangeStart = time.Date(
+					*selectedYear,
+					time.Month(*selectedMonth),
+					1,
+					0, 0, 0, 0,
+					time.Local,
+				)
+
+				rangeEnd = rangeStart.AddDate(0, 1, 0)
+
+			} else {
+				// เลือกเฉพาะปี
+				rangeStart = time.Date(
+					*selectedYear,
+					1,
+					1,
+					0, 0, 0, 0,
+					time.Local,
+				)
+
+				rangeEnd = rangeStart.AddDate(1, 0, 0)
+			}
+
+			// Budget ต้อง overlap กับช่วงที่เลือก
+			query = query.Where(
+				"budgets.start_date < ? AND budgets.end_date >= ?",
+				rangeEnd,
+				rangeStart,
+			)
+		}
 	}
 	// ---------------------------
 	// 3. Account filter

@@ -14,6 +14,7 @@ import type { Category } from "@/types/category.ts"
 import ConfirmModal from "../common/ConfirmModal.vue"
 import ActionButton from "../common/ActionButton.vue"
 import type { Account } from "@/types/account.ts"
+import EmptyState from "../common/EmptyState.vue"
 
 interface Props {
   selectedDateText: string
@@ -84,18 +85,8 @@ function handleConfirmDelete() {
       </div>
 
       <!-- Empty -->
-      <div v-else-if="transactions.length === 0"
-        class="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-base-300 py-12 text-center">
-        <ReceiptText class="size-10 text-base-content/30" />
-
-        <p class="mt-3 font-medium">
-          ยังไม่มีรายการในวันนี้
-        </p>
-
-        <p class="mt-1 text-sm text-base-content/50">
-          กดเพิ่มรายการเพื่อบันทึกรายรับหรือรายจ่าย
-        </p>
-      </div>
+      <EmptyState v-else-if="transactions.length === 0" :icon="ReceiptText" title="ยังไม่มีรายการในวันนี้"
+        description="กดเพิ่มรายการเพื่อบันทึกรายรับหรือรายจ่าย" />
 
       <!-- Transactions -->
       <div v-else class="mt-4 space-y-2">
