@@ -15,81 +15,11 @@ import (
 )
 
 func CreateTransaction(c *gin.Context) {
-	// 1. User จาก JWT
-	// userIDValue, exists := c.Get("userID")
-	// if !exists {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{
-	// 		"message": "Unauthorized",
-	// 	})
-	// 	return
-	// }
-
-	// userID, ok := userIDValue.(uint)
-	// if !ok {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{
-	// 		"message": "Invalid user ID",
-	// 	})
-	// 	return
-	// }
 	userID, ok := getUserID(c)
 	if !ok {
 		return
 	}
 
-	// 2. รับค่าจาก multipart/form-data
-	// transactionType := c.PostForm("type")
-	// amountString := c.PostForm("amount")
-	// category := c.PostForm("category")
-	// accountIDString := c.PostForm("accountId")
-	// title := c.PostForm("title")
-	// note := c.PostForm("note")
-	// transactionDateString := c.PostForm("transactionDate")
-
-	// if transactionType != "income" && transactionType != "expense" {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "ประเภท transaction ไม่ถูกต้อง",
-	// 	})
-	// 	return
-	// }
-
-	// if title == "" || category == "" {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "กรุณากรอกข้อมูลให้ครบ",
-	// 	})
-	// 	return
-	// }
-
-	// // amount string -> float64
-	// amount, err := strconv.ParseFloat(amountString, 64)
-	// if err != nil || amount <= 0 {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "จำนวนเงินไม่ถูกต้อง",
-	// 	})
-	// 	return
-	// }
-
-	// accountID64, err := strconv.ParseUint(accountIDString, 10, 64)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "บัญชีไม่ถูกต้อง",
-	// 	})
-	// 	return
-	// }
-
-	// accountID := uint(accountID64)
-
-	// // วันที่
-	// transactionDate, err := time.Parse(
-	// 	"2006-01-02",
-	// 	transactionDateString,
-	// )
-
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "วันที่ไม่ถูกต้อง",
-	// 	})
-	// 	return
-	// }
 	input, err := parseTransactionForm(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -98,31 +28,6 @@ func CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	// var account models.Account
-
-	// if err := database.DB.
-	// 	Where("id = ? AND user_id = ?", input.AccountID, userID).
-	// 	First(&account).Error; err != nil {
-
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "ไม่พบบัญชี",
-	// 	})
-	// 	return
-	// }
-	account, err := findUserAccount(
-		userID,
-		input.AccountID,
-	)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "ไม่พบบัญชี",
-		})
-		return
-	}
-
-	// 4. Upload slip (optional)
-	// slipPath := ""
 	slipPath, err := utils.SaveSlip(
 		c,
 		userID,
@@ -135,7 +40,12 @@ func CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	// 5. Create Transaction
+	account, err := findUserAccount(userID, input.AccountID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "ไม่พบบัญชี"})
+		return
+	}
+
 	transaction := models.Transaction{
 		AccountID:       input.AccountID,
 		Category:        input.Category,
@@ -148,54 +58,15 @@ func CreateTransaction(c *gin.Context) {
 	}
 
 	err = database.DB.Transaction(func(tx *gorm.DB) error {
-
-		// // expense ต้องเช็กยอดก่อน
-		// if input.Type == "expense" {
-		// 	if account.Balance < input.Amount {
-		// 		return fmt.Errorf("ยอดเงินในบัญชีไม่เพียงพอ")
-		// 	}
-
-		// 	if err := tx.Model(&models.Account{}).
-		// 		Where("id = ?", input.AccountID).
-		// 		Update(
-		// 			"balance",
-		// 			gorm.Expr("balance - ?", input.Amount),
-		// 		).Error; err != nil {
-		// 		return err
-		// 	}
-		// }
-
-		// // income
-		// if input.Type == "income" {
-		// 	if err := tx.Model(&models.Account{}).
-		// 		Where("id = ?", input.AccountID).
-		// 		Update(
-		// 			"balance",
-		// 			gorm.Expr("balance + ?", input.Amount),
-		// 		).Error; err != nil {
-		// 		return err
-		// 	}
-		// }
-		if input.Type == "expense" &&
-			account.Balance < input.Amount {
-
+		if input.Type == "expense" && account.Balance < input.Amount {
 			return fmt.Errorf("ยอดเงินในบัญชีไม่เพียงพอ")
 		}
 
-		if err := addTransactionToBalance(
-			tx,
-			input.AccountID,
-			input.Type,
-			input.Amount,
-		); err != nil {
-			return err
-		}
-		// สร้าง transaction
-		if err := tx.Create(&transaction).Error; err != nil {
+		if err := addTransactionToBalance(tx, input.AccountID, input.Type, input.Amount); err != nil {
 			return err
 		}
 
-		return nil
+		return tx.Create(&transaction).Error
 	})
 
 	if err != nil {
