@@ -16,6 +16,13 @@ export interface BudgetForm {
   endDate: string   // "YYYY-MM-DD"
 }
 
+export interface BudgetFilter {
+    status: "active" | "ended"
+    accountId: number | null
+    year?: number | null
+    month?: number | null
+}
+
 export interface CreateBudgetResponse {
   message: string
   budget: Budget

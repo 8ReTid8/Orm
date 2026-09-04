@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { Budget, BudgetForm } from "@/types/budget";
+import type { Budget, BudgetFilter, BudgetForm } from "@/types/budget";
 import {
     createBudget,
     getBudgets,
@@ -7,12 +7,7 @@ import {
     deleteBudget as deleteBudgetApi
 } from "@/services/budget";
 
-interface BudgetFilter {
-    status: "active" | "ended"
-    accountId: number | null
-    year?: number | null
-    month?: number | null
-}
+
 export function useBudget() {
     const budgets = ref<Budget[]>([])
     const editingBudgetId = ref<number | null>(null)

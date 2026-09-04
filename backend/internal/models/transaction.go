@@ -3,8 +3,11 @@ package models
 import "time"
 
 type Transaction struct {
+
 	AccountID uint    `gorm:"not null;index" json:"accountId"`
-	Account   Account `json:"account"`
+	// Account   Account `json:"account"`
+	Account   Account `json:"-"`
+
 
 	ID              uint      `gorm:"primaryKey" json:"id"`
 	Title           string    `gorm:"size:255;not null" json:"title"`

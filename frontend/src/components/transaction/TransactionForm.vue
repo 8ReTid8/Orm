@@ -3,6 +3,7 @@ import type { Account } from "@/types/account";
 import type { Category } from "@/types/category";
 import type { TransactionForm } from "@/types/transaction"
 import { resolveCategoryIcon } from "@/utils/categoryIcons";
+import { formatThaiDateLong } from "@/utils/format";
 import { ImagePlus, Tag } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 
@@ -11,7 +12,8 @@ interface Props {
     form: TransactionForm
     accounts: Account[]
     categories: Category[]
-    selectedDateText: string
+    // selectedDateText: string
+    selectedDate: Date
 }
 const props = defineProps<Props>()
 const emit = defineEmits<{
@@ -112,7 +114,8 @@ function closeDialog() {
             <h2 class="text-xl font-bold">เพิ่มรายการ</h2>
 
             <p class="mt-1 text-sm text-base-content/60">
-                วันที่ {{ selectedDateText }}
+                <!-- วันที่ {{ selectedDateText }} -->
+                วันที่ {{ formatThaiDateLong(selectedDate) }}
             </p>
 
             <Form class="mt-6 space-y-4 " @submit.prevent="submitForm">

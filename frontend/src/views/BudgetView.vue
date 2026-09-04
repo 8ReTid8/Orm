@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import BudgetCategoryList from "@/components/budget/BudgetCategoryList.vue";
 import { Plus, WalletCards } from "lucide-vue-next"
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref} from "vue";
 import { useAccountStore } from "@/stores/account";
 import { useCategoryStore } from "@/stores/category";
 import { useBudgetForm } from "@/composables/budget/useBudgetForm";
@@ -11,34 +10,12 @@ import { useBudget } from "@/composables/budget/useBudget";
 import AccountFilter from "@/components/filter/accountFilter.vue";
 import type { Budget } from "@/types/budget";
 import EmptyState from "@/components/common/EmptyState.vue";
+import { useBudgetFilter } from "@/composables/budget/useBudgetFilter";
+
 const isDialogOpen = ref(false)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
-const selectedAccountId = ref<number | null>(null)
-const status = ref<"active" | "ended">("active")
-const selectedYear = ref<number | null>(null)
-const selectedMonth = ref<number | null>(null)
-const months = [
-  { value: 1, label: "มกราคม" },
-  { value: 2, label: "กุมภาพันธ์" },
-  { value: 3, label: "มีนาคม" },
-  { value: 4, label: "เมษายน" },
-  { value: 5, label: "พฤษภาคม" },
-  { value: 6, label: "มิถุนายน" },
-  { value: 7, label: "กรกฎาคม" },
-  { value: 8, label: "สิงหาคม" },
-  { value: 9, label: "กันยายน" },
-  { value: 10, label: "ตุลาคม" },
-  { value: 11, label: "พฤศจิกายน" },
-  { value: 12, label: "ธันวาคม" },
-]
 
-const currentYear = new Date().getFullYear()
-
-const years = Array.from(
-  { length: 5 },
-  (_, index) => currentYear - index,
-)
 const {
   form,
   resetForm,
@@ -56,21 +33,28 @@ const {
   cancelEdit,
 } = useBudget()
 
+const {
+  status,
+  selectedAccountId,
+  selectedYear,
+  selectedMonth,
+  months,
+  years,
+  fetchBudgets,
+  selectStatus,
+  handleYearChange,
+  handleMonthChange,
+} = useBudgetFilter(loadBudgets)
+
 function openEditBudget(budget: Budget) {
-  console.log("openEditBudget", budget)
   startEdit(budget)
   setEditForm(budget)
   isDialogOpen.value = true
 }
 
 function openAddBudget() {
-
   cancelEdit()
   resetForm()
-
-  // form.value.transactionDate =
-  //   formatDate(selectedDate.value)
-
   isDialogOpen.value = true
 }
 
@@ -79,92 +63,20 @@ async function saveBudget() {
     await saveBudgetApi(form.value)
 
     cancelEdit()
-
     isDialogOpen.value = false
-
     resetForm()
+
     await fetchBudgets()
   } catch (error) {
     console.error("Error saving budget:", error)
   }
 }
 
-// async function fetchBudgets() {
-//   // const date = selectedMonth.value
-//   const now = new Date()
-//   await loadBudgets(
-//     now.getFullYear(),
-//     now.getMonth() + 1,
-//     status.value,
-//     selectedAccountId.value,
-//   )
-// }
-
-async function fetchBudgets() {
-  if (selectedAccountId.value === null) {
-    return
-  }
-
-  await loadBudgets({
-    status: status.value,
-    accountId: selectedAccountId.value,
-
-    year:
-      status.value === "ended"
-        ? selectedYear.value
-        : null,
-
-    month:
-      status.value === "ended"
-        ? selectedMonth.value
-        : null,
-  })
-}
-
-// async function selectStatus(
-//   value: "active" | "ended"
-// ) {
-//   status.value = value
-//   await fetchBudgets()
-// }
-async function handleYearChange() {
-  // ถ้าเปลี่ยนปี ให้ reset เดือนก่อน
-  selectedMonth.value = null
-
-  await fetchBudgets()
-}
-async function handleMonthChange() {
-  if (selectedYear.value === null) {
-    return
-  }
-
-  await fetchBudgets()
-}
-async function selectStatus(value: "active" | "ended") {
-  if (status.value === value) {
-    return
-  }
-
-  status.value = value
-
-  selectedYear.value = null
-  selectedMonth.value = null
-
-  await fetchBudgets()
-}
-
 async function handleDeleteBudget(id: number) {
-  const now = new Date()
   try {
     await deleteBudget(id)
     await fetchBudgets()
-    // await loadBudgets(
-    //   now.getFullYear(),
-    //   now.getMonth() + 1,
-    //   "active",
-    //   // status.value,
-    //   // selectedAccountId.value
-    // )
+
   } catch (error) {
     console.error(
       "Delete budget failed:",
@@ -207,30 +119,6 @@ function closeDialog() {
   isDialogOpen.value = false
 }
 
-// onMounted(() => {
-//   const now = new Date()
-//   loadBudgets(
-//     now.getFullYear(),
-//     now.getMonth() + 1,
-//     "active",
-//     // status.value, 
-//     // selectedAccountId.value
-//   )
-//   categoryStore.loadCategories()
-//   accountStore.loadAccounts()
-// })
-
-watch(selectedAccountId, async (newAccountId, oldAccountId) => {
-  if (newAccountId === null) {
-    return
-  }
-
-  if (newAccountId === oldAccountId) {
-    return
-  }
-
-  await fetchBudgets()
-})
 
 onMounted(async () => {
   await Promise.all([
@@ -245,8 +133,6 @@ onMounted(async () => {
   }
 
   selectedAccountId.value = firstAccount.id
-
-  // await fetchBudgets()
 })
 
 </script>
@@ -286,8 +172,6 @@ onMounted(async () => {
           📁 สิ้นสุดแล้ว
         </button>
       </div>
-      <!-- Account Filter -->
-      <!-- <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" /> -->
       <!-- Filters -->
       <div class="flex items-center gap-2">
 
@@ -321,7 +205,6 @@ onMounted(async () => {
       </div>
     </div>
     <!-- Overview -->
-    <!-- <BudgetOverview :budgets="budgets" /> -->
     <EmptyState v-if="budgetPeriods.length === 0" :icon="WalletCards" title="ยังไม่มีงบประมาณ"
       description='กดปุ่ม "สร้าง Budget" ด้านบนเพื่อเริ่มวางแผนการเงิน' />
     <div v-else class="space-y-4!">
@@ -330,8 +213,6 @@ onMounted(async () => {
         :categories="categoryStore.categories" :accounts="accountStore.accounts" @edit="openEditBudget"
         @delete="handleDeleteBudget" />
     </div>
-    <!-- Categories -->
-    <!-- <BudgetCategoryList :budgets="budgets" :categories="categoryStore.categories" :accounts="accountStore.accounts" @delete="handleDeleteBudget" @edit="openEditBudget" /> -->
 
   </section>
   <BudgetForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts" :categories="categoryStore.categories"

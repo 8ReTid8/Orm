@@ -42,20 +42,17 @@ const {
   selectedAccountId,
   selectedCategory,
   filteredTransactions,
-  selectedDateText,
   selectedDayTransactions,
   selectDate,
 } = useTransactionFilter(transactions)
 
 function openEditTransaction(transaction: Transaction) {
-  // editingTransactionId.value = transaction.id
   startEdit(transaction)
   setEditForm(transaction)
   isDialogOpen.value = true
 }
 
 function openAddTransaction() {
-  // editingTransactionId.value = null
   cancelEdit()
   resetForm(
     formatDate(selectedDate.value),
@@ -183,13 +180,13 @@ onMounted(() => {
     <TransCalendar :selected-date="selectedDate" :transactions="filteredTransactions" @select="handleSelectDate" @month-change="handleMonthChange" />
 
     <div ref="dailyTransactionSection">
-      <DailyTransactionList :selected-date-text="selectedDateText" :categories="categoryStore.categories" :transactions="selectedDayTransactions"
+      <DailyTransactionList :selected-date="selectedDate" :categories="categoryStore.categories" :transactions="selectedDayTransactions"
         :accounts="accountStore.accounts" :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" @delete="handleDeleteTransaction"/>
     </div>
   </section>
 
   <TransactionForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
-    :categories="categoryStore.categories" :selected-date-text="selectedDateText" @close="closeDialog"
+    :categories="categoryStore.categories" :selected-date="selectedDate" @close="closeDialog"
     @save="saveTransaction" />
 
 </template>

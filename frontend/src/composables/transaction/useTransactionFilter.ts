@@ -1,6 +1,6 @@
 import { computed, ref } from "vue"
 import type { Transaction } from "@/types/transaction"
-import { formatDate, formatThaiDateLong } from "@/utils/format"
+import { formatDate} from "@/utils/format"
 
 export function useTransactionFilter(
   transactions: {
@@ -10,16 +10,6 @@ export function useTransactionFilter(
   const selectedDate = ref<Date>(new Date())
   const selectedAccountId = ref<number | null>(null)
   const selectedCategory = ref<string | null>(null)
-  // const filteredTransactions = computed(() => {
-  //   if (selectedAccountId.value === null) {
-  //     return transactions.value
-  //   }
-
-  //   return transactions.value.filter(
-  //     transaction =>
-  //       transaction.account.id === selectedAccountId.value
-  //   )
-  // })
   const filteredTransactions = computed(() => {
     return transactions.value.filter(transaction => {
 
@@ -34,26 +24,11 @@ export function useTransactionFilter(
       return accountMatch && categoryMatch
     })
   })
-
-  // const selectedDateText = computed(() => {
-  //   return selectedDate.value.toLocaleDateString(
-  //     "th-TH",
-  //     {
-  //       day: "numeric",
-  //       month: "long",
-  //       year: "numeric",
-  //     },
-  //   )
-  // })
   
-  const selectedDateText = computed(() => {
-    return formatThaiDateLong(selectedDate.value)
-  })
 
   const selectedDayTransactions = computed(() => {
     const date = formatDate(selectedDate.value)
 
-    // return transactions.value.filter(
     return filteredTransactions.value.filter(
       transaction =>
         transaction.transactionDate.startsWith(date),
@@ -70,7 +45,6 @@ export function useTransactionFilter(
     selectedCategory,
     filteredTransactions,
     selectedDayTransactions,
-    selectedDateText,
     selectDate,
   }
 }

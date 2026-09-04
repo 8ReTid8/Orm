@@ -7,7 +7,7 @@ import {
   Wallet,
 } from "lucide-vue-next"
 import type { Transaction } from "@/types/transaction"
-import { formatMoney } from "@/utils/format"
+import { formatMoney, formatThaiDateLong } from "@/utils/format"
 import TransactionSummary from "./TransactionSummary.vue"
 import { resolveCategoryIcon } from "@/utils/categoryIcons.ts"
 import type { Category } from "@/types/category.ts"
@@ -17,7 +17,7 @@ import type { Account } from "@/types/account.ts"
 import EmptyState from "../common/EmptyState.vue"
 
 interface Props {
-  selectedDateText: string
+  selectedDate: Date
   transactions: Transaction[]
   accounts: Account[]
   categories: Category[]
@@ -62,7 +62,7 @@ function handleConfirmDelete() {
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 class="text-xl font-bold">
-            รายการวันที่ {{ selectedDateText }}
+            รายการวันที่ {{ formatThaiDateLong(selectedDate) }}
           </h2>
 
           <p class="text-sm text-base-content/60">

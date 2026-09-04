@@ -224,47 +224,168 @@ func GetTransactions(c *gin.Context) {
 		return
 	}
 
-	yearString := c.Query("year")
-	monthString := c.Query("month")
+	// yearString := c.Query("year")
+	// monthString := c.Query("month")
 
-	year, err := strconv.Atoi(yearString)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "ปีไม่ถูกต้อง",
-		})
-		return
-	}
+	// year, err := strconv.Atoi(yearString)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "ปีไม่ถูกต้อง",
+	// 	})
+	// 	return
+	// }
 
-	month, err := strconv.Atoi(monthString)
-	if err != nil || month < 1 || month > 12 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "เดือนไม่ถูกต้อง",
-		})
-		return
-	}
+	// month, err := strconv.Atoi(monthString)
+	// if err != nil || month < 1 || month > 12 {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "เดือนไม่ถูกต้อง",
+	// 	})
+	// 	return
+	// }
 
-	startDate := time.Date(
-		year,
-		time.Month(month),
-		1,
-		0, 0, 0, 0,
-		time.Local,
-	)
+	// startDate := time.Date(
+	// 	year,
+	// 	time.Month(month),
+	// 	1,
+	// 	0, 0, 0, 0,
+	// 	time.Local,
+	// )
 
-	endDate := startDate.AddDate(0, 1, 0)
+	// endDate := startDate.AddDate(0, 1, 0)
 
-	var transactions []models.Transaction
+	// var transactions []models.Transaction
 
-	if err := database.DB.
-		// Preload("Account").
+	// if err := database.DB.
+	// 	// Preload("Account").
+	// 	Joins("JOIN accounts ON accounts.id = transactions.account_id").
+	// 	Where("accounts.user_id = ?", userID).
+	// 	Where(
+	// 		"transactions.transaction_date >= ? AND transactions.transaction_date < ?",
+	// 		startDate,
+	// 		endDate,
+	// 	).
+	// 	// Order("transactions.transaction_date DESC").
+	// 	Order("transactions.created_at DESC").
+	// 	Find(&transactions).Error; err != nil {
+
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"message": "ไม่สามารถโหลดรายการได้",
+	// 	})
+	// 	return
+	// }
+	query := database.DB.
 		Joins("JOIN accounts ON accounts.id = transactions.account_id").
-		Where("accounts.user_id = ?", userID).
-		Where(
+		Where("accounts.user_id = ?", userID)
+
+	// ---------------------------
+	// Date filter
+	// ---------------------------
+
+	startDateString := c.Query("startDate")
+	endDateString := c.Query("endDate")
+
+	if startDateString != "" && endDateString != "" {
+
+		startDate, err := time.Parse("2006-01-02", startDateString)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "วันที่เริ่มต้นไม่ถูกต้อง",
+			})
+			return
+		}
+
+		endDate, err := time.Parse("2006-01-02", endDateString)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "วันที่สิ้นสุดไม่ถูกต้อง",
+			})
+			return
+		}
+
+		// endDate เป็นวันสุดท้าย → ใช้ < วันถัดไป
+		endDateExclusive := endDate.AddDate(0, 0, 1)
+
+		query = query.Where(
+			"transactions.transaction_date >= ? AND transactions.transaction_date < ?",
+			startDate,
+			endDateExclusive,
+		)
+
+	} else {
+		// ---------------------------
+		// Year / Month
+		// ---------------------------
+
+		year, err := strconv.Atoi(c.Query("year"))
+		if err != nil || year < 1 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "ปีไม่ถูกต้อง",
+			})
+			return
+		}
+
+		month, err := strconv.Atoi(c.Query("month"))
+		if err != nil || month < 1 || month > 12 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "เดือนไม่ถูกต้อง",
+			})
+			return
+		}
+
+		startDate := time.Date(
+			year,
+			time.Month(month),
+			1,
+			0, 0, 0, 0,
+			time.Local,
+		)
+
+		endDate := startDate.AddDate(0, 1, 0)
+
+		query = query.Where(
 			"transactions.transaction_date >= ? AND transactions.transaction_date < ?",
 			startDate,
 			endDate,
-		).
-		// Order("transactions.transaction_date DESC").
+		)
+	}
+
+	// ---------------------------
+	// Account filter
+	// ---------------------------
+
+	accountIDString := c.Query("accountId")
+
+	if accountIDString != "" {
+		accountID, err := strconv.ParseUint(accountIDString, 10, 64)
+		if err != nil || accountID == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "account id ไม่ถูกต้อง",
+			})
+			return
+		}
+
+		query = query.Where(
+			"transactions.account_id = ?",
+			uint(accountID),
+		)
+	}
+
+	category := c.Query("category")
+
+	if category != "" {
+		query = query.Where(
+			"transactions.category = ?",
+			category,
+		)
+	}
+
+	// ---------------------------
+	// Get transactions
+	// ---------------------------
+
+	var transactions []models.Transaction
+
+	if err := query.
 		Order("transactions.created_at DESC").
 		Find(&transactions).Error; err != nil {
 
