@@ -3,12 +3,15 @@ package main
 import (
 	"log"
 	"net/http"
-	
-	"github.com/joho/godotenv"
+
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	"backend/internal/database"
+	"backend/internal/handlers"
+	"backend/internal/repositories"
 	"backend/internal/routes"
+	"backend/internal/services"
 )
 
 func main() {
@@ -19,6 +22,29 @@ func main() {
 	}
 
 	database.ConnectDB()
+	accountRepo := repositories.NewAccountRepository(
+		database.DB,
+	)
+	accountService := services.NewAccountService(
+		accountRepo,
+	)
+
+	accountHandler := handlers.NewAccountHandler(
+		accountService,
+	)
+	transactionRepo := repositories.NewTransactionRepository(
+		database.DB,
+	)
+
+	transactionService := services.NewTransactionService(
+		database.DB,
+		accountRepo,
+		transactionRepo,
+	)
+
+	transactionHandler := handlers.NewTransactionHandler(
+		transactionService,
+	)
 	router := gin.Default()
 
 	router.Use(func(c *gin.Context) {
@@ -45,7 +71,7 @@ func main() {
 		c.Next()
 	})
 
-	routes.SetupRoutes(router)
+	routes.SetupRoutes(router, transactionHandler, accountHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

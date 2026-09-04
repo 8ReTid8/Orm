@@ -34,67 +34,6 @@ func getUserID(c *gin.Context) (uint, bool) {
 	return userID, true
 }
 
-func parseTransactionForm(c *gin.Context) (dto.TransactionInput, error) {
-
-	transactionType := c.PostForm("type")
-	category := c.PostForm("category")
-	title := c.PostForm("title")
-	note := c.PostForm("note")
-
-	if transactionType != "income" &&
-		transactionType != "expense" {
-
-		return dto.TransactionInput{},
-			fmt.Errorf("ประเภท transaction ไม่ถูกต้อง")
-	}
-
-	if title == "" || category == "" {
-		return dto.TransactionInput{},
-			fmt.Errorf("กรุณากรอกข้อมูลให้ครบ")
-	}
-
-	amount, err := strconv.ParseFloat(
-		c.PostForm("amount"),
-		64,
-	)
-
-	if err != nil || amount <= 0 {
-		return dto.TransactionInput{},
-			fmt.Errorf("จำนวนเงินไม่ถูกต้อง")
-	}
-
-	accountID64, err := strconv.ParseUint(
-		c.PostForm("accountId"),
-		10,
-		64,
-	)
-
-	if err != nil {
-		return dto.TransactionInput{},
-			fmt.Errorf("บัญชีไม่ถูกต้อง")
-	}
-
-	transactionDate, err := time.Parse(
-		"2006-01-02",
-		c.PostForm("transactionDate"),
-	)
-
-	if err != nil {
-		return dto.TransactionInput{},
-			fmt.Errorf("วันที่ไม่ถูกต้อง")
-	}
-
-	return dto.TransactionInput{
-		Type:            transactionType,
-		Amount:          amount,
-		Category:        category,
-		AccountID:       uint(accountID64),
-		Title:           title,
-		Note:            note,
-		TransactionDate: transactionDate,
-	}, nil
-}
-
 func findUserAccount(userID uint, accountID uint) (*models.Account, error) {
 
 	var account models.Account
