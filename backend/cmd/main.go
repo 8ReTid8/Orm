@@ -22,6 +22,9 @@ func main() {
 	}
 
 	database.ConnectDB()
+	userRepo := repositories.NewUserRepository(
+		database.DB,
+	)
 	accountRepo := repositories.NewAccountRepository(
 		database.DB,
 	)
@@ -32,6 +35,9 @@ func main() {
 		database.DB,
 	)
 
+	authService := services.NewAuthService(
+		userRepo,
+	)
 	accountService := services.NewAccountService(
 		accountRepo,
 	)
@@ -45,6 +51,9 @@ func main() {
 		accountRepo,
 	)
 
+	authHandler := handlers.NewAuthHandler(
+		authService,
+	)
 	transactionHandler := handlers.NewTransactionHandler(
 		transactionService,
 	)
@@ -81,7 +90,7 @@ func main() {
 		c.Next()
 	})
 
-	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler)
+	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler, authHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

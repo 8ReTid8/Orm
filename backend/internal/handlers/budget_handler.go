@@ -1,18 +1,14 @@
 package handlers
 
 import (
-	"backend/internal/database"
 	"backend/internal/dto"
-	"backend/internal/models"
 	"backend/internal/services"
 	"errors"
 	"net/http"
 	"strconv"
-
 	// "time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type BudgetHandler struct {
@@ -69,7 +65,7 @@ func (h *BudgetHandler) CreateBudget(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "งบประมาณถูกสร้างเรียบร้อยแล้ว",
-		"budget":  dto.ToBudgetResponse(*budget, 0, false),
+		"budget":  dto.ToBudgetResponse(*budget),
 	})
 	// _, err = findUserAccount(
 	// 	userID,
@@ -133,7 +129,7 @@ func (h *BudgetHandler) GetBudgets(c *gin.Context) {
 	}
 
 	responses := make(
-		[]dto.BudgetResponse,
+		[]dto.BudgetOverviewResponse,
 		0,
 		len(summaries),
 	)
@@ -141,7 +137,7 @@ func (h *BudgetHandler) GetBudgets(c *gin.Context) {
 	for _, summary := range summaries {
 		responses = append(
 			responses,
-			dto.ToBudgetResponse(
+			dto.ToBudgetOverviewResponse(
 				summary.Budget,
 				summary.Spent,
 				summary.IsActive,
@@ -385,7 +381,8 @@ func (h *BudgetHandler) GetBudgets(c *gin.Context) {
 	// })
 }
 
-func UpdateBudget(c *gin.Context) {
+// func UpdateBudget(c *gin.Context) {
+func (h *BudgetHandler) UpdateBudget(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
 		return
@@ -397,13 +394,13 @@ func UpdateBudget(c *gin.Context) {
 		64,
 	)
 
-	if err != nil {
+	if err != nil || budgetID64 == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "budget id ไม่ถูกต้อง",
 		})
 		return
 	}
-	budgetID := uint(budgetID64)
+	// budgetID := uint(budgetID64)
 
 	input, err := parseBudgetForm(c)
 	if err != nil {
@@ -412,56 +409,89 @@ func UpdateBudget(c *gin.Context) {
 		})
 		return
 	}
-	var oldBudget models.Budget
+	budget, err := h.service.Update(
+		c.Request.Context(),
+		userID,
+		uint(budgetID64),
+		input,
+	)
 
-	if err := database.DB.
-		// Joins(
-		// 	"JOIN accounts ON accounts.id = budgets.account_id",
-		// ).
-		// Where(
-		// 	"budgets.id = ? AND accounts.user_id = ?",
-		// 	budgetID,
-		// 	userID,
-		// ).
-		Where("id = ? AND user_id = ?", budgetID, userID).
-		First(&oldBudget).Error; err != nil {
-
+	switch {
+	case errors.Is(err, services.ErrBudgetNotFound):
 		c.JSON(http.StatusNotFound, gin.H{
-			"message": "ไม่พบ งบประมาณ",
+			"message": "ไม่พบงบประมาณ",
 		})
 		return
-	}
-	_, err = findUserAccount(
-		userID,
-		input.AccountID,
-	)
-	if err != nil {
+
+	case errors.Is(err, services.ErrAccountNotFound):
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "ไม่พบบัญชี",
 		})
 		return
-	}
-	// 5. อัปเดตค่าฟิลด์ต่างๆ
-	oldBudget.AccountID = input.AccountID
-	oldBudget.Amount = input.Amount
-	oldBudget.Category = input.Category
-	oldBudget.StartDate = input.StartDate
-	oldBudget.EndDate = input.EndDate
-	// 6. บันทึกลง Database
-	if err := database.DB.Save(&oldBudget).Error; err != nil {
+
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "ไม่สามารถแก้ไขงบประมาณได้",
 		})
 		return
 	}
-	// 7. ส่ง Response สำเร็จ (HTTP 200 OK)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "แก้ไขงบประมาณสำเร็จ",
-		"budget":  oldBudget,
+		"budget":  dto.ToBudgetResponse(*budget),
 	})
+
+	// var oldBudget models.Budget
+
+	// if err := database.DB.
+	// 	// Joins(
+	// 	// 	"JOIN accounts ON accounts.id = budgets.account_id",
+	// 	// ).
+	// 	// Where(
+	// 	// 	"budgets.id = ? AND accounts.user_id = ?",
+	// 	// 	budgetID,
+	// 	// 	userID,
+	// 	// ).
+	// 	Where("id = ? AND user_id = ?", budgetID, userID).
+	// 	First(&oldBudget).Error; err != nil {
+
+	// 	c.JSON(http.StatusNotFound, gin.H{
+	// 		"message": "ไม่พบ งบประมาณ",
+	// 	})
+	// 	return
+	// }
+	// _, err = findUserAccount(
+	// 	userID,
+	// 	input.AccountID,
+	// )
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"message": "ไม่พบบัญชี",
+	// 	})
+	// 	return
+	// }
+	// // 5. อัปเดตค่าฟิลด์ต่างๆ
+	// oldBudget.AccountID = input.AccountID
+	// oldBudget.Amount = input.Amount
+	// oldBudget.Category = input.Category
+	// oldBudget.StartDate = input.StartDate
+	// oldBudget.EndDate = input.EndDate
+	// // 6. บันทึกลง Database
+	// if err := database.DB.Save(&oldBudget).Error; err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"message": "ไม่สามารถแก้ไขงบประมาณได้",
+	// 	})
+	// 	return
+	// }
+	// // 7. ส่ง Response สำเร็จ (HTTP 200 OK)
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"message": "แก้ไขงบประมาณสำเร็จ",
+	// 	"budget":  oldBudget,
+	// })
 }
 
-func DeleteBudget(c *gin.Context) {
+// func DeleteBudget(c *gin.Context) {
+	func (h *BudgetHandler) DeleteBudget(c *gin.Context) {
 	// 1. user จาก JWT
 	userID, ok := getUserID(c)
 	if !ok {
@@ -481,32 +511,20 @@ func DeleteBudget(c *gin.Context) {
 		})
 		return
 	}
+	err = h.service.Delete(
+		c.Request.Context(),
+		userID,
+		uint(budgetID64),
+	)
 
-	budgetID := uint(budgetID64)
-
-	// 3. หา budget
-	// และต้องเป็น budget ของ user คนนี้
-	var budget models.Budget
-
-	if err := database.DB.
-		Where("id = ? AND user_id = ?", budgetID, userID).
-		First(&budget).Error; err != nil {
-
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"message": "ไม่พบ budget",
-			})
-			return
-		}
-
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "ไม่สามารถค้นหางบประมาณได้",
+	switch {
+	case errors.Is(err, services.ErrBudgetNotFound):
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "ไม่พบงบประมาณ",
 		})
 		return
-	}
 
-	// 4. Database transaction
-	if err := database.DB.Delete(&budget).Error; err != nil {
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "ไม่สามารถลบงบประมาณได้",
 		})

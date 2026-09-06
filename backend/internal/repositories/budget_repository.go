@@ -8,7 +8,6 @@ import (
 	"backend/internal/models"
 
 	"gorm.io/gorm"
-	// "gorm.io/gorm/clause"
 )
 
 type BudgetRepository struct {
@@ -21,6 +20,28 @@ func NewBudgetRepository(
 	return &BudgetRepository{
 		db: db,
 	}
+}
+
+func (r *BudgetRepository) FindOwned(
+	ctx context.Context,
+	userID uint,
+	budgetID uint,
+) (*models.Budget, error) {
+	var budget models.Budget
+
+	err := r.db.WithContext(ctx).
+		Where(
+			"id = ? AND user_id = ?",
+			budgetID,
+			userID,
+		).
+		First(&budget).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &budget, nil
 }
 
 func (r *BudgetRepository) Create(
@@ -64,8 +85,9 @@ func (r *BudgetRepository) ListByUser(
 	switch filter.Status {
 	case "active":
 		query = query.Where(
-			"budgets.start_date <= ? AND budgets.end_date >= ?",
-			today,
+			"budgets.end_date >= ?",
+			// "budgets.start_date <= ? AND budgets.end_date >= ?",
+			// today,
 			today,
 		)
 

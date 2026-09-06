@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	// "backend/internal/database"
 	"backend/internal/dto"
 	"backend/internal/services"
 	"backend/internal/utils"

@@ -12,6 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// var ErrBudgetNotFound = errors.New("budget not found")
+
 type BudgetSummary struct {
 	Budget   models.Budget
 	Spent    float64
@@ -32,6 +34,7 @@ func NewBudgetService(
 		accountRepo: accountRepo,
 	}
 }
+
 func (s *BudgetService) Create(
 	ctx context.Context,
 	userID uint,
@@ -69,6 +72,53 @@ func (s *BudgetService) Create(
 	return budget, nil
 }
 
+func (s *BudgetService) Update(
+	ctx context.Context,
+	userID uint,
+	budgetID uint,
+	input dto.BudgetInput,
+) (*models.Budget, error) {
+	budget, err := s.budgetRepo.FindOwned(
+		ctx,
+		userID,
+		budgetID,
+	)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrBudgetNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// เช็กว่า account ใหม่เป็นของ user
+	account, err := s.accountRepo.FindOwned(
+		ctx,
+		userID,
+		input.AccountID,
+	)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrAccountNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	budget.AccountID = input.AccountID
+	budget.Amount = input.Amount
+	budget.Category = input.Category
+	budget.StartDate = input.StartDate
+	budget.EndDate = input.EndDate
+
+	if err := s.budgetRepo.Update(ctx, budget); err != nil {
+		return nil, err
+	}
+
+	// ใช้เฉพาะเพื่อ response ไม่ได้บันทึก account ซ้ำ
+	budget.Account = *account
+
+	return budget, nil
+}
+
 func (s *BudgetService) Get(
 	ctx context.Context,
 	userID uint,
@@ -94,6 +144,7 @@ func (s *BudgetService) Get(
 	if err != nil {
 		return nil, err
 	}
+
 	summaries := make(
 		[]BudgetSummary,
 		0,
@@ -108,8 +159,9 @@ func (s *BudgetService) Get(
 			return nil, err
 		}
 
-		isActive := !today.Before(budget.StartDate) &&
-			!today.After(budget.EndDate)
+		// isActive := !today.Before(budget.StartDate) &&
+		// 	!today.After(budget.EndDate)
+		isActive := !today.After(budget.EndDate)
 
 		summaries = append(
 			summaries,
@@ -122,4 +174,24 @@ func (s *BudgetService) Get(
 	}
 
 	return summaries, nil
+}
+
+func (s *BudgetService) Delete(
+	ctx context.Context,
+	userID uint,
+	budgetID uint,
+) error {
+	budget, err := s.budgetRepo.FindOwned(
+		ctx,
+		userID,
+		budgetID,
+	)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return ErrBudgetNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	return s.budgetRepo.Delete(ctx, budget)
 }

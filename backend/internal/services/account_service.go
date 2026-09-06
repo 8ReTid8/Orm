@@ -3,21 +3,17 @@ package services
 
 import (
 	"context"
-	"errors"
 	"strings"
 
-	// "backend/internal/dto"
 	"backend/internal/models"
 	"backend/internal/repositories"
-
-	// "gorm.io/gorm"
 )
 
 var (
 	// ErrAccountNotFound     = errors.New("account not found")
 	// ErrTransactionNotFound = errors.New("transaction not found")
 )
-var ErrInvalidAccountName = errors.New("invalid account name")
+// var ErrInvalidAccountName = errors.New("invalid account name")
 
 type AccountService struct {
 	// db *gorm.DB

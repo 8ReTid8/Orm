@@ -1,12 +1,10 @@
 // internal/services/balance.go
 package services
 
-import "errors"
-
-var (
-	ErrInvalidTransactionType = errors.New("invalid transaction type")
-	ErrInsufficientBalance    = errors.New("insufficient balance")
-)
+// var (
+// 	ErrInvalidTransactionType = errors.New("invalid transaction type")
+// 	ErrInsufficientBalance    = errors.New("insufficient balance")
+// )
 
 func ApplyTransactionToBalance(
 	currentBalance float64,

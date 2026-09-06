@@ -10,13 +10,12 @@ import (
 	"backend/internal/repositories"
 
 	"gorm.io/gorm"
-	// "gorm.io/gorm/clause"
 )
 
-var (
-	ErrAccountNotFound     = errors.New("account not found")
-	ErrTransactionNotFound = errors.New("transaction not found")
-)
+// var (
+// 	ErrAccountNotFound     = errors.New("account not found")
+// 	ErrTransactionNotFound = errors.New("transaction not found")
+// )
 
 type TransactionService struct {
 	db              *gorm.DB
@@ -140,23 +139,6 @@ func (s *TransactionService) Update(
 			transactionID,
 		)
 
-		// var oldTransaction models.Transaction
-
-		// // lock transaction เก่า และเช็ก ownership
-		// err := tx.
-		// 	Clauses(clause.Locking{
-		// 		Strength: "UPDATE",
-		// 		Table:    clause.Table{Name: "transactions"},
-		// 	}).
-		// 	Joins("JOIN accounts ON accounts.id = transactions.account_id").
-		// 	Where(
-		// 		"transactions.id = ? AND accounts.user_id = ?",
-		// 		transactionID,
-		// 		userID,
-		// 	).
-		// 	First(&oldTransaction).
-		// 	Error
-
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrTransactionNotFound
 		}
@@ -268,11 +250,10 @@ func (s *TransactionService) Delete(
 	transactionID uint,
 ) error {
 	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// var transaction models.Transaction
 		
 		accountRepo := s.accountRepo.WithTx(tx)
-
 		transactionRepo := s.transactionRepo.WithTx(tx)
+		
 		transaction, err := transactionRepo.FindOwnedForUpdate(
 			ctx,
 			userID,

@@ -63,32 +63,6 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 		"message": "สร้างบัญชีสำเร็จ",
 		"account": dto.ToAccountResponse(*account),
 	})
-	// name := strings.TrimSpace(request.Name)
-
-	// if name == "" {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "กรุณากรอกชื่อบัญชี",
-	// 	})
-	// 	return
-	// }
-
-	// account := models.Account{
-	// 	UserID:  userID,
-	// 	Name:    name,
-	// 	Balance: 0,
-	// }
-
-	// if err := database.DB.Create(&account).Error; err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{
-	// 		"message": "ไม่สามารถสร้างบัญชีได้",
-	// 	})
-	// 	return
-	// }
-
-	// c.JSON(http.StatusCreated, gin.H{
-	// 	"message": "สร้างบัญชีสำเร็จ",
-	// 	"account": account,
-	// })
 }
 
 // func GetAccounts(c *gin.Context) {
@@ -123,20 +97,5 @@ func (h *AccountHandler) GetAccounts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, responses)
-
-	// var accounts []models.Account
-
-	// if err := database.DB.
-	// 	Where("user_id = ?", userID).
-	// 	Order("created_at ASC").
-	// 	Find(&accounts).Error; err != nil {
-
-	// 	c.JSON(http.StatusInternalServerError, gin.H{
-	// 		"message": "ไม่สามารถโหลดบัญชีได้",
-	// 	})
-	// 	return
-	// }
-
-	// c.JSON(http.StatusOK, accounts)
 }
 
