@@ -1,0 +1,125 @@
+package services
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"backend/internal/dto"
+	"backend/internal/models"
+	"backend/internal/repositories"
+
+	"gorm.io/gorm"
+)
+
+type BudgetSummary struct {
+	Budget   models.Budget
+	Spent    float64
+	IsActive bool
+}
+
+type BudgetService struct {
+	budgetRepo  *repositories.BudgetRepository
+	accountRepo *repositories.AccountRepository
+}
+
+func NewBudgetService(
+	budgetRepo *repositories.BudgetRepository,
+	accountRepo *repositories.AccountRepository,
+) *BudgetService {
+	return &BudgetService{
+		budgetRepo:  budgetRepo,
+		accountRepo: accountRepo,
+	}
+}
+func (s *BudgetService) Create(
+	ctx context.Context,
+	userID uint,
+	input dto.BudgetInput,
+) (*models.Budget, error) {
+
+	account, err := s.accountRepo.FindOwned(
+		ctx,
+		userID,
+		input.AccountID,
+	)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrAccountNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	budget := &models.Budget{
+		UserID:    userID,
+		AccountID: input.AccountID,
+		Amount:    input.Amount,
+		Category:  input.Category,
+		StartDate: input.StartDate,
+		EndDate:   input.EndDate,
+	}
+
+	if err := s.budgetRepo.Create(ctx, budget); err != nil {
+		return nil, err
+	}
+
+	// ให้ handler สามารถสร้าง BudgetResponse พร้อม Account ได้
+	budget.Account = *account
+
+	return budget, nil
+}
+
+func (s *BudgetService) Get(
+	ctx context.Context,
+	userID uint,
+	filter dto.BudgetFilter,
+) ([]BudgetSummary, error) {
+	now := time.Now()
+
+	// Budget ใช้วันที่ จึงตัดเวลาออก
+	today := time.Date(
+		now.Year(),
+		now.Month(),
+		now.Day(),
+		0, 0, 0, 0,
+		now.Location(),
+	)
+
+	budgets, err := s.budgetRepo.ListByUser(
+		ctx,
+		userID,
+		filter,
+		today,
+	)
+	if err != nil {
+		return nil, err
+	}
+	summaries := make(
+		[]BudgetSummary,
+		0,
+		len(budgets),
+	)
+
+	for index := range budgets {
+		budget := &budgets[index]
+
+		spent, err := s.budgetRepo.SumExpense(ctx, budget)
+		if err != nil {
+			return nil, err
+		}
+
+		isActive := !today.Before(budget.StartDate) &&
+			!today.After(budget.EndDate)
+
+		summaries = append(
+			summaries,
+			BudgetSummary{
+				Budget:   *budget,
+				Spent:    spent,
+				IsActive: isActive,
+			},
+		)
+	}
+
+	return summaries, nil
+}

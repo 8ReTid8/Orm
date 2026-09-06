@@ -10,6 +10,7 @@ func SetupRoutes(
 	router *gin.Engine,
 	transactionHandler *handlers.TransactionHandler,
 	accountHandler *handlers.AccountHandler,
+	budgetHandler *handlers.BudgetHandler,
 ) {
 	api := router.Group("/api")
 
@@ -38,8 +39,8 @@ func SetupRoutes(
 		protected.DELETE("/transactions/:id",transactionHandler.DeleteTransaction)
 
 		//Budget
-		protected.POST("/budgets", handlers.CreateBudget)
-		protected.GET("/budgets", handlers.GetBudgets)
+		protected.POST("/budgets", budgetHandler.CreateBudget)
+		protected.GET("/budgets", budgetHandler.GetBudgets)
 		protected.PATCH("/budgets/:id", handlers.UpdateBudget)
 		protected.DELETE("/budgets/:id", handlers.DeleteBudget)
 	}

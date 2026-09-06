@@ -56,18 +56,6 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	// account, err := findUserAccount(
-	// 	userID,
-	// 	input.AccountID,
-	// )
-
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"message": "ไม่พบบัญชี",
-	// 	})
-	// 	return
-	// }
-
 	// 4. Upload slip (optional)
 	slipPath, err := utils.SaveSlip(
 		c,

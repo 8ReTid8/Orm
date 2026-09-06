@@ -55,6 +55,28 @@ func (r *AccountRepository) FindOwnedForUpdate(
 	return &account, nil
 }
 
+func (r *AccountRepository) FindOwned(
+	ctx context.Context,
+	userID uint,
+	accountID uint,
+) (*models.Account, error) {
+	var account models.Account
+
+	err := r.db.WithContext(ctx).
+		Where(
+			"id = ? AND user_id = ?",
+			accountID,
+			userID,
+		).
+		First(&account).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &account, nil
+}
+
 func (r *AccountRepository) UpdateBalance(
 	ctx context.Context,
 	account *models.Account,

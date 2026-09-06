@@ -25,26 +25,36 @@ func main() {
 	accountRepo := repositories.NewAccountRepository(
 		database.DB,
 	)
-	accountService := services.NewAccountService(
-		accountRepo,
-	)
-
-	accountHandler := handlers.NewAccountHandler(
-		accountService,
-	)
 	transactionRepo := repositories.NewTransactionRepository(
 		database.DB,
 	)
+	budgetRepo := repositories.NewBudgetRepository(
+		database.DB,
+	)
 
+	accountService := services.NewAccountService(
+		accountRepo,
+	)
 	transactionService := services.NewTransactionService(
 		database.DB,
 		accountRepo,
 		transactionRepo,
 	)
+	budgetService := services.NewBudgetService(
+		budgetRepo,
+		accountRepo,
+	)
 
 	transactionHandler := handlers.NewTransactionHandler(
 		transactionService,
 	)
+	accountHandler := handlers.NewAccountHandler(
+		accountService,
+	)
+	budgetHandler := handlers.NewBudgetHandler(
+		budgetService,
+	)
+
 	router := gin.Default()
 
 	router.Use(func(c *gin.Context) {
@@ -71,7 +81,7 @@ func main() {
 		c.Next()
 	})
 
-	routes.SetupRoutes(router, transactionHandler, accountHandler)
+	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

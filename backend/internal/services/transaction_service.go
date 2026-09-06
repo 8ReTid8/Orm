@@ -354,42 +354,4 @@ func (s *TransactionService) Get(
 		userID,
 		filter,
 	)
-	// return transactionRepo.FindAllByUser(
-	// 	ctx,
-	// 	userID,
-	// 	filter,
-	// )
-	// query := s.db.WithContext(ctx).
-	// 	Joins("JOIN accounts ON accounts.id = transactions.account_id").
-	// 	Where("accounts.user_id = ?", userID).
-	// 	Where(
-	// 		"transactions.transaction_date >= ? AND transactions.transaction_date < ?",
-	// 		filter.StartDate,
-	// 		filter.EndDate,
-	// 	)
-
-	// if filter.AccountID != nil {
-	// 	query = query.Where(
-	// 		"transactions.account_id = ?",
-	// 		*filter.AccountID,
-	// 	)
-	// }
-
-	// if filter.Category != "" {
-	// 	query = query.Where(
-	// 		"transactions.category = ?",
-	// 		filter.Category,
-	// 	)
-	// }
-
-	// var transactions []models.Transaction
-
-	// if err := query.
-	// 	Order("transactions.created_at DESC").
-	// 	Find(&transactions).
-	// 	Error; err != nil {
-	// 	return nil, err
-	// }
-
-	// return transactions, nil
 }
