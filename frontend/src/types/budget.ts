@@ -17,10 +17,10 @@ export interface BudgetForm {
 }
 
 export interface BudgetFilter {
-    status: "active" | "ended"
-    accountId: number | null
-    year?: number | null
-    month?: number | null
+  status: "active" | "ended"
+  accountId: number | null
+  year?: number | null
+  month?: number | null
 }
 
 export interface CreateBudgetResponse {

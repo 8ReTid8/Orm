@@ -27,6 +27,15 @@ export interface Transaction {
   slipImage?: string | null
 }
 
+export interface TransactionFilter {
+    accountId: number | null
+    year?: number | null
+    month?: number | null
+    startDate?: string | null
+    endDate?: string | null
+    category?: string | null
+}
+
 export interface CreateTransactionResponse {
   message: string
   transaction: Transaction

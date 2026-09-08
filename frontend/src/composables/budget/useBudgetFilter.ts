@@ -1,3 +1,4 @@
+import type { BudgetFilter } from "@/types/budget"
 import { ref, computed, watch } from "vue"
 import type { Ref } from "vue"
 
@@ -11,7 +12,7 @@ interface LoadBudgetParams {
 }
 
 export function useBudgetFilter(
-  loadBudgets: (params: LoadBudgetParams) => Promise<void>,
+  loadBudgets: (params: BudgetFilter) => Promise<void>,
 ) {
   const status = ref<BudgetStatus>("active")
   const selectedAccountId = ref<number | null>(null)

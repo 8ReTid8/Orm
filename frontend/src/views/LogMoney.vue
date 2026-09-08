@@ -38,13 +38,18 @@ const {
 } = useTransactionForm()
 
 const {
+  fetchTransactions,
+  handleMonthChange,
   selectedDate,
-  selectedAccountId,
-  selectedCategory,
+  // selectedAccountId,
+  // selectedCategory,
+  // clientAccountId,
+  serverAccountId,
+  clientCategory,
   filteredTransactions,
   selectedDayTransactions,
   selectDate,
-} = useTransactionFilter(transactions)
+} = useTransactionFilter(transactions,loadTransactions)
 
 function openEditTransaction(transaction: Transaction) {
   startEdit(transaction)
@@ -85,14 +90,13 @@ function openTodayTransaction() {
 }
 
 async function saveTransaction() {
-  console.log("SAVE CLICK")
-  console.log("ACCOUNT BEFORE SAVE:", form.value.accountId)
   try {
     await saveTransactionApi(form.value)
-    await loadTransactions(
-      selectedDate.value.getFullYear(),
-      selectedDate.value.getMonth() + 1,
-    )
+    fetchTransactions()
+    // await loadTransactions(
+    //   selectedDate.value.getFullYear(),
+    //   selectedDate.value.getMonth() + 1,
+    // )
     cancelEdit()
 
     isDialogOpen.value = false
@@ -111,11 +115,11 @@ async function saveTransaction() {
 async function handleDeleteTransaction(id: number) {
   try {
     await deleteTransaction(id)
-
-    await loadTransactions(
-      selectedDate.value.getFullYear(),
-      selectedDate.value.getMonth() + 1,
-    )
+    fetchTransactions()
+    // await loadTransactions(
+    //   selectedDate.value.getFullYear(),
+    //   selectedDate.value.getMonth() + 1,
+    // )
   } catch (error) {
     console.error(
       "Delete transaction failed:",
@@ -124,25 +128,44 @@ async function handleDeleteTransaction(id: number) {
   }
 }
 
-async function handleMonthChange(
-  year: number,
-  month: number,
-) {
-  await loadTransactions(year, month)
-}
+// async function handleMonthChange(
+//   year: number,
+//   month: number,
+// ) {
+//   await loadTransactions(year, month)
+// }
 
 function closeDialog() {
   isDialogOpen.value = false
 }
 
-onMounted(() => {
-  const now = new Date()
-  loadTransactions(
-    now.getFullYear(),
-    now.getMonth() + 1,
-  )
-  categoryStore.loadCategories()
-  accountStore.loadAccounts()
+// onMounted(() => {
+//   // const now = new Date()
+//   // loadTransactions(
+//   //   now.getFullYear(),
+//   //   now.getMonth() + 1,
+//   // )
+//   fetchTransactions()
+//   categoryStore.loadCategories()
+//   accountStore.loadAccounts()
+// })
+
+onMounted(async () => {
+  // 1. โหลดข้อมูลบัญชี และ หมวดหมู่ พร้อมกัน
+  await Promise.all([
+    accountStore.loadAccounts(),
+    categoryStore.loadCategories(),
+  ])
+
+  // 2. ตั้งค่า Default เป็นบัญชีแรกที่มี (ถ้ามี)
+  const firstAccount = accountStore.accounts[0]
+  if (firstAccount) {
+    // clientAccountId.value = firstAccount.id
+    serverAccountId.value = firstAccount.id
+  }
+
+  // 3. ยิงดึงข้อมูล Transaction ประจำเดือน
+  await fetchTransactions()
 })
 
 </script>
@@ -164,8 +187,10 @@ onMounted(() => {
 
       <!-- Actions -->
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <CategoryFilter v-model="selectedCategory" :categories="categoryStore.categories" />
-        <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
+        <!-- <CategoryFilter v-model="selectedCategory" :categories="categoryStore.categories" />
+        <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" /> -->
+        <CategoryFilter v-model="clientCategory" :categories="categoryStore.categories" />
+        <AccountFilter v-model="serverAccountId" :accounts="accountStore.accounts" /> 
         <button class="btn text-white bg-green-700" type="button" @click="openTodayTransaction">
           <Plus class="size-4" />
           เพิ่มรายการวันนี้

@@ -2,6 +2,7 @@ import { ref } from "vue"
 
 import type {
   Transaction,
+  TransactionFilter,
   TransactionForm,
 } from "@/types/transaction"
 
@@ -17,16 +18,24 @@ export function useTransactions() {
   const isLoadingTransactions = ref(false)
   const editingTransactionId = ref<number | null>(null)
 
-  async function loadTransactions(
-    year: number,
-    month: number,
-  ) {
+  async function loadTransactions({
+    year = null,
+    month = null,
+    startDate = null,
+    endDate = null,
+    accountId = null,
+    category = null
+  }: TransactionFilter) {
     try {
       isLoadingTransactions.value = true
 
       transactions.value = await getTransactions(
         year,
         month,
+        startDate,
+        endDate,
+        accountId,
+        category
       )
     } catch (error) {
       console.error(

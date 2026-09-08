@@ -71,14 +71,22 @@ export async function updateTransaction(
 }
 
 export async function getTransactions(
-  year: number,
-  month: number,
+  year: number | null,
+  month: number | null,
+  startDate: string | null,
+  endDate: string | null,
+  accountId: number | null,
+  category: string | null
 ) {
   const response =
     await api.get<GetTransactionsResponse>(
       "/transactions",
       {
         params: {
+          startDate,
+          endDate,
+          accountId,
+          category,
           year,
           month,
         },
