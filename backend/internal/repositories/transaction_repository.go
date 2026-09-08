@@ -108,6 +108,13 @@ func (r *TransactionRepository) FindAllByUser(
 			*filter.AccountID,
 		)
 	}
+	
+	if filter.Type != "" {
+		query = query.Where(
+			"transactions.type = ?",
+			filter.Type,
+		)
+	}
 
 	if filter.Category != "" {
 		query = query.Where(

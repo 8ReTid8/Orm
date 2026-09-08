@@ -6,6 +6,7 @@ import BudgetCategoryList from "./BudgetCategoryList.vue"
 import type { Category } from "@/types/category.ts"
 import type { Account } from "@/types/account.ts"
 import { ChevronDown } from "lucide-vue-next"
+import { useRouter } from "vue-router"
 
 interface Props {
   budgets: Budget[]
@@ -19,6 +20,8 @@ const emit = defineEmits<{
   edit: [budget: Budget]
   delete: [id: number]
 }>()
+
+
 
 const isOpen = ref(false)
 const totalBudget = computed(() => {
@@ -151,6 +154,7 @@ const statusColor = computed(() => {
               ฿{{ formatMoney(remaining) }}
             </p>
           </div>
+          
         </div>
       </div>
       <div v-if="isOpen" class="border-t border-base-300 px-6 pb-6">

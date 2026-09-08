@@ -49,6 +49,7 @@ func main() {
 	budgetService := services.NewBudgetService(
 		budgetRepo,
 		accountRepo,
+		transactionRepo,
 	)
 
 	authHandler := handlers.NewAuthHandler(

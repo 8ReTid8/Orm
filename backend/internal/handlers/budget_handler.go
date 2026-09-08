@@ -380,6 +380,68 @@ func (h *BudgetHandler) GetBudgets(c *gin.Context) {
 	// 	"budgets": responses,
 	// })
 }
+func (h *BudgetHandler) GetBudgetDetail(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	budgetID64, err := strconv.ParseUint(
+		c.Param("id"),
+		10,
+		64,
+	)
+	if err != nil || budgetID64 == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "budget id ไม่ถูกต้อง",
+		})
+		return
+	}
+
+	detail, err := h.service.GetDetail(
+		c.Request.Context(),
+		userID,
+		uint(budgetID64),
+	)
+
+	switch {
+	case errors.Is(err, services.ErrBudgetNotFound):
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "ไม่พบงบประมาณ",
+		})
+		return
+
+	case err != nil:
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถโหลดรายละเอียดงบประมาณได้",
+		})
+		return
+	}
+
+	transactions := make(
+		[]dto.TransactionResponse,
+		0,
+		len(detail.Transactions),
+	)
+
+	for _, transaction := range detail.Transactions {
+		transactions = append(
+			transactions,
+			dto.ToTransactionResponse(transaction),
+		)
+	}
+
+	response := dto.BudgetDetailResponse{
+		Budget: dto.ToBudgetOverviewResponse(
+			detail.Budget,
+			detail.Spent,
+			detail.IsActive,
+		),
+		Transactions: transactions,
+	}
+
+	c.JSON(http.StatusOK, response)
+}
 
 // func UpdateBudget(c *gin.Context) {
 func (h *BudgetHandler) UpdateBudget(c *gin.Context) {
@@ -423,17 +485,6 @@ func (h *BudgetHandler) UpdateBudget(c *gin.Context) {
 		})
 		return
 
-	case errors.Is(err, services.ErrAccountNotFound):
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "ไม่พบบัญชี",
-		})
-		return
-
-	case err != nil:
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "ไม่สามารถแก้ไขงบประมาณได้",
-		})
-		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -491,7 +542,7 @@ func (h *BudgetHandler) UpdateBudget(c *gin.Context) {
 }
 
 // func DeleteBudget(c *gin.Context) {
-	func (h *BudgetHandler) DeleteBudget(c *gin.Context) {
+func (h *BudgetHandler) DeleteBudget(c *gin.Context) {
 	// 1. user จาก JWT
 	userID, ok := getUserID(c)
 	if !ok {

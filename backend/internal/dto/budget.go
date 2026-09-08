@@ -42,8 +42,25 @@ type BudgetOverviewResponse struct {
 	Spent     float64 `json:"spent"`
 	Remaining float64 `json:"remaining"`
 	IsActive  bool    `json:"isActive"`
+}
 
-	Account models.Account `json:"account"`
+type BudgetDetail struct {
+	Budget       models.Budget
+	Transactions []models.Transaction
+	Spent        float64
+	Remaining    float64
+	IsActive     bool
+}
+
+type BudgetSummary struct {
+	Budget   models.Budget
+	Spent    float64
+	IsActive bool
+}
+
+type BudgetDetailResponse struct {
+	Budget       BudgetOverviewResponse `json:"budget"`
+	Transactions []TransactionResponse  `json:"transactions"`
 }
 
 func ToBudgetResponse(
@@ -77,6 +94,5 @@ func ToBudgetOverviewResponse(
 		Remaining: budget.Amount - spent,
 		IsActive:  isActive,
 
-		Account: budget.Account,
 	}
 }

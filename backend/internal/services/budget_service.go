@@ -14,24 +14,21 @@ import (
 
 // var ErrBudgetNotFound = errors.New("budget not found")
 
-type BudgetSummary struct {
-	Budget   models.Budget
-	Spent    float64
-	IsActive bool
-}
-
 type BudgetService struct {
-	budgetRepo  *repositories.BudgetRepository
-	accountRepo *repositories.AccountRepository
+	budgetRepo      *repositories.BudgetRepository
+	accountRepo     *repositories.AccountRepository
+	transactionRepo *repositories.TransactionRepository
 }
 
 func NewBudgetService(
 	budgetRepo *repositories.BudgetRepository,
 	accountRepo *repositories.AccountRepository,
+	transactionRepo *repositories.TransactionRepository,
 ) *BudgetService {
 	return &BudgetService{
-		budgetRepo:  budgetRepo,
-		accountRepo: accountRepo,
+		budgetRepo:      budgetRepo,
+		accountRepo:     accountRepo,
+		transactionRepo: transactionRepo,
 	}
 }
 
@@ -41,7 +38,7 @@ func (s *BudgetService) Create(
 	input dto.BudgetInput,
 ) (*models.Budget, error) {
 
-	account, err := s.accountRepo.FindOwned(
+	_, err := s.accountRepo.FindOwned(
 		ctx,
 		userID,
 		input.AccountID,
@@ -67,7 +64,7 @@ func (s *BudgetService) Create(
 	}
 
 	// ให้ handler สามารถสร้าง BudgetResponse พร้อม Account ได้
-	budget.Account = *account
+	// budget.Account = *account
 
 	return budget, nil
 }
@@ -91,7 +88,7 @@ func (s *BudgetService) Update(
 	}
 
 	// เช็กว่า account ใหม่เป็นของ user
-	account, err := s.accountRepo.FindOwned(
+	_, err = s.accountRepo.FindOwned(
 		ctx,
 		userID,
 		input.AccountID,
@@ -114,7 +111,7 @@ func (s *BudgetService) Update(
 	}
 
 	// ใช้เฉพาะเพื่อ response ไม่ได้บันทึก account ซ้ำ
-	budget.Account = *account
+	// budget.Account = *account
 
 	return budget, nil
 }
@@ -123,7 +120,7 @@ func (s *BudgetService) Get(
 	ctx context.Context,
 	userID uint,
 	filter dto.BudgetFilter,
-) ([]BudgetSummary, error) {
+) ([]dto.BudgetSummary, error) {
 	now := time.Now()
 
 	// Budget ใช้วันที่ จึงตัดเวลาออก
@@ -146,7 +143,7 @@ func (s *BudgetService) Get(
 	}
 
 	summaries := make(
-		[]BudgetSummary,
+		[]dto.BudgetSummary,
 		0,
 		len(budgets),
 	)
@@ -165,7 +162,7 @@ func (s *BudgetService) Get(
 
 		summaries = append(
 			summaries,
-			BudgetSummary{
+			dto.BudgetSummary{
 				Budget:   *budget,
 				Spent:    spent,
 				IsActive: isActive,
@@ -194,4 +191,70 @@ func (s *BudgetService) Delete(
 	}
 
 	return s.budgetRepo.Delete(ctx, budget)
+}
+
+func (s *BudgetService) GetDetail(
+	ctx context.Context,
+	userID uint,
+	budgetID uint,
+) (*dto.BudgetDetail, error) {
+	now := time.Now()
+
+	// Budget ใช้วันที่ จึงตัดเวลาออก
+	today := time.Date(
+		now.Year(),
+		now.Month(),
+		now.Day(),
+		0, 0, 0, 0,
+		now.Location(),
+	)
+
+	budget, err := s.budgetRepo.FindOwned(
+		ctx,
+		userID,
+		budgetID,
+	)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrBudgetNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	accountID := budget.AccountID
+
+	filter := dto.TransactionFilter{
+		StartDate: budget.StartDate,
+
+		// TransactionFilter ใช้ end แบบ exclusive
+		// จึงบวก 1 วัน เพื่อให้รวม transaction ของ EndDate
+		EndDate: budget.EndDate.AddDate(0, 0, 1),
+
+		AccountID: &accountID,
+		Category:  budget.Category,
+		Type:      "expense",
+	}
+
+	transactions, err := s.transactionRepo.FindAllByUser(
+		ctx,
+		userID,
+		filter,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var spent float64
+
+	for _, transaction := range transactions {
+		spent += transaction.Amount
+	}
+	isActive := !today.After(budget.EndDate)
+	return &dto.BudgetDetail{
+		Budget:       *budget,
+		Transactions: transactions,
+		Spent:        spent,
+		Remaining:    budget.Amount - spent,
+		IsActive:     isActive,
+	}, nil
 }

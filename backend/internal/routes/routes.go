@@ -41,6 +41,7 @@ func SetupRoutes(
 		//Budget
 		protected.POST("/budgets", budgetHandler.CreateBudget)
 		protected.GET("/budgets", budgetHandler.GetBudgets)
+		protected.GET("/budgets/:id", budgetHandler.GetBudgetDetail)
 		protected.PATCH("/budgets/:id", budgetHandler.UpdateBudget)
 		protected.DELETE("/budgets/:id", budgetHandler.DeleteBudget)
 	}

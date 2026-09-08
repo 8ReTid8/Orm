@@ -1,4 +1,4 @@
-import type { BudgetForm, CreateBudgetResponse, DeleteBudgetResponse, GetBudgetsResponse } from "@/types/budget";
+import type { BudgetForm, CreateBudgetResponse, DeleteBudgetResponse, GetBudgetDetailResponse, GetBudgetsResponse } from "@/types/budget";
 import api from "./api"
 import type { GetTransactionsResponse } from "@/types/transaction";
 
@@ -62,6 +62,17 @@ export async function getBudgets(
     )
 
   return response.data.budgets
+}
+export async function getBudgetDetail(
+  id: number
+) {
+  
+  const response =
+    await api.get<GetBudgetDetailResponse>(
+      `/budgets/${id}`,
+    )
+
+  return response.data
 }
 
 export async function deleteBudget(

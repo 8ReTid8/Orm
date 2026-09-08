@@ -1,3 +1,5 @@
+import type { Transaction } from "./transaction"
+
 export interface Budget {
   id: number
   accountId: number
@@ -34,4 +36,9 @@ export interface GetBudgetsResponse {
 
 export interface DeleteBudgetResponse {
   message: string
+}
+
+export interface GetBudgetDetailResponse {
+  budget: Budget
+  transactions: Transaction[]
 }

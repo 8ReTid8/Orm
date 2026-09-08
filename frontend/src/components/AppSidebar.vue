@@ -3,7 +3,6 @@ import logo from "@/assets/logo.svg"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "@/stores/auth";
 import {
-    ArrowLeftRight,
     WalletCards,
     PiggyBank,
     Tags,

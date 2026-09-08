@@ -1,15 +1,17 @@
 import { ref } from "vue";
-import type { Budget, BudgetFilter, BudgetForm } from "@/types/budget";
+import type { Budget, BudgetFilter, BudgetForm, GetBudgetDetailResponse } from "@/types/budget";
 import {
     createBudget,
     getBudgets,
     updateBudget,
-    deleteBudget as deleteBudgetApi
+    deleteBudget as deleteBudgetApi,
+    getBudgetDetail
 } from "@/services/budget";
 
 
 export function useBudget() {
     const budgets = ref<Budget[]>([])
+    const budgetDetail = ref<GetBudgetDetailResponse | null>(null)
     const editingBudgetId = ref<number | null>(null)
     const isLoadingBudgets = ref(false)
 
@@ -70,6 +72,14 @@ export function useBudget() {
             throw error
         }
     }
+    async function loadBudgetDetail(id: number) {
+        try {
+            budgetDetail.value = await getBudgetDetail(id)
+        } catch (error) {
+            console.error("Failed to load budget detail:", error)
+            throw error
+        }
+    }
     function startEdit(budget: Budget) {
         editingBudgetId.value = budget.id
     }
@@ -82,7 +92,9 @@ export function useBudget() {
         budgets,
         isLoadingBudgets,
         editingBudgetId,
+        budgetDetail,
 
+        loadBudgetDetail,
         loadBudgets,
         saveBudget,
         deleteBudget,

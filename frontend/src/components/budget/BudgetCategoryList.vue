@@ -1,18 +1,34 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { Calendar, WalletCards, AlertCircle, PiggyBank, Wallet } from "lucide-vue-next"
+import { AlertCircle, PiggyBank, Wallet,BarChart3 } from "lucide-vue-next"
 import { resolveCategoryIcon } from "@/utils/categoryIcons"
 import type { Budget } from "@/types/budget"
-import { formatDate, formatMoney, formatThaiDateLong } from "@/utils/format"
+import { formatMoney } from "@/utils/format"
 import ActionButton from "../common/ActionButton.vue"
 import ConfirmModal from "../common/ConfirmModal.vue"
 import type { Category } from "@/types/category.ts"
 import type { Account } from "@/types/account.ts"
+import { useRouter } from "vue-router"
 
 interface Props {
   budgets: Budget[]
   categories: Category[]
   accounts: Account[]
+}
+const router = useRouter()
+// กดแล้วส่งข้อมูลของ Budget ตัวนั้นไปหน้า Detail
+function goToBudgetDetail(budget: Budget) {
+  // router.push({
+  //   path: "/budgets/detail", // หรือจะใช้แบบ params เช่น `/budgets/${budget.id}`
+  //   query: {
+  //     id: budget.id,
+  //     category: budget.category,
+  //     startDate: budget.startDate,
+  //     endDate: budget.endDate,
+  //     accountId: budget.accountId,
+  //   },
+  // })
+  router.push(`/budgets/${budget.id}`)
 }
 
 const targetBudget = ref<Budget | null>(null)
@@ -87,7 +103,7 @@ function handleConfirmDelete() {
         {{ budgets.length }} รายการ
       </span>
     </div>
-    
+
     <!-- Budget Cards Grid / List -->
     <div class="mt-2! space-y-4!">
       <div v-for="budget in budgets" :key="budget.id"
@@ -131,6 +147,11 @@ function handleConfirmDelete() {
 
           <!-- Action Buttons (Edit / Delete) -->
           <div class="flex items-center gap-1 shrink-0">
+            <button type="button"
+              class="btn btn-ghost btn-xs sm:btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-primary/10"
+              title="ดูรายละเอียดการใช้จ่าย" @click.stop="goToBudgetDetail(budget)">
+              <BarChart3 class="size-4" /> <!-- หรือใช้ <Eye class="size-4" /> -->
+            </button>
             <ActionButton edit-title="แก้ไขรายการ" delete-title="ลบรายการ" @edit="emit('edit', budget)"
               @delete="openDeleteModal(budget)" />
           </div>

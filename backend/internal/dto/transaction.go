@@ -21,6 +21,7 @@ type TransactionFilter struct {
 	EndDate   time.Time // วันสิ้นสุดแบบ exclusive
 	AccountID *uint
 	Category  string
+	Type      string
 }
 
 type TransactionResponse struct {
