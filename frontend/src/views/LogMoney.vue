@@ -116,10 +116,6 @@ async function handleDeleteTransaction(id: number) {
   try {
     await deleteTransaction(id)
     fetchTransactions()
-    // await loadTransactions(
-    //   selectedDate.value.getFullYear(),
-    //   selectedDate.value.getMonth() + 1,
-    // )
   } catch (error) {
     console.error(
       "Delete transaction failed:",

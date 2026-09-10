@@ -12,7 +12,6 @@ interface Props {
     form: TransactionForm
     accounts: Account[]
     categories: Category[]
-    // selectedDateText: string
     selectedDate: Date
 }
 const props = defineProps<Props>()
@@ -27,6 +26,8 @@ const filteredCategories = computed(() => {
         (category) => category.type === props.form.type
     )
 })
+
+
 watch(
     () => props.open,
     (isOpen) => {
@@ -119,6 +120,10 @@ function closeDialog() {
             </p>
 
             <Form class="mt-6 space-y-4 " @submit.prevent="submitForm">
+                <fieldset class="fieldset gap-0.5">
+                    <label class="label text-base">วันที่ทำรายการ</label>
+                    <input v-model="form.transactionDate" type="date" class="input w-full" required />
+                </fieldset>
                 <!-- Type -->
                 <fieldset class="fieldset gap-0.5">
                     <!-- <legend class="mb-2 font-medium">ประเภทรายการ</legend> -->

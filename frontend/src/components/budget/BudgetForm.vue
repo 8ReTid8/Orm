@@ -90,7 +90,7 @@ function closeDialog() {
                             :min="form.startDate" required />
                     </fieldset>
                 </div>
-                <div class="modal-action !mt-2">
+                <div class="modal-action mt-2!">
                     <button type="button" class="btn btn-ghost" @click="closeDialog">
                         ยกเลิก
                     </button>

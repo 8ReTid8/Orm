@@ -1,18 +1,79 @@
 <script setup lang="ts">
+import TransactionForm from "@/components/transaction/TransactionForm.vue";
+import TransactionList from "@/components/transaction/TransactionList.vue";
 import { useBudget } from "@/composables/budget/useBudget";
+import { useTransactions } from "@/composables/transaction/useTransaction";
+import { useTransactionForm } from "@/composables/transaction/useTransactionForm";
+import { useAccountStore } from "@/stores/account";
+import { useCategoryStore } from "@/stores/category";
+import type { Transaction } from "@/types/transaction";
+import { ReceiptText } from "lucide-vue-next";
 import { ref, onMounted } from "vue"
+
+const isDialogOpen = ref(false)
+const accountStore = useAccountStore()
+const categoryStore = useCategoryStore()
+
 const {
-    budgets,
-    isLoadingBudgets,
-    editingBudgetId,
-    budgetDetail,
-    loadBudgetDetail,
-    loadBudgets,
-    deleteBudget,
-    saveBudget: saveBudgetApi,
+    deleteTransaction,
+    saveTransaction: saveTransactionApi,
     startEdit,
     cancelEdit,
+} = useTransactions()
+
+const {
+    form,
+    resetForm,
+    setEditForm,
+} = useTransactionForm()
+
+const {
+    isLoadingBudgets,
+    budgetDetail,
+    loadBudgetDetail,
 } = useBudget()
+
+function openEditTransaction(transaction: Transaction) {
+    startEdit(transaction)
+    setEditForm(transaction)
+    isDialogOpen.value = true
+}
+
+async function handleDeleteTransaction(id: number) {
+    try {
+        await deleteTransaction(id)
+        // fetchTransactions()
+    } catch (error) {
+        console.error(
+            "Delete transaction failed:",
+            error,
+        )
+    }
+}async function saveTransaction() {
+  try {
+    await saveTransactionApi(form.value)
+  
+    // await loadTransactions(
+    //   selectedDate.value.getFullYear(),
+    //   selectedDate.value.getMonth() + 1,
+    // )
+    cancelEdit()
+
+    isDialogOpen.value = false
+
+    // resetForm(
+    //   formatDate(selectedDate.value),
+    // )
+  } catch (error) {
+    console.error(
+      "Transaction failed:",
+      error,
+    )
+  }
+}
+function closeDialog() {
+  isDialogOpen.value = false
+}
 onMounted(async () => {
     await loadBudgetDetail(7) // ตัวอย่างการโหลด Budget Detail ของ Budget ที่มี id = 1
     console.log("Budget Detail:", budgetDetail.value)
@@ -171,163 +232,23 @@ onMounted(async () => {
 
                 <!-- Transaction List -->
                 <div class="mt-2 divide-y divide-base-200">
+                    <!-- <div v-if="loading" class="flex justify-center py-12">
+                        <span class="loading loading-spinner loading-lg" />
+                    </div> -->
 
-
-                    <!-- Transaction -->
-                    <div class="flex items-center justify-between py-4">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex size-10 items-center justify-center rounded-full bg-base-200">
-                                🍜
-                            </div>
-
-                            <div>
-
-                                <p class="font-medium">
-                                    Lunch
-                                </p>
-
-                                <p class="text-sm text-base-content/60">
-                                    8 Sep 2026 • Food
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <p class="font-semibold">
-                            -฿250
-                        </p>
-
+                    <!-- Empty -->
+                    <!-- <EmptyState v-if="budgetDetail.transactions.length === 0" :icon="ReceiptText" title="ยังไม่มีรายการในวันนี้"
+                        description="กดเพิ่มรายการเพื่อบันทึกรายรับหรือรายจ่าย" /> -->
+                    <div class="mt-4 space-y-2">
+                        <TransactionList v-if="budgetDetail" :transactions="budgetDetail.transactions"
+                            :accounts="accountStore.accounts" :categories="categoryStore.categories"
+                            @edit="openEditTransaction" @delete="handleDeleteTransaction" />
                     </div>
-
-
-                    <!-- Transaction -->
-                    <div class="flex items-center justify-between py-4">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex size-10 items-center justify-center rounded-full bg-base-200">
-                                ☕
-                            </div>
-
-                            <div>
-
-                                <p class="font-medium">
-                                    Coffee
-                                </p>
-
-                                <p class="text-sm text-base-content/60">
-                                    8 Sep 2026 • Food
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <p class="font-semibold">
-                            -฿80
-                        </p>
-
-                    </div>
-
-
-                    <!-- Transaction -->
-                    <div class="flex items-center justify-between py-4">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex size-10 items-center justify-center rounded-full bg-base-200">
-                                🍔
-                            </div>
-
-                            <div>
-
-                                <p class="font-medium">
-                                    Dinner
-                                </p>
-
-                                <p class="text-sm text-base-content/60">
-                                    7 Sep 2026 • Food
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <p class="font-semibold">
-                            -฿350
-                        </p>
-
-                    </div>
-
-
-                    <!-- Transaction -->
-                    <div class="flex items-center justify-between py-4">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex size-10 items-center justify-center rounded-full bg-base-200">
-                                🛒
-                            </div>
-
-                            <div>
-
-                                <p class="font-medium">
-                                    Groceries
-                                </p>
-
-                                <p class="text-sm text-base-content/60">
-                                    5 Sep 2026 • Food
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <p class="font-semibold">
-                            -฿1,200
-                        </p>
-
-                    </div>
-
-
-                    <!-- Transaction -->
-                    <div class="flex items-center justify-between py-4">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex size-10 items-center justify-center rounded-full bg-base-200">
-                                🍱
-                            </div>
-
-                            <div>
-
-                                <p class="font-medium">
-                                    Dinner
-                                </p>
-
-                                <p class="text-sm text-base-content/60">
-                                    4 Sep 2026 • Food
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <p class="font-semibold">
-                            -฿420
-                        </p>
-
-                    </div>
-
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
+    <TransactionForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
+        :categories="categoryStore.categories" :selected-date="selectedDate" @close="closeDialog"
+        @save="saveTransaction" />
 </template>

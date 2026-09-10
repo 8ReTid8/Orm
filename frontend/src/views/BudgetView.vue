@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Plus, WalletCards } from "lucide-vue-next"
-import { computed, onMounted, ref} from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useAccountStore } from "@/stores/account";
 import { useCategoryStore } from "@/stores/category";
 import { useBudgetForm } from "@/composables/budget/useBudgetForm";
@@ -205,7 +205,10 @@ onMounted(async () => {
       </div>
     </div>
     <!-- Overview -->
-    <EmptyState v-if="budgetPeriods.length === 0" :icon="WalletCards" title="ยังไม่มีงบประมาณ"
+    <div v-if="isLoadingBudgets" class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg" />
+    </div>
+    <EmptyState v-else-if="budgetPeriods.length === 0" :icon="WalletCards" title="ยังไม่มีงบประมาณ"
       description='กดปุ่ม "สร้าง Budget" ด้านบนเพื่อเริ่มวางแผนการเงิน' />
     <div v-else class="space-y-4!">
       <BudgetOverview v-for="period in budgetPeriods" :key="`${period.startDate}-${period.endDate}`"
