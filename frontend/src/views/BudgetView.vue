@@ -11,6 +11,7 @@ import AccountFilter from "@/components/filter/accountFilter.vue";
 import type { Budget } from "@/types/budget";
 import EmptyState from "@/components/common/EmptyState.vue";
 import { useBudgetFilter } from "@/composables/budget/useBudgetFilter";
+import { groupBudgetsByPeriod } from "@/utils/budget";
 
 const isDialogOpen = ref(false)
 const accountStore = useAccountStore()
@@ -84,36 +85,36 @@ async function handleDeleteBudget(id: number) {
     )
   }
 }
+const budgetPeriods = computed(() => groupBudgetsByPeriod(budgets.value))
+// const budgetPeriods = computed(() => {
+//   const groups = new Map<string, Budget[]>()
 
-const budgetPeriods = computed(() => {
-  const groups = new Map<string, Budget[]>()
+//   for (const budget of budgets.value) {
+//     const key = `${budget.startDate}_${budget.endDate}`
 
-  for (const budget of budgets.value) {
-    const key = `${budget.startDate}_${budget.endDate}`
+//     if (!groups.has(key)) {
+//       groups.set(key, [])
+//     }
 
-    if (!groups.has(key)) {
-      groups.set(key, [])
-    }
+//     groups.get(key)!.push(budget)
+//   }
 
-    groups.get(key)!.push(budget)
-  }
+//   return Array.from(groups.values()).flatMap((budgetGroup) => {
+//     const firstBudget = budgetGroup[0]
 
-  return Array.from(groups.values()).flatMap((budgetGroup) => {
-    const firstBudget = budgetGroup[0]
+//     if (!firstBudget) {
+//       return []
+//     }
 
-    if (!firstBudget) {
-      return []
-    }
-
-    return [
-      {
-        startDate: firstBudget.startDate,
-        endDate: firstBudget.endDate,
-        budgets: budgetGroup,
-      },
-    ]
-  })
-})
+//     return [
+//       {
+//         startDate: firstBudget.startDate,
+//         endDate: firstBudget.endDate,
+//         budgets: budgetGroup,
+//       },
+//     ]
+//   })
+// })
 
 function closeDialog() {
   isDialogOpen.value = false

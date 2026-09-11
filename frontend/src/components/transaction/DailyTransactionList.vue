@@ -74,8 +74,10 @@ function handleConfirmDelete() {
 
       <!-- Transactions -->
       <div v-else class="mt-4 space-y-2">
-        <TransactionList :transactions="transactions" :accounts="accounts" :categories="categories"
-          @edit="emit('edit', $event)" @delete="emit('delete', $event)" />
+        <!-- <TransactionList :transactions="transactions" :accounts="accounts" :categories="categories"
+          @edit="emit('edit', $event)" @delete="emit('delete', $event)" /> -->
+        <TransactionList v-for="transaction in transactions" :key="transaction.id" :transaction="transaction"
+          :accounts="accounts" :categories="categories" @edit="emit('edit', $event)" @delete="emit('delete', $event)" />
       </div>
     </div>
   </div>

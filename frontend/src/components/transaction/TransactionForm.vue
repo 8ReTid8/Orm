@@ -12,7 +12,7 @@ interface Props {
     form: TransactionForm
     accounts: Account[]
     categories: Category[]
-    selectedDate: Date
+    // selectedDate: Date
 }
 const props = defineProps<Props>()
 const emit = defineEmits<{
@@ -114,16 +114,17 @@ function closeDialog() {
         <div class="modal-box max-w-lg ">
             <h2 class="text-xl font-bold">เพิ่มรายการ</h2>
 
-            <p class="mt-1 text-sm text-base-content/60">
+            <p class="mt-1 text-base text-base-content/60">
                 <!-- วันที่ {{ selectedDateText }} -->
-                วันที่ {{ formatThaiDateLong(selectedDate) }}
+                <!-- วันที่ {{ formatThaiDateLong(selectedDate) }} -->
+                วันที่ {{ formatThaiDateLong(new Date(form.transactionDate))}}
             </p>
 
             <Form class="mt-6 space-y-4 " @submit.prevent="submitForm">
-                <fieldset class="fieldset gap-0.5">
+                <!-- <fieldset class="fieldset gap-0.5">
                     <label class="label text-base">วันที่ทำรายการ</label>
                     <input v-model="form.transactionDate" type="date" class="input w-full" required />
-                </fieldset>
+                </fieldset> -->
                 <!-- Type -->
                 <fieldset class="fieldset gap-0.5">
                     <!-- <legend class="mb-2 font-medium">ประเภทรายการ</legend> -->

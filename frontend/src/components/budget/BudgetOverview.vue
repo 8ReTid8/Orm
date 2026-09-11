@@ -69,7 +69,7 @@ const statusColor = computed(() => {
       </div>
       <ChevronDown class="size-5 transition-transform duration-200" :class="{ 'rotate-180': isOpen }" />
     </button>
-    
+
     <div class="card-body">
       <div class="grid gap-6 md:grid-cols-2">
 
@@ -151,12 +151,27 @@ const statusColor = computed(() => {
               ฿{{ formatMoney(remaining) }}
             </p>
           </div>
-          
+
         </div>
       </div>
       <div v-if="isOpen" class="border-t border-base-300 px-6 pb-6">
-        <BudgetList :budgets="budgets" :categories="categories" :accounts="accounts"
-          @edit="emit('edit', $event)" @delete="emit('delete', $event)" />
+        <div class="flex items-center justify-between mt-3!">
+          <div>
+            <h2 class="text-xl font-bold">
+              งบประมาณแยกตามหมวด
+            </h2>
+            <p class="text-sm text-base-content/60">
+              ติดตามและควบคุมการใช้จ่ายตามช่วงเวลาที่กำหนด
+            </p>
+          </div>
+          <span class="badge badge-neutral font-medium">
+            {{ budgets.length }} รายการ
+          </span>
+        </div>
+        <!-- <BudgetList :budgets="budgets" :categories="categories" :accounts="accounts" @edit="emit('edit', $event)"
+          @delete="emit('delete', $event)" /> -->
+        <BudgetList v-for="budget in budgets" :key="budget.id" :budget="budget" :categories="categories" :accounts="accounts" @edit="emit('edit', $event)"
+          @delete="emit('delete', $event)" />
       </div>
     </div>
   </div>

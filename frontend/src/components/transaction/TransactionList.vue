@@ -10,7 +10,8 @@ import ConfirmModal from '../common/ConfirmModal.vue'
 import { FileText, Wallet } from 'lucide-vue-next'
 
 interface Props {
-    transactions: Transaction[]
+    // transactions: Transaction[]
+    transaction: Transaction
     categories: Category[]
     accounts: Account[]
 }
@@ -18,8 +19,8 @@ const targetTransaction = ref<Transaction | null>(null)
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  edit: [transaction: Transaction]
-  delete: [id: number]
+    edit: [transaction: Transaction]
+    delete: [id: number]
 }>()
 
 function getCategoryIcon(categoryName: string) {
@@ -34,15 +35,16 @@ function openDeleteModal(transaction: Transaction) {
     targetTransaction.value = transaction
 }
 function handleConfirmDelete() {
-  if (targetTransaction.value) {
-    emit("delete", targetTransaction.value.id)
-    targetTransaction.value = null
-  }
+    if (targetTransaction.value) {
+        emit("delete", targetTransaction.value.id)
+        targetTransaction.value = null
+    }
 }
 </script>
 <template>
-    <div v-for="transaction in transactions" :key="transaction.id"
-        class="group flex items-center justify-between gap-4 rounded-xl border border-transparent p-3.5 transition-all hover:border-base-300 hover:bg-base-200/50">
+    <!-- <div v-for="transaction in transactions" :key="transaction.id"
+        class="group flex items-center justify-between gap-4 rounded-xl border border-transparent p-3.5 transition-all hover:border-base-300 hover:bg-base-200/50"> -->
+    <div class="group flex items-center justify-between gap-4 rounded-xl border border-transparent p-3.5 transition-all hover:border-base-300 hover:bg-base-200/50">
         <!-- Left: Icon & Info -->
         <div class="flex items-center gap-3.5 min-w-0">
             <!-- Type Icon Circle -->
@@ -88,5 +90,5 @@ function handleConfirmDelete() {
         </div>
     </div>
     <ConfirmModal :open="targetTransaction !== null" title="ยืนยันการลบรายการ?" confirm-text="ลบรายการ" type="danger"
-    @close="targetTransaction = null" @confirm="handleConfirmDelete" />
+        @close="targetTransaction = null" @confirm="handleConfirmDelete" />
 </template>

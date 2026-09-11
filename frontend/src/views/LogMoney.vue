@@ -207,7 +207,7 @@ onMounted(async () => {
   </section>
 
   <TransactionForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
-    :categories="categoryStore.categories" :selected-date="selectedDate" @close="closeDialog"
+    :categories="categoryStore.categories" @close="closeDialog"
     @save="saveTransaction" />
 
 </template>
