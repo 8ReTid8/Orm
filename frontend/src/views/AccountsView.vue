@@ -55,7 +55,7 @@ const {
 </script>
 
 <template>
-    <section class="!space-y-6">
+    <section class="space-y-6!">
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div>

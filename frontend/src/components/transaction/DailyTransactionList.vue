@@ -11,7 +11,7 @@ import type { Category } from "@/types/category.ts"
 import ConfirmModal from "../common/ConfirmModal.vue"
 import type { Account } from "@/types/account.ts"
 import EmptyState from "../common/EmptyState.vue"
-import TransactionList from "./TransactionList.vue"
+import TransactionCard from "./TransactionCard.vue"
 
 interface Props {
   selectedDate: Date
@@ -76,7 +76,7 @@ function handleConfirmDelete() {
       <div v-else class="mt-4 space-y-2">
         <!-- <TransactionList :transactions="transactions" :accounts="accounts" :categories="categories"
           @edit="emit('edit', $event)" @delete="emit('delete', $event)" /> -->
-        <TransactionList v-for="transaction in transactions" :key="transaction.id" :transaction="transaction"
+        <TransactionCard v-for="transaction in transactions" :key="transaction.id" :transaction="transaction"
           :accounts="accounts" :categories="categories" @edit="emit('edit', $event)" @delete="emit('delete', $event)" />
       </div>
     </div>

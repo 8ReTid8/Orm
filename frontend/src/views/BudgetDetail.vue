@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import BudgetSpendingChart from "@/components/budget/BudgetSpendingChart.vue";
+import BudgetSummary from "@/components/budget/BudgetSummary.vue";
 import EmptyState from "@/components/common/EmptyState.vue";
+import TotalList from "@/components/common/TotalList.vue";
+import TransactionCard from "@/components/transaction/TransactionCard.vue";
 import TransactionForm from "@/components/transaction/TransactionForm.vue";
-import TransactionList from "@/components/transaction/TransactionList.vue";
 import { useBudget } from "@/composables/budget/useBudget";
 import { useTransactions } from "@/composables/transaction/useTransaction";
 import { useTransactionForm } from "@/composables/transaction/useTransactionForm";
@@ -38,7 +40,6 @@ const {
 
 const {
     form,
-    resetForm,
     setEditForm,
 } = useTransactionForm()
 
@@ -50,31 +51,32 @@ const {
 const isLoading = ref(false)
 const budget = computed(() => budgetDetail.value?.budget)
 const transactions = computed(() => budgetDetail.value?.transactions ?? [])
-const remaining = computed(() => {
-    if (!budget.value) return 0
-    return budget.value.amount - budget.value.spent
-})
-const percent = computed(() => {
-    if (!budget.value || budget.value.amount === 0) return 0
-    return Math.min((budget.value.spent / budget.value.amount) * 100, 100)
-})
-const realPercent = computed(() => {
-    if (!budget.value || budget.value.amount === 0) return 0
-    return (budget.value.spent / budget.value.amount) * 100
-})
-// คำนวณจำนวนวันทั้งหมดของงบนี้
-const totalDays = computed(() => {
-    if (!budget.value) return 1
-    const start = new Date(budget.value.startDate).getTime()
-    const end = new Date(budget.value.endDate).getTime()
-    const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1
-    return diff > 0 ? diff : 1
-})
-// คำนวณค่าใช้จ่ายเฉลี่ยต่อวัน
-const averagePerDay = computed(() => {
-    if (!budget.value) return 0
-    return budget.value.spent / totalDays.value
-})
+
+// const remaining = computed(() => {
+//     if (!budget.value) return 0
+//     return budget.value.amount - budget.value.spent
+// })
+// const percent = computed(() => {
+//     if (!budget.value || budget.value.amount === 0) return 0
+//     return Math.min((budget.value.spent / budget.value.amount) * 100, 100)
+// })
+// const realPercent = computed(() => {
+//     if (!budget.value || budget.value.amount === 0) return 0
+//     return (budget.value.spent / budget.value.amount) * 100
+// })
+// // คำนวณจำนวนวันทั้งหมดของงบนี้
+// const totalDays = computed(() => {
+//     if (!budget.value) return 1
+//     const start = new Date(budget.value.startDate).getTime()
+//     const end = new Date(budget.value.endDate).getTime()
+//     const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1
+//     return diff > 0 ? diff : 1
+// })
+// // คำนวณค่าใช้จ่ายเฉลี่ยต่อวัน
+// const averagePerDay = computed(() => {
+//     if (!budget.value) return 0
+//     return budget.value.spent / totalDays.value
+// })
 const groupedTransactions = computed(() =>
   groupTransactionsByDate(budgetDetail.value?.transactions ?? [])
 )
@@ -117,7 +119,9 @@ async function handleDeleteTransaction(id: number) {
             error,
         )
     }
-} async function saveTransaction() {
+} 
+
+async function saveTransaction() {
     try {
         await saveTransactionApi(form.value)
 
@@ -128,9 +132,6 @@ async function handleDeleteTransaction(id: number) {
 
         isDialogOpen.value = false
 
-        // resetForm(
-        //   formatDate(selectedDate.value),
-        // )
     } catch (error) {
         console.error(
             "Transaction failed:",
@@ -138,9 +139,11 @@ async function handleDeleteTransaction(id: number) {
         )
     }
 }
+
 function closeDialog() {
     isDialogOpen.value = false
 }
+
 onMounted(async () => {
     isLoading.value = true
     try {
@@ -189,12 +192,12 @@ onMounted(async () => {
                             <h1 class="text-2xl font-bold truncate">
                                 งบ{{ budget.category }}
                             </h1>
-                            <span class="badge badge-sm badge-ghost font-medium">
+                            <span class="badge badge-sm badge-ghost font-medium text-base">
                                 {{ getDaysRemaining(budget.endDate) }}
                             </span>
                         </div>
                         <!-- Account & Date Details -->
-                        <div class="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-base-content/60">
+                        <div class="mt-1 flex flex-wrap items-center gap-x-2 text-base text-base-content/60">
                             <span class="flex items-center gap-1">
                                 <Wallet class="size-3.5" />
                                 {{ getAccountName(budget.accountId) }}
@@ -215,40 +218,7 @@ onMounted(async () => {
                 </div>
             </div>
             <!-- Overview Cards (3 Cards Grid) -->
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <!-- Spent -->
-                <div class="rounded-xl bg-error/10 p-4">
-                    <p class="text-sm font-medium text-error">ใช้ไปแล้ว</p>
-                    <p class="mt-2 text-2xl font-bold text-error">
-                        ฿{{ formatMoney(budget.spent) }}
-                    </p>
-                    <p class="mt-1 text-xs text-base-content/60">
-                        {{ realPercent.toFixed(1) }}% ของงบประมาณ
-                    </p>
-                </div>
-                <!-- Remaining -->
-                <div class="rounded-xl p-4" :class="remaining >= 0 ? 'bg-success/10' : 'bg-error/10'">
-                    <p class="text-sm font-medium" :class="remaining >= 0 ? 'text-success' : 'text-error'">
-                        {{ remaining >= 0 ? "คงเหลือ" : "ใช้เกินงบ" }}
-                    </p>
-                    <p class="mt-2 text-2xl font-bold" :class="remaining >= 0 ? 'text-success' : 'text-error'">
-                        ฿{{ formatMoney(Math.abs(remaining)) }}
-                    </p>
-                    <p class="mt-1 text-xs text-base-content/60">
-                        {{ remaining >= 0 ? `เหลืออีก ${(100 - realPercent).toFixed(1)}%` : "เกินเป้าหมายที่ตั้งไว้" }}
-                    </p>
-                </div>
-                <!-- Average per day -->
-                <div class="rounded-xl bg-base-200 p-4">
-                    <p class="text-sm font-medium text-base-content/60">เฉลี่ย / วัน</p>
-                    <p class="mt-2 text-2xl font-bold">
-                        ฿{{ formatMoney(averagePerDay) }}
-                    </p>
-                    <p class="mt-1 text-xs text-base-content/60">
-                        จากระยะเวลาทั้งหมด {{ totalDays }} วัน
-                    </p>
-                </div>
-            </div>
+            <BudgetSummary :budget="budget" />
 
             <BudgetSpendingChart v-if="budget" :budget="budget" :transactions="transactions" />
             <!-- Transactions Section -->
@@ -261,9 +231,7 @@ onMounted(async () => {
                                 ประวัติรายการที่อยู่ในงบประมาณช่วงเวลานี้
                             </p>
                         </div>
-                        <span class="badge badge-neutral font-medium">
-                            {{ transactions.length }} รายการ
-                        </span>
+                        <TotalList :total="transactions.length"/>
                     </div>
                     <!-- Empty State -->
                     <EmptyState v-if="transactions.length === 0" :icon="ReceiptText" title="ยังไม่มีรายการใช้จ่าย"
@@ -282,7 +250,7 @@ onMounted(async () => {
 
                                 <!-- 2. Card รายการทั้งหมดที่เกิดขึ้นในวันนั้น -->
                                 <div class="space-y-1.5">
-                                    <TransactionList v-for="transaction in group.transactions" :key="transaction.id"
+                                    <TransactionCard v-for="transaction in group.transactions" :key="transaction.id"
                                         :transaction="transaction" :accounts="accountStore.accounts"
                                         :categories="categoryStore.categories" @edit="openEditTransaction"
                                         @delete="handleDeleteTransaction" />

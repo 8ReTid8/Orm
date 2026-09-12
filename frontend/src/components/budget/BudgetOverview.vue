@@ -5,7 +5,8 @@ import { computed, ref } from "vue"
 import type { Category } from "@/types/category.ts"
 import type { Account } from "@/types/account.ts"
 import { ChevronDown } from "lucide-vue-next"
-import BudgetList from "./BudgetList.vue"
+import BudgetCard from "./BudgetCard.vue"
+import TotalList from "../common/TotalList.vue"
 
 interface Props {
   budgets: Budget[]
@@ -164,14 +165,11 @@ const statusColor = computed(() => {
               ติดตามและควบคุมการใช้จ่ายตามช่วงเวลาที่กำหนด
             </p>
           </div>
-          <span class="badge badge-neutral font-medium">
-            {{ budgets.length }} รายการ
-          </span>
+
+          <TotalList :total="budgets.length" />
         </div>
-        <!-- <BudgetList :budgets="budgets" :categories="categories" :accounts="accounts" @edit="emit('edit', $event)"
-          @delete="emit('delete', $event)" /> -->
-        <BudgetList v-for="budget in budgets" :key="budget.id" :budget="budget" :categories="categories" :accounts="accounts" @edit="emit('edit', $event)"
-          @delete="emit('delete', $event)" />
+        <BudgetCard v-for="budget in budgets" :key="budget.id" :budget="budget" :categories="categories"
+          :accounts="accounts" @edit="emit('edit', $event)" @delete="emit('delete', $event)" />
       </div>
     </div>
   </div>

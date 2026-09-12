@@ -66,10 +66,10 @@ function handleConfirmDelete() {
                         title="มีบันทึกข้อความ" />
                 </div>
 
-                <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-base-content/60">
+                <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-sm text-base-content/60">
                     <span class="badge badge-sm badge-ghost font-normal">{{ transaction.category }}</span>
                     <span>•</span>
-                    <span class="text-sm flex items-center gap-1">
+                    <span class="flex items-center gap-1">
                         <Wallet class="size-3.5" />
                         {{ getAccountName(transaction.accountId) }}
                     </span>

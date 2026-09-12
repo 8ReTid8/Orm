@@ -86,40 +86,10 @@ async function handleDeleteBudget(id: number) {
   }
 }
 const budgetPeriods = computed(() => groupBudgetsByPeriod(budgets.value))
-// const budgetPeriods = computed(() => {
-//   const groups = new Map<string, Budget[]>()
-
-//   for (const budget of budgets.value) {
-//     const key = `${budget.startDate}_${budget.endDate}`
-
-//     if (!groups.has(key)) {
-//       groups.set(key, [])
-//     }
-
-//     groups.get(key)!.push(budget)
-//   }
-
-//   return Array.from(groups.values()).flatMap((budgetGroup) => {
-//     const firstBudget = budgetGroup[0]
-
-//     if (!firstBudget) {
-//       return []
-//     }
-
-//     return [
-//       {
-//         startDate: firstBudget.startDate,
-//         endDate: firstBudget.endDate,
-//         budgets: budgetGroup,
-//       },
-//     ]
-//   })
-// })
 
 function closeDialog() {
   isDialogOpen.value = false
 }
-
 
 onMounted(async () => {
   await Promise.all([
