@@ -87,7 +87,7 @@ function handleConfirmDelete() {
       <!-- Category & Account Info -->
       <div class="flex items-center gap-3 min-w-0">
         <!-- Category Icon -->
-        <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-error/15 text-error">
           <component :is="getCategoryIcon(budget.category)" class="size-6" />
         </div>
 

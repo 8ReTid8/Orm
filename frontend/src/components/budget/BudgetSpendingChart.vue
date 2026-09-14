@@ -1,8 +1,36 @@
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { computed } from "vue"
 import type { Budget } from "@/types/budget"
 import type { Transaction } from "@/types/transaction"
 import { formatMoney } from "@/utils/format"
+
+// นำเข้า Chart.js และ Component Line จาก vue-chartjs
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  type ChartOptions,
+  type ChartData,
+} from "chart.js"
+import { Line } from "vue-chartjs"
+
+// ลงทะเบียนโมดูลที่ต้องใช้ (Tree-shaking ช่วยให้ไฟล์ไม่หนัก)
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+)
 
 interface Props {
   budget: Budget
@@ -11,25 +39,19 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// State สำหรับ Tooltip เมื่อเอาเมาส์ชี้ที่จุด
-const hoveredPoint = ref<{
-  date: string
-  daily: number
-  total: number
-  x: number
-  y: number
-} | null>(null)
-
-// คำนวณพิกัด X, Y และเส้น Path ของกราฟ
-const chartData = computed(() => {
+// 1. เตรียมข้อมูล Labels (วันที่) และ Datasets สำหรับกราฟ
+const chartData = computed<ChartData<"line">>(() => {
   const start = new Date(props.budget.startDate)
   const end = new Date(props.budget.endDate)
   const today = new Date()
 
-  // วันสิ้นสุดของการพล็อต (ไม่เกินวันสิ้นสุดงบ)
+  start.setHours(0, 0, 0, 0)
+  end.setHours(0, 0, 0, 0)
+  today.setHours(0, 0, 0, 0)
+
   const plotEnd = end < today ? end : today
 
-  // รวมยอดใช้จ่ายแยกตามวัน (YYYY-MM-DD)
+  // รวบรวมยอดใช้จ่ายรายวัน
   const dailyMap = new Map<string, number>()
   for (const t of props.transactions) {
     if (t.type === "expense") {
@@ -38,216 +60,140 @@ const chartData = computed(() => {
     }
   }
 
-  // สร้างข้อมูลรายวันตั้งแต่วันแรกจนถึงปัจจุบัน
-  const dailyPoints: { date: string; daily: number; total: number }[] = []
-  let runningTotal = 0
+  const labels: string[] = []
+  const spentData: number[] = []
+  const budgetLimitData: number[] = []
 
+  let runningTotal = 0
   const cur = new Date(start)
-  while (cur <= plotEnd) {
+
+  // วนลูปตั้งแต่วันแรกจนถึงวันสิ้นสุดงบ
+  while (cur <= end) {
     const dateStr = cur.toISOString().slice(0, 10)
-    const daily = dailyMap.get(dateStr) ?? 0
-    runningTotal += daily
-    dailyPoints.push({
-      date: dateStr,
-      daily,
-      total: runningTotal,
-    })
+    // Label แสดงแบบสั้น เช่น "1 ก.ย."
+    labels.push(
+      cur.toLocaleDateString("th-TH", { day: "numeric", month: "short" })
+    )
+
+    // เพดานงบประมาณ (มีค่าเท่ากันทุกวันเป็นเส้นตรง)
+    budgetLimitData.push(props.budget.amount)
+
+    // ยอดใช้สะสม (วาดเฉพาะวันที่มีข้อมูลถึงปัจจุบัน)
+    if (cur <= plotEnd) {
+      runningTotal += dailyMap.get(dateStr) ?? 0
+      spentData.push(runningTotal)
+    }
+
     cur.setDate(cur.getDate() + 1)
   }
 
-  // กำหนดขนาด SVG Grid
-  const width = 600
-  const height = 220
-  const padLeft = 55
-  const padRight = 20
-  const padTop = 25
-  const padBottom = 35
-
-  const chartW = width - padLeft - padRight
-  const chartH = height - padTop - padBottom
-
-  // หาค่าสูงสุดของแกน Y (เผื่อยอดใช้เกินงบไว้ 15%)
-  const maxVal = Math.max(props.budget.amount, runningTotal) * 1.15 || 100
-
-  const getY = (val: number) => padTop + chartH - (val / maxVal) * chartH
-  const getX = (index: number) => {
-    if (dailyPoints.length <= 1) return padLeft + chartW / 2
-    return padLeft + (index / (dailyPoints.length - 1)) * chartW
-  }
-
-  const points = dailyPoints.map((dp, i) => ({
-    ...dp,
-    x: getX(i),
-    y: getY(dp.total),
-  }))
-
-  let pathD = ""
-  let areaD = ""
-  const bottomY = padTop + chartH
-
-  if (points.length > 0) {
-    pathD = `M ${points[0].x} ${points[0].y}`
-    for (let i = 1; i < points.length; i++) {
-      pathD += ` L ${points[i].x} ${points[i].y}`
-    }
-    areaD = `${pathD} L ${points[points.length - 1].x} ${bottomY} L ${points[0].x} ${bottomY} Z`
-  }
-
-  const budgetLineY = getY(props.budget.amount)
-
   return {
-    width,
-    height,
-    padLeft,
-    padRight,
-    points,
-    pathD,
-    areaD,
-    budgetLineY,
-    bottomY,
+    labels,
+    datasets: [
+      {
+        label: "ยอดใช้สะสม",
+        data: spentData,
+        borderColor: "#2e8b57", // สีเส้นหลัก (Primary Indigo)
+        // backgroundColor: "rgba(99, 102, 241, 0.12)", // พื้นที่ไล่สีใต้กราฟ
+        backgroundColor: "rgba(46, 139, 87, 0.15)",
+        fill: true,
+        tension: 0.35, // เส้นโค้งนุ่มนวล
+        borderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        pointBackgroundColor: "#2e8b57",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointHoverBackgroundColor: "#05472a", // เมื่อชี้เมาส์: เปลี่ยนเป็นสีเขียวเข้มลึก
+        pointHoverBorderColor: "#ffffff",
+        pointHoverBorderWidth: 2,
+      },
+      {
+        label: `เพดานงบ (฿${formatMoney(props.budget.amount)})`,
+        data: budgetLimitData,
+        borderColor: "#ef4444", // สีแดงเตือน
+        borderDash: [6, 6], // เส้นประ
+        borderWidth: 2,
+        pointRadius: 0, // ไม่ต้องโชว์จุดบนเส้นเพดาน
+        fill: false,
+      },
+    ],
   }
 })
+
+// 2. ปรับแต่ง Option การแสดงผล (สเกล, แกน X/Y, Tooltip)
+const chartOptions = computed<ChartOptions<"line">>(() => ({
+  responsive: true,
+  maintainAspectRatio: false, // ขยายเต็มความสูงของการ์ด
+  interaction: {
+    mode: "index",
+    intersect: false,
+  },
+  plugins: {
+    legend: {
+      position: "top",
+      align: "end",
+      labels: {
+        boxWidth: 12,
+        boxHeight: 12,
+        usePointStyle: true,
+        font: {
+          family: "inherit",
+          size: 12,
+        },
+      },
+    },
+    tooltip: {
+      backgroundColor: "rgba(15, 23, 42, 0.9)",
+      titleFont: { size: 13, weight: "bold" },
+      bodyFont: { size: 12 },
+      padding: 12,
+      cornerRadius: 10,
+      callbacks: {
+        label: (context) => {
+          return ` ${context.dataset.label}: ฿${formatMoney(Number(context.raw))}`
+        },
+      },
+    },
+  },
+  scales: {
+    x: {
+      grid: {
+        display: false,
+      },
+      ticks: {
+        maxTicksLimit: 8, // จำกัดไม่ให้ป้ายวันที่เบียดกันเกินไป
+        font: { size: 11 },
+      },
+    },
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: "rgba(156, 163, 175, 0.15)", // เส้นตารางแนวนอนสีจางๆ
+      },
+      ticks: {
+        callback: (val) => `฿${formatMoney(Number(val))}`,
+        font: { size: 11 },
+      },
+    },
+  },
+}))
 </script>
 
 <template>
   <div class="card border border-base-300 bg-base-100 shadow-sm">
     <div class="card-body p-5 sm:p-6">
       
-      <!-- Header กราฟ & Legend -->
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 class="text-lg font-bold">กราฟการใช้เงินสะสม</h2>
-          <p class="text-xs text-base-content/60">
-            แนวโน้มการใช้จ่ายเทียบกับเพดานงบประมาณ
-          </p>
-        </div>
-
-        <!-- Legend คำอธิบายเส้น -->
-        <div class="flex items-center gap-4 text-xs">
-          <div class="flex items-center gap-1.5">
-            <span class="size-2.5 rounded-full bg-primary" />
-            <span class="text-base-content/70">ใช้สะสม</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="h-0.5 w-3 border-t-2 border-dashed border-error" />
-            <span class="text-base-content/70">เพดานงบ (฿{{ formatMoney(budget.amount) }})</span>
-          </div>
-        </div>
+      <div>
+        <h2 class="text-xl font-bold">กราฟการใช้เงินสะสม</h2>
+        <p class="text-sm text-base-content/60">
+          แนวโน้มการใช้จ่ายจริงเทียบกับเพดานงบประมาณ
+        </p>
       </div>
 
-      <!-- SVG Chart Container -->
-      <div class="relative mt-4 w-full select-none">
-        <svg
-          :viewBox="`0 0 ${chartData.width} ${chartData.height}`"
-          class="w-full h-56 sm:h-64 overflow-visible"
-        >
-          <defs>
-            <!-- ไล่เฉดสีพื้นที่ใต้กราฟ -->
-            <linearGradient id="spendingGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="var(--color-primary, #10b981)" stop-opacity="0.25" />
-              <stop offset="100%" stop-color="var(--color-primary, #10b981)" stop-opacity="0.0" />
-            </linearGradient>
-          </defs>
-
-          <!-- เส้นฐานแกน X แนวนอน -->
-          <line
-            :x1="chartData.padLeft"
-            :y1="chartData.bottomY"
-            :x2="chartData.width - chartData.padRight"
-            :y2="chartData.bottomY"
-            class="stroke-base-300"
-            stroke-width="1"
-          />
-
-          <!-- เส้นประเพดานงบประมาณ (Budget Limit Line) -->
-          <line
-            v-if="chartData.budgetLineY"
-            :x1="chartData.padLeft"
-            :y1="chartData.budgetLineY"
-            :x2="chartData.width - chartData.padRight"
-            :y2="chartData.budgetLineY"
-            class="stroke-error"
-            stroke-width="1.5"
-            stroke-dasharray="4 4"
-          />
-
-          <!-- ข้อความบอกเพดานงบแกน Y -->
-          <text
-            v-if="chartData.budgetLineY"
-            :x="chartData.padLeft - 8"
-            :y="chartData.budgetLineY + 3"
-            text-anchor="end"
-            class="fill-error text-[10px] font-semibold"
-          >
-            ฿{{ formatMoney(budget.amount) }}
-          </text>
-
-          <!-- พื้นที่ใต้กราฟ (Area Fill) -->
-          <path
-            v-if="chartData.areaD"
-            :d="chartData.areaD"
-            fill="url(#spendingGradient)"
-          />
-
-          <!-- เส้นกราฟยอดใช้จ่าย (Line Path) -->
-          <path
-            v-if="chartData.pathD"
-            :d="chartData.pathD"
-            fill="none"
-            class="stroke-primary"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-
-          <!-- จุดในกราฟแต่ละวัน (Points) -->
-          <g v-for="pt in chartData.points" :key="pt.date">
-            <circle
-              :cx="pt.x"
-              :cy="pt.y"
-              :r="pt.daily > 0 ? 4 : 2"
-              class="transition-all duration-150 cursor-pointer"
-              :class="pt.daily > 0 ? 'fill-primary stroke-base-100 stroke-2 hover:r-6' : 'fill-primary/40'"
-              @mouseenter="hoveredPoint = pt"
-              @mouseleave="hoveredPoint = null"
-            />
-          </g>
-
-          <!-- ป้ายวันที่เริ่มต้น และ วันสิ้นสุด -->
-          <text
-            :x="chartData.padLeft"
-            :y="chartData.height - 8"
-            class="fill-base-content/50 text-[10px]"
-          >
-            {{ budget.startDate }}
-          </text>
-          <text
-            :x="chartData.width - chartData.padRight"
-            :y="chartData.height - 8"
-            text-anchor="end"
-            class="fill-base-content/50 text-[10px]"
-          >
-            {{ budget.endDate }}
-          </text>
-        </svg>
-
-        <!-- Floating Tooltip เมื่อ Hover โดนจุดในกราฟ -->
-        <div
-          v-if="hoveredPoint"
-          class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-xl bg-neutral text-neutral-content px-3 py-2 text-xs shadow-lg transition-all duration-75"
-          :style="{
-            left: `${(hoveredPoint.x / chartData.width) * 100}%`,
-            top: `${(hoveredPoint.y / chartData.height) * 100 - 10}%`,
-          }"
-        >
-          <p class="font-bold">{{ hoveredPoint.date }}</p>
-          <p v-if="hoveredPoint.daily > 0" class="text-error font-semibold">
-            วันนี้ใช้: ฿{{ formatMoney(hoveredPoint.daily) }}
-          </p>
-          <p class="text-neutral-content/80">
-            ยอดสะสม: ฿{{ formatMoney(hoveredPoint.total) }}
-          </p>
-        </div>
+      <!-- กำหนดความสูงของกราฟให้ใหญ่เต็มตา (h-80 = 320px, sm:h-96 = 384px) -->
+      <div class="mt-4 h-80 sm:h-96 w-full">
+        <Line :data="chartData" :options="chartOptions" />
       </div>
 
     </div>

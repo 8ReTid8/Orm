@@ -8,6 +8,7 @@ import BudgetForm from "@/components/budget/BudgetForm.vue";
 import BudgetOverview from "@/components/budget/BudgetOverview.vue";
 import { useBudget } from "@/composables/budget/useBudget";
 import AccountFilter from "@/components/filter/accountFilter.vue";
+import PeriodFilter from "@/components/filter/PeriodFilter.vue";
 import type { Budget } from "@/types/budget";
 import EmptyState from "@/components/common/EmptyState.vue";
 import { useBudgetFilter } from "@/composables/budget/useBudgetFilter";
@@ -136,45 +137,31 @@ onMounted(async () => {
         <button class="btn btn-sm join-item border-none"
           :class="status === 'active' ? 'btn-success text-white shadow-sm' : 'btn-ghost'"
           @click="selectStatus('active')">
-          🟢 กำลังใช้งาน
+          กำลังใช้งาน
         </button>
         <button class="btn btn-sm join-item border-none"
           :class="status === 'ended' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'" @click="selectStatus('ended')">
-          📁 สิ้นสุดแล้ว
+          สิ้นสุดแล้ว
         </button>
       </div>
-      <!-- Filters -->
-      <div class="flex items-center gap-2">
 
-        <!-- Ended Date Filters -->
-        <template v-if="status === 'ended'">
-          <select v-model="selectedYear" class="select select-bordered select-sm" @change="handleYearChange">
-            <option :value="null">
-              ทุกปี
-            </option>
-
-            <option v-for="year in years" :key="year" :value="year">
-              {{ year + 543 }}
-            </option>
-          </select>
-
-          <select v-model="selectedMonth" class="select select-bordered select-sm" :disabled="selectedYear === null"
-            @change="handleMonthChange">
-            <option :value="null">
-              ทุกเดือน
-            </option>
-
-            <option v-for="month in months" :key="month.value" :value="month.value">
-              {{ month.label }}
-            </option>
-          </select>
-        </template>
-
-        <!-- Account -->
+      <!-- Filters (ชิดขวาเสมอ) -->
+      <div class="flex items-center gap-2 ml-auto">
+        <PeriodFilter
+          v-if="status === 'ended'"
+          :years="years"
+          :months="months"
+          :model-year="selectedYear"
+          :model-month="selectedMonth"
+          @update:model-year="selectedYear = $event"
+          @update:model-month="selectedMonth = $event"
+          @year-change="handleYearChange"
+          @month-change="handleMonthChange"
+        />
         <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
-
       </div>
     </div>
+
     <!-- Overview -->
     <div v-if="isLoadingBudgets" class="flex justify-center py-12">
       <span class="loading loading-spinner loading-lg" />

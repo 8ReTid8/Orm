@@ -184,7 +184,7 @@ onMounted(async () => {
                     </button>
                     <!-- Category Icon -->
                     <div
-                        class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-error/15 text-error">
                         <component :is="getCategoryIcon(budget.category)" class="size-6" />
                     </div>
                     <div class="min-w-0">
@@ -243,7 +243,7 @@ onMounted(async () => {
                             <!-- 1. วนลูปตามกลุ่มของแต่ละวัน -->
                             <div v-for="group in groupedTransactions" :key="group.dateKey" class="space-y-2">
                                 <!-- 📅 วันที่กำกับด้านบน (แสดงแค่อันเดียวต่อวัน) -->
-                                <div class="px-1 text-xs text-base-content/60 flex items-center gap-1.5 font-medium">
+                                <div class="px-1 text-base text-base-content/60 flex items-center gap-1.5 font-medium">
                                     <Calendar class="size-3.5 text-base-content/50" />
                                     <span>{{ group.formattedDate }}</span>
                                 </div>

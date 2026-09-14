@@ -100,6 +100,10 @@ function removeSlip() {
     }
 }
 function submitForm() {
+    if (!props.form.accountId) {
+        alert("กรุณาเลือกบัญชีก่อนบันทึก")
+        return 
+    }
     emit("save")
 }
 
@@ -117,10 +121,10 @@ function closeDialog() {
             <p class="mt-1 text-base text-base-content/60">
                 <!-- วันที่ {{ selectedDateText }} -->
                 <!-- วันที่ {{ formatThaiDateLong(selectedDate) }} -->
-                วันที่ {{ formatThaiDateLong(new Date(form.transactionDate))}}
+                วันที่ {{ formatThaiDateLong(new Date(form.transactionDate)) }}
             </p>
 
-            <Form class="mt-6 space-y-4 " @submit.prevent="submitForm">
+            <form class="mt-6 space-y-4 " @submit.prevent="submitForm">
                 <!-- <fieldset class="fieldset gap-0.5">
                     <label class="label text-base">วันที่ทำรายการ</label>
                     <input v-model="form.transactionDate" type="date" class="input w-full" required />
@@ -165,12 +169,6 @@ function closeDialog() {
                     <!-- Category -->
                     <fieldset class="fieldset gap-0.5">
                         <label class="label text-base">หมวดหมู่</label>
-                        <!-- <select v-model="form.category" class="select w-full" required>
-                            <option disabled value="">เลือกหมวดหมู่</option>
-                            <option v-for="category in filteredCategories" :key="category.id" :value="category.name">
-                                {{ category.name }}
-                            </option>
-                        </select> -->
                         <div class="relative flex items-center">
                             <!-- Icon ฝั่งซ้าย (จะเปลี่ยนตาม Category ที่เลือก) -->
                             <component :is="selectedCategoryIcon"
@@ -192,7 +190,6 @@ function closeDialog() {
                         <option disabled :value="null">
                             เลือกบัญชี
                         </option>
-
                         <option v-for="account in accounts" :key="account.id" :value="account.id">
                             {{ account.name }}
                         </option>

@@ -183,8 +183,6 @@ onMounted(async () => {
 
       <!-- Actions -->
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <!-- <CategoryFilter v-model="selectedCategory" :categories="categoryStore.categories" />
-        <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" /> -->
         <CategoryFilter v-model="clientCategory" :categories="categoryStore.categories" />
         <AccountFilter v-model="serverAccountId" :accounts="accountStore.accounts" /> 
         <button class="btn text-white bg-green-700" type="button" @click="openTodayTransaction">

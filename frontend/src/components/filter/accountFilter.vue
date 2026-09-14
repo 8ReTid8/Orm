@@ -29,7 +29,7 @@ function handleChange(event: Event) {
 
     <select
       :value="modelValue ?? ''"
-      class="select select-bordered"
+      class="select select-bordered min-w-max  "
       @change="handleChange"
     >
       <!-- <option value="">

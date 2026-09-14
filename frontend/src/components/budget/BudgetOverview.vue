@@ -124,27 +124,27 @@ const statusColor = computed(() => {
         <div class="grid grid-cols-2 gap-3">
 
           <div class="rounded-xl bg-base-200 p-4">
-            <p class="text-sm text-base-content/50">
+            <p class="text-base text-base-content/50">
               งบประมาณ
             </p>
 
-            <p class="mt-2 text-xl font-bold">
+            <p class="mt-2 text-2xl font-bold">
               ฿{{ formatMoney(totalBudget) }}
             </p>
           </div>
 
           <div class="rounded-xl bg-error/10 p-4">
-            <p class="text-sm text-error">
+            <p class="text-base text-error">
               ใช้ไป
             </p>
 
-            <p class="mt-2 text-xl font-bold text-error">
+            <p class="mt-2 text-2xl font-bold text-error">
               ฿{{ formatMoney(totalSpent) }}
             </p>
           </div>
 
           <div class="col-span-2 rounded-xl bg-success/10 p-4">
-            <p class="text-sm text-success">
+            <p class="text-base text-success">
               เหลือ
             </p>
 
@@ -155,7 +155,7 @@ const statusColor = computed(() => {
 
         </div>
       </div>
-      <div v-if="isOpen" class="border-t border-base-300 px-6 pb-6">
+      <div v-if="isOpen" class="border-t border-base-300 px-6 pb-3">
         <div class="flex items-center justify-between mt-3!">
           <div>
             <h2 class="text-xl font-bold">
@@ -168,8 +168,11 @@ const statusColor = computed(() => {
 
           <TotalList :total="budgets.length" />
         </div>
-        <BudgetCard v-for="budget in budgets" :key="budget.id" :budget="budget" :categories="categories"
-          :accounts="accounts" @edit="emit('edit', $event)" @delete="emit('delete', $event)" />
+        <div class="mt-2! space-y-3!">
+
+          <BudgetCard v-for="budget in budgets" :key="budget.id" :budget="budget" :categories="categories"
+            :accounts="accounts" @edit="emit('edit', $event)" @delete="emit('delete', $event)" />
+        </div>
       </div>
     </div>
   </div>
