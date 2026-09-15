@@ -135,14 +135,14 @@ function closeDialog() {
                     <label class="label text-base">ประเภทรายการ</label>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="btn" :class="form.type === 'income'
-                            ? 'btn-success'
+                            ? 'btn-success text-white'
                             : 'btn-outline'">
                             <input v-model="form.type" type="radio" value="income" class="hidden" />
                             รายรับ
                         </label>
 
                         <label class="btn" :class="form.type === 'expense'
-                            ? 'btn-error'
+                            ? 'btn-error text-white'
                             : 'btn-outline'">
                             <input v-model="form.type" type="radio" value="expense" class="hidden" />
                             รายจ่าย
