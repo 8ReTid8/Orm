@@ -5,7 +5,8 @@ import {
     getBudgets,
     updateBudget,
     deleteBudget as deleteBudgetApi,
-    getBudgetDetail
+    getBudgetDetail,
+    getBudgetYears
 } from "@/services/budget";
 
 
@@ -14,7 +15,9 @@ export function useBudget() {
     const budgetDetail = ref<GetBudgetDetailResponse | null>(null)
     const editingBudgetId = ref<number | null>(null)
     const isLoadingBudgets = ref(false)
-
+    const years = ref<number[]>([])
+    // โหลดปีจริงจาก Database ผ่าน API
+   
     // async function loadBudgets(
     //     year: number | null = null,
     //     month: number | null = null,

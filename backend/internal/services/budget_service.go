@@ -12,8 +12,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// var ErrBudgetNotFound = errors.New("budget not found")
-
 type BudgetService struct {
 	budgetRepo      *repositories.BudgetRepository
 	accountRepo     *repositories.AccountRepository

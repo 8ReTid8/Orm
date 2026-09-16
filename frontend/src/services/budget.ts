@@ -84,3 +84,8 @@ export async function deleteBudget(
 
   return response.data
 }
+
+export async function getBudgetYears(): Promise<number[]> {
+  const response = await api.get<{ years: number[] }>("/budgets/years")
+  return response.data.years
+}

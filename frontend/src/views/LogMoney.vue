@@ -14,11 +14,23 @@ import TransactionSummary from "@/components/transaction/TransactionSummary.vue"
 import TransactionForm from "@/components/transaction/TransactionForm.vue"
 import AccountFilter from "@/components/filter/accountFilter.vue"
 import CategoryFilter from "@/components/filter/categoryFilter.vue"
+import { usePeriodFilter } from "@/composables/period/usePeriodFilter"
 
 const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
+const {
+  years,
+  months,
+  selectedYear,
+  selectedMonth,
+  loadYears,
+} = usePeriodFilter("transaction")
+
+const now = new Date()
+selectedYear.value = now.getFullYear()
+selectedMonth.value = now.getMonth() + 1
 
 const {
   transactions,
@@ -49,7 +61,7 @@ const {
   filteredTransactions,
   selectedDayTransactions,
   selectDate,
-} = useTransactionFilter(transactions,loadTransactions)
+} = useTransactionFilter(transactions,selectedYear,selectedMonth,loadTransactions)
 
 function openEditTransaction(transaction: Transaction) {
   startEdit(transaction)
@@ -134,17 +146,6 @@ async function handleDeleteTransaction(id: number) {
 function closeDialog() {
   isDialogOpen.value = false
 }
-
-// onMounted(() => {
-//   // const now = new Date()
-//   // loadTransactions(
-//   //   now.getFullYear(),
-//   //   now.getMonth() + 1,
-//   // )
-//   fetchTransactions()
-//   categoryStore.loadCategories()
-//   accountStore.loadAccounts()
-// })
 
 onMounted(async () => {
   // 1. โหลดข้อมูลบัญชี และ หมวดหมู่ พร้อมกัน

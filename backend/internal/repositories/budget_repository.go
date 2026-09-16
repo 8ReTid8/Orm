@@ -175,3 +175,29 @@ func (r *BudgetRepository) SumExpense(
 
 	return spent, nil
 }
+
+func (r *BudgetRepository) GetAvailableYears(
+	ctx context.Context, 
+	userID uint,
+) ([]int, error) {
+	
+	var years []int
+
+	err := r.db.WithContext(ctx).
+		Raw(`
+			SELECT DISTINCT EXTRACT(YEAR FROM date_col)::int AS year
+			FROM (
+				SELECT start_date AS date_col FROM budgets WHERE user_id = ?
+				UNION
+				SELECT end_date AS date_col FROM budgets WHERE user_id = ?
+			) t
+			ORDER BY year DESC
+		`, userID, userID).
+		Scan(&years).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return years, nil
+}

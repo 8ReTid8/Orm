@@ -12,6 +12,7 @@ func SetupRoutes(
 	accountHandler *handlers.AccountHandler,
 	budgetHandler *handlers.BudgetHandler,
 	authHandler *handlers.AuthHandler,
+	periodHandler *handlers.PeriodHandler,
 ) {
 	api := router.Group("/api")
 
@@ -24,19 +25,20 @@ func SetupRoutes(
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
+		protected.GET("/period/years", periodHandler.GetAvailableYears)
 		protected.GET("/categories", handlers.GetCategories)
-		
+
 		//Account
 		protected.POST("/accounts", accountHandler.CreateAccount)
 		protected.GET("/accounts", accountHandler.GetAccounts)
 		// protected.PATCH("/accounts/:id", accountHandler.UpdateAccount)
 		// protected.DELETE("/accounts/:id", accountHandler.DeleteAccount)
-		
+
 		//Transaction
-		protected.POST("/transactions",transactionHandler.CreateTransaction)
+		protected.POST("/transactions", transactionHandler.CreateTransaction)
 		protected.GET("/transactions", transactionHandler.GetTransactions)
-		protected.PATCH("/transactions/:id",transactionHandler.UpdateTransaction)
-		protected.DELETE("/transactions/:id",transactionHandler.DeleteTransaction)
+		protected.PATCH("/transactions/:id", transactionHandler.UpdateTransaction)
+		protected.DELETE("/transactions/:id", transactionHandler.DeleteTransaction)
 
 		//Budget
 		protected.POST("/budgets", budgetHandler.CreateBudget)

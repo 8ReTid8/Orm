@@ -108,7 +108,7 @@ func (r *TransactionRepository) FindAllByUser(
 			*filter.AccountID,
 		)
 	}
-	
+
 	if filter.Type != "" {
 		query = query.Where(
 			"transactions.type = ?",
@@ -133,4 +133,28 @@ func (r *TransactionRepository) FindAllByUser(
 	}
 
 	return transactions, nil
+}
+
+func (r *TransactionRepository) GetAvailableYears(
+	ctx context.Context,
+	userID uint,
+) ([]int, error) {
+
+	var years []int
+
+	err := r.db.WithContext(ctx).
+		Raw(`
+			SELECT DISTINCT EXTRACT(YEAR FROM transactions.transaction_date)::int AS year
+			FROM transactions
+			JOIN accounts ON accounts.id = transactions.account_id
+			WHERE accounts.user_id = ?
+			ORDER BY year DESC
+		`, userID).
+		Scan(&years).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return years, nil
 }

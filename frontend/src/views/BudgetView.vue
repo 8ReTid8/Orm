@@ -13,10 +13,19 @@ import type { Budget } from "@/types/budget";
 import EmptyState from "@/components/common/EmptyState.vue";
 import { useBudgetFilter } from "@/composables/budget/useBudgetFilter";
 import { groupBudgetsByPeriod } from "@/utils/budget";
+import { usePeriodFilter } from "@/composables/period/usePeriodFilter";
 
 const isDialogOpen = ref(false)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
+
+const {
+  years,
+  months,
+  selectedYear,
+  selectedMonth,
+  loadYears,
+} = usePeriodFilter("budget")
 
 const {
   form,
@@ -38,15 +47,15 @@ const {
 const {
   status,
   selectedAccountId,
-  selectedYear,
-  selectedMonth,
-  months,
-  years,
+  // selectedYear,
+  // selectedMonth,
   fetchBudgets,
   selectStatus,
   handleYearChange,
   handleMonthChange,
-} = useBudgetFilter(loadBudgets)
+} = useBudgetFilter(loadBudgets,selectedYear, selectedMonth)
+
+
 
 function openEditBudget(budget: Budget) {
   startEdit(budget)
@@ -96,6 +105,7 @@ onMounted(async () => {
   await Promise.all([
     accountStore.loadAccounts(),
     categoryStore.loadCategories(),
+    loadYears()
   ])
 
   const firstAccount = accountStore.accounts[0]
@@ -147,17 +157,10 @@ onMounted(async () => {
 
       <!-- Filters (ชิดขวาเสมอ) -->
       <div class="flex items-center gap-2 ml-auto">
-        <PeriodFilter
-          v-if="status === 'ended'"
-          :years="years"
-          :months="months"
-          :model-year="selectedYear"
-          :model-month="selectedMonth"
-          @update:model-year="selectedYear = $event"
-          @update:model-month="selectedMonth = $event"
-          @year-change="handleYearChange"
-          @month-change="handleMonthChange"
-        />
+        <PeriodFilter v-if="status === 'ended'" :years="years" :months="months" :model-year="selectedYear"
+          :model-month="selectedMonth" @update:model-year="selectedYear = $event"
+          @update:model-month="selectedMonth = $event" @year-change="handleYearChange"
+          @month-change="handleMonthChange" />
         <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
       </div>
     </div>

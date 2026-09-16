@@ -1,6 +1,6 @@
 import type { BudgetFilter } from "@/types/budget"
-import { ref, computed, watch } from "vue"
-import type { Ref } from "vue"
+import { THAI_MONTHS } from "@/utils/date"
+import { ref, watch, type Ref } from "vue"
 
 type BudgetStatus = "active" | "ended"
 
@@ -13,33 +13,14 @@ interface LoadBudgetParams {
 
 export function useBudgetFilter(
   loadBudgets: (params: BudgetFilter) => Promise<void>,
+  selectedYear: Ref<number | null>,
+  selectedMonth: Ref<number | null>,
 ) {
   const status = ref<BudgetStatus>("active")
   const selectedAccountId = ref<number | null>(null)
-  const selectedYear = ref<number | null>(null)
-  const selectedMonth = ref<number | null>(null)
+  // const selectedYear = ref<number | null>(null)
+  // const selectedMonth = ref<number | null>(null)
 
-  const months = [
-    { value: 1, label: "มกราคม" },
-    { value: 2, label: "กุมภาพันธ์" },
-    { value: 3, label: "มีนาคม" },
-    { value: 4, label: "เมษายน" },
-    { value: 5, label: "พฤษภาคม" },
-    { value: 6, label: "มิถุนายน" },
-    { value: 7, label: "กรกฎาคม" },
-    { value: 8, label: "สิงหาคม" },
-    { value: 9, label: "กันยายน" },
-    { value: 10, label: "ตุลาคม" },
-    { value: 11, label: "พฤศจิกายน" },
-    { value: 12, label: "ธันวาคม" },
-  ]
-
-  const currentYear = new Date().getFullYear()
-
-  const years = Array.from(
-    { length: 5 },
-    (_, index) => currentYear - index,
-  )
 
   async function fetchBudgets() {
     if (selectedAccountId.value === null) {
@@ -94,11 +75,7 @@ export function useBudgetFilter(
   return {
     status,
     selectedAccountId,
-    selectedYear,
-    selectedMonth,
 
-    months,
-    years,
     fetchBudgets,
     selectStatus,
     handleYearChange,

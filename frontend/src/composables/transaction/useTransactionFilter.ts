@@ -24,7 +24,7 @@
 //       return accountMatch && categoryMatch
 //     })
 //   })
-  
+
 
 //   const selectedDayTransactions = computed(() => {
 //     const date = formatDate(selectedDate.value)
@@ -53,6 +53,8 @@ import { ref, computed, watch } from "vue"
 import type { Ref } from "vue"
 import type { Transaction, TransactionFilter } from "@/types/transaction"
 import { formatDate } from "@/utils/format"
+import { THAI_MONTHS } from "@/utils/date"
+import { usePeriodFilter } from "../period/usePeriodFilter"
 // พารามิเตอร์สำหรับส่งไปหา Backend API
 export interface TransactionServerParams {
   year?: number | null
@@ -64,37 +66,24 @@ export interface TransactionServerParams {
 }
 export function useTransactionFilter(
   transactions: Ref<Transaction[]>,
+  selectedYear: Ref<number | null>,
+  selectedMonth: Ref<number | null>,
   loadTransactions?: (params: TransactionFilter) => Promise<void>,
 ) {
   // ==========================================
   // 1. Backend Filter State (ยิงไป Server)
   // ==========================================
-  const now = new Date()
-  const selectedYear = ref<number>(now.getFullYear())
-  const selectedMonth = ref<number>(now.getMonth() + 1)
+  // const { selectedYear, selectedMonth } = usePeriodFilter("transaction")
+  // const now = new Date()
+  // selectedYear.value = now.getFullYear()
+  // selectedMonth.value = now.getMonth() + 1
+  // const selectedYear = ref<number>(now.getFullYear())
+  // const selectedMonth = ref<number>(now.getMonth() + 1)
   const serverStartDate = ref<string | null>(null)
   const serverEndDate = ref<string | null>(null)
   const serverAccountId = ref<number | null>(null)
   const serverCategory = ref<string | null>(null)
   // รายการเดือนและปีย้อนหลัง สำหรับ Dropdown
-  const months = [
-    { value: 1, label: "มกราคม" },
-    { value: 2, label: "กุมภาพันธ์" },
-    { value: 3, label: "มีนาคม" },
-    { value: 4, label: "เมษายน" },
-    { value: 5, label: "พฤษภาคม" },
-    { value: 6, label: "มิถุนายน" },
-    { value: 7, label: "กรกฎาคม" },
-    { value: 8, label: "สิงหาคม" },
-    { value: 9, label: "กันยายน" },
-    { value: 10, label: "ตุลาคม" },
-    { value: 11, label: "พฤศจิกายน" },
-    { value: 12, label: "ธันวาคม" },
-  ]
-  const years = Array.from(
-    { length: 5 },
-    (_, index) => now.getFullYear() - index,
-  )
   // ฟังก์ชัน Fetch ข้อมูลจาก Backend (เหมือนใน useBudgetFilter)
   async function fetchTransactions() {
     if (!loadTransactions) return
@@ -169,8 +158,6 @@ export function useTransactionFilter(
     serverEndDate,
     serverAccountId,
     serverCategory,
-    months,
-    years,
     fetchTransactions,
     handleMonthChange,
     // Frontend filters

@@ -105,3 +105,8 @@ export async function deleteTransaction(
 
   return response.data
 }
+
+export async function getTransactionYears(): Promise<number[]> {
+  const response = await api.get<{ years: number[] }>("/transactions/years")
+  return response.data.years
+}

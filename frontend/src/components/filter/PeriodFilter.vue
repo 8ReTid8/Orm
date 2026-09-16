@@ -1,17 +1,16 @@
 <script setup lang="ts">
-interface Month {
-  value: number
-  label: string
-}
+import { toBuddhistYear, THAI_MONTHS, type MonthOption } from '@/utils/date'
 
 interface Props {
   years: number[]
-  months: Month[]
+  months?: readonly MonthOption[]
   modelYear: number | null
   modelMonth: number | null
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  months: () => THAI_MONTHS,
+})
 
 const emit = defineEmits<{
   "update:modelYear": [value: number | null]
@@ -44,7 +43,8 @@ function handleMonthChange(event: Event) {
     >
       <option value="">ทุกปี</option>
       <option v-for="year in years" :key="year" :value="year">
-        {{ year + 543 }}
+        <!-- {{ year + 543 }} -->
+          {{ toBuddhistYear(year) }}
       </option>
     </select>
 

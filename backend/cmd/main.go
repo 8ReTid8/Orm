@@ -64,7 +64,10 @@ func main() {
 	budgetHandler := handlers.NewBudgetHandler(
 		budgetService,
 	)
-
+	periodHandler := handlers.NewPeriodHandler(
+		budgetRepo,
+		transactionRepo,
+	)
 	router := gin.Default()
 
 	router.Use(func(c *gin.Context) {
@@ -91,7 +94,7 @@ func main() {
 		c.Next()
 	})
 
-	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler, authHandler)
+	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler, authHandler,periodHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)
