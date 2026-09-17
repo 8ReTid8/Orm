@@ -43,11 +43,12 @@ export function useBudgetFilter(
     if (status.value === value) {
       return
     }
-
     status.value = value
-    selectedYear.value = null
-    selectedMonth.value = null
-
+    if (value === "ended") {
+      // 👈 บังคับเริ่มต้นเป็นปีปัจจุบันทันที ไม่ปล่อยให้เป็น null เพื่อกันโหลดข้อมูลเยอะเกิน
+      selectedYear.value = new Date().getFullYear()
+      selectedMonth.value = null
+    }
     await fetchBudgets()
   }
 

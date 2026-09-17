@@ -9,7 +9,7 @@ import (
 )
 
 type UserClaims struct {
-	UserID uint `json:"userId"`
+	UserID uint   `json:"userId"`
 	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
@@ -26,7 +26,8 @@ func GenerateToken(userID uint, role string) (string, error) {
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(
-				time.Now().Add(24 * time.Hour),
+				// time.Now().Add(24 * time.Hour),
+				time.Now().AddDate(0, 3, 0),
 			),
 			IssuedAt: jwt.NewNumericDate(time.Now()),
 		},
