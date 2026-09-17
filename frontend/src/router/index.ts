@@ -7,6 +7,7 @@ import RegisterView from "@/views/RegisterView.vue"
 import AccountsView from "@/views/AccountsView.vue"
 import BudgetView from "@/views/BudgetView.vue"
 import BudgetDetail from "@/views/BudgetDetail.vue"
+import SummaryView from "@/views/SummaryView.vue"
 // import DashboardView from "@/views/DashboardView.vue"
 // import TransactionView from "@/views/TransactionView.vue"
 // import SavingGoalView from "@/views/SavingGoalView.vue"
@@ -56,6 +57,11 @@ const router = createRouter({
           path: "budgets/:id",
           name: "budget-detail",
           component: BudgetDetail,
+        },
+        {
+          path: "summary",
+          name: "summary",
+          component: SummaryView,
         },
         // {
         //   path: "saving-goals",

@@ -32,9 +32,9 @@ function handleChange(event: Event) {
       class="select select-bordered min-w-max  "
       @change="handleChange"
     >
-      <!-- <option value="">
+      <option value="">
         ทุกบัญชี
-      </option> -->
+      </option>
 
       <option
         v-for="account in accounts"

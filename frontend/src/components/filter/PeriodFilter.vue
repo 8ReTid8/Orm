@@ -5,11 +5,15 @@ interface Props {
   years: number[]
   months?: readonly MonthOption[]
   modelYear: number | null
-  modelMonth: number | null
+  // modelMonth: number | null
+  modelMonth?: number | null // 👈 ใส่ ? ให้เป็น optional
+  showMonth?: boolean        // 👈 เพิ่ม prop ตัวนี้
 }
 
 const props = withDefaults(defineProps<Props>(), {
   months: () => THAI_MONTHS,
+  showMonth: true,          
+  modelMonth: null,
 })
 
 const emit = defineEmits<{
@@ -49,6 +53,7 @@ function handleMonthChange(event: Event) {
     </select>
 
     <select
+      v-if="showMonth"
       :value="modelMonth ?? ''"
       class="select select-bordered min-w-max"
       :disabled="modelYear === null"

@@ -10,6 +10,7 @@ import {
     LogOut,
     CalendarDays,
     WalletMinimal,
+    PieChart,
 } from "lucide-vue-next"
 const authStore = useAuthStore()
 const router = useRouter()
@@ -28,6 +29,11 @@ const menuItems = [
         name: "Budgets",
         path: "/budgets",
         icon: WalletCards,
+    },
+    {
+        name: "Summary", // 👈 2. เพิ่มเมนู Summary
+        path: "/summary",
+        icon: PieChart,
     },
     {
         name: "Saving Goals",

@@ -53,7 +53,7 @@ const {
   selectStatus,
   handleYearChange,
   handleMonthChange,
-} = useBudgetFilter(loadBudgets,selectedYear, selectedMonth)
+} = useBudgetFilter(loadBudgets, selectedYear, selectedMonth)
 
 
 
@@ -157,10 +157,12 @@ onMounted(async () => {
 
       <!-- Filters (ชิดขวาเสมอ) -->
       <div class="flex items-center gap-2 ml-auto">
-        <PeriodFilter v-if="status === 'ended'" :years="years" :months="months" :model-year="selectedYear"
+        <!-- <PeriodFilter v-if="status === 'ended'" :years="years" :months="months" :model-year="selectedYear"
           :model-month="selectedMonth" @update:model-year="selectedYear = $event"
           @update:model-month="selectedMonth = $event" @year-change="handleYearChange"
-          @month-change="handleMonthChange" />
+          @month-change="handleMonthChange" /> -->
+        <PeriodFilter v-if="status === 'ended'" :years="years" :model-year="selectedYear" :show-month="false"
+          @update:model-year="selectedYear = $event" @year-change="handleYearChange" />
         <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
       </div>
     </div>
