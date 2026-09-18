@@ -13,3 +13,7 @@ export interface CreateAccountResponse {
 export interface CreateAccountInput {
   name: string
 }
+
+export interface DeleteAccountResponse {
+  message: string
+}

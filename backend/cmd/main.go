@@ -39,7 +39,9 @@ func main() {
 		userRepo,
 	)
 	accountService := services.NewAccountService(
+		database.DB,
 		accountRepo,
+		transactionRepo,
 	)
 	transactionService := services.NewTransactionService(
 		database.DB,
@@ -49,6 +51,9 @@ func main() {
 	budgetService := services.NewBudgetService(
 		budgetRepo,
 		accountRepo,
+		transactionRepo,
+	)
+	summaryService := services.NewSummaryService(
 		transactionRepo,
 	)
 
@@ -67,6 +72,9 @@ func main() {
 	periodHandler := handlers.NewPeriodHandler(
 		budgetRepo,
 		transactionRepo,
+	)
+	summaryHandler := handlers.NewSummaryHandler(
+		summaryService,
 	)
 	router := gin.Default()
 
@@ -94,7 +102,7 @@ func main() {
 		c.Next()
 	})
 
-	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler, authHandler,periodHandler)
+	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler, authHandler, periodHandler, summaryHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

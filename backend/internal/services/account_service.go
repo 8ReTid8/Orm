@@ -3,34 +3,30 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"backend/internal/models"
 	"backend/internal/repositories"
-)
 
-var (
-	// ErrAccountNotFound     = errors.New("account not found")
-	// ErrTransactionNotFound = errors.New("transaction not found")
+	"gorm.io/gorm"
 )
-// var ErrInvalidAccountName = errors.New("invalid account name")
 
 type AccountService struct {
-	// db *gorm.DB
-	accountRepo *repositories.AccountRepository
+	db              *gorm.DB
+	accountRepo     *repositories.AccountRepository
+	transactionRepo *repositories.TransactionRepository
 }
 
-// func NewAccountService(db *gorm.DB) *AccountService {
-// 	return &AccountService{
-// 		db: db,
-// 	}
-// }
-
 func NewAccountService(
+	db *gorm.DB,
 	accountRepo *repositories.AccountRepository,
+	transactionRepo *repositories.TransactionRepository,
 ) *AccountService {
 	return &AccountService{
-		accountRepo: accountRepo,
+		db:              db,
+		accountRepo:     accountRepo,
+		transactionRepo: transactionRepo,
 	}
 }
 func (s *AccountService) Create(
@@ -61,12 +57,33 @@ func (s *AccountService) Get(
 	userID uint,
 ) ([]models.Account, error) {
 
-	// accountRepo := repositories.NewAccountRepository(
-	// 	s.db,
-	// )
-
 	return s.accountRepo.ListByUser(
 		ctx,
 		userID,
 	)
+}
+
+func (s *AccountService) Delete(
+	ctx context.Context,
+	userID uint,
+	accountID uint,
+) error {
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		accountRepo := s.accountRepo.WithTx(tx)
+		transactionRepo := s.transactionRepo.WithTx(tx)
+
+		account, err := accountRepo.FindOwnedForUpdate(ctx, userID, accountID)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrAccountNotFound
+		}
+		if err != nil {
+			return err
+		}
+
+		if err := transactionRepo.DeleteByAccountID(ctx, account.ID); err != nil {
+			return err
+		}
+
+		return accountRepo.Delete(ctx, account)
+	})
 }

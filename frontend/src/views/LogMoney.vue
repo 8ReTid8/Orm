@@ -136,12 +136,6 @@ async function handleDeleteTransaction(id: number) {
   }
 }
 
-// async function handleMonthChange(
-//   year: number,
-//   month: number,
-// ) {
-//   await loadTransactions(year, month)
-// }
 
 function closeDialog() {
   isDialogOpen.value = false

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { AlertCircle, PiggyBank, Wallet, BarChart3 } from "lucide-vue-next"
 import { resolveCategoryIcon } from "@/utils/categoryIcons"
 import type { Budget } from "@/types/budget"
@@ -29,6 +29,14 @@ const emit = defineEmits<{
   edit: [budget: Budget]
   delete: [id: number]
 }>()
+
+const isEnded = computed(() => {
+  const end = new Date(props.budget.endDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  end.setHours(0, 0, 0, 0)
+  return end < today
+})
 
 // คำนวณเปอร์เซ็นต์ (ไม่เกิน 100 สำหรับความกว้าง progress bar)
 function getPercent(spent: number, amount: number) {
@@ -81,7 +89,8 @@ function handleConfirmDelete() {
   <!-- <div class="mt-2! space-y-4!"> -->
   <!-- <div v-for="budget in budgets" :key="budget.id"
       class="group rounded-2xl border border-base-200 bg-base-100 p-4 transition-all hover:border-base-300 hover:shadow-md"> -->
-  <div class="group rounded-2xl border border-base-200 bg-base-100 p-4 transition-all hover:border-base-300 hover:shadow-md">
+  <div
+    class="group rounded-2xl border border-base-200 bg-base-100 p-4 transition-all hover:border-base-300 hover:shadow-md">
     <!-- Top Row: Icon + Category + Badges + Actions -->
     <div class="flex items-start justify-between gap-3">
       <!-- Category & Account Info -->
@@ -125,8 +134,8 @@ function handleConfirmDelete() {
           title="ดูรายละเอียดการใช้จ่าย" @click.stop="goToBudgetDetail(budget)">
           <BarChart3 class="size-4" /> <!-- หรือใช้ <Eye class="size-4" /> -->
         </button>
-        <ActionButton edit-title="แก้ไขรายการ" delete-title="ลบรายการ" @edit="emit('edit', budget)"
-          @delete="openDeleteModal(budget)" />
+        <ActionButton :show-edit="!isEnded" edit-title="แก้ไขรายการ" delete-title="ลบรายการ"
+          @edit="emit('edit', budget)" @delete="openDeleteModal(budget)" />
       </div>
     </div>
 

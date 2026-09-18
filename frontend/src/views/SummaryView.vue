@@ -5,19 +5,16 @@ import {
     ArrowUpRight,
     Wallet,
     Percent,
-    TrendingUp,
     Award,
 } from "lucide-vue-next"
 import { useAccountStore } from "@/stores/account"
-import { useTransactions } from "@/composables/transaction/useTransaction"
 import { usePeriodFilter } from "@/composables/period/usePeriodFilter"
 import { formatMoney } from "@/utils/format"
-import { resolveCategoryIcon } from "@/utils/categoryIcons"
 import PeriodFilter from "@/components/filter/PeriodFilter.vue"
 import AccountFilter from "@/components/filter/accountFilter.vue"
-// import MonthlyComparisonChart from "@/components/summary/MonthlyComparisonChart.vue"
 import CategoryPieChart from "@/components/category/CategoryPieChart.vue"
 import MonthlyComparisonChart from "@/components/category/MonthlyComparisonChart.vue"
+import { useSummary } from "@/composables/summary/useSummary"
 
 const accountStore = useAccountStore()
 const selectedAccountId = ref<number | null>(null)
@@ -30,18 +27,42 @@ const {
     selectedYear,
     selectedMonth,
     loadYears,
-    handleYearChange,
 } = usePeriodFilter("transaction")
 
-const { transactions, isLoadingTransactions, loadTransactions } = useTransactions()
+const {
+    summary,
+    isLoadingSummary,
+    loadSummary,
+} = useSummary()
 
 // ฟังก์ชันดึงข้อมูลตาม Filter
 async function fetchSummary() {
-    await loadTransactions({
-        year: selectedYear.value,
-        month: viewMode.value === "monthly" ? selectedMonth.value : null,
-        accountId: selectedAccountId.value,
-    })
+    if (!selectedYear.value) {
+        return
+    }
+
+    await loadSummary(
+        selectedYear.value,
+        viewMode.value === "monthly"
+            ? selectedMonth.value
+            : null,
+        selectedAccountId.value,
+    )
+}
+
+async function updateYear(year: number | null) {
+    selectedYear.value = year
+    await fetchSummary()
+}
+
+async function updateMonth(month: number | null) {
+    selectedMonth.value = month
+    await fetchSummary()
+}
+
+async function updateAccount(accountId: number | null) {
+    selectedAccountId.value = accountId
+    await fetchSummary()
 }
 
 // เมื่อสลับโหมด รายเดือน / รายปี
@@ -53,49 +74,8 @@ async function setViewMode(mode: "monthly" | "yearly") {
     await fetchSummary()
 }
 
-// คำนวณยอดสรุปต่างๆ
-const totalIncome = computed(() =>
-    transactions.value.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
-)
-
-const totalExpense = computed(() =>
-    transactions.value.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
-)
-
-const netBalance = computed(() => totalIncome.value - totalExpense.value)
-
-const savingsRate = computed(() => {
-    if (totalIncome.value <= 0) return 0
-    return Math.max(0, (netBalance.value / totalIncome.value) * 100)
-})
-
-// รวมยอดรายจ่ายแยกตามหมวดหมู่ (เรียงจากมากไปน้อย)
-const expenseByCategory = computed(() => {
-    const map = new Map<string, number>()
-    for (const t of transactions.value) {
-        if (t.type === "expense") {
-            map.set(t.category, (map.get(t.category) || 0) + t.amount)
-        }
-    }
-    return Array.from(map.entries())
-        .map(([name, amount]) => ({ name, amount }))
-        .sort((a, b) => b.amount - a.amount)
-})
-// รวมยอดรายรับแยกตามหมวดหมู่ (เรียงจากมากไปน้อย)
-const incomeByCategory = computed(() => {
-    const map = new Map<string, number>()
-    for (const t of transactions.value) {
-        if (t.type === "income") {
-            map.set(t.category, (map.get(t.category) || 0) + t.amount)
-        }
-    }
-    return Array.from(map.entries())
-        .map(([name, amount]) => ({ name, amount }))
-        .sort((a, b) => b.amount - a.amount)
-})
-
 // 5 อันดับแรกที่มีรายจ่ายสูงสุด
-const topExpenseCategories = computed(() => expenseByCategory.value.slice(0, 5))
+const topExpenseCategories = computed(() => summary.value?.expenseByCategory.slice(0, 5) ?? [],)
 
 onMounted(async () => {
     const now = new Date()
@@ -107,8 +87,9 @@ onMounted(async () => {
         loadYears(),
     ])
 
-    if (accountStore.accounts.length > 0) {
-        selectedAccountId.value = accountStore.accounts[0].id
+    const firstAccount = accountStore.accounts[0]
+    if (firstAccount) {
+        selectedAccountId.value = firstAccount.id
     }
 
     await fetchSummary()
@@ -126,38 +107,25 @@ onMounted(async () => {
 
             <!-- Controls & Filters -->
             <div class="flex flex-wrap items-center gap-2">
-                <!-- สลับโหมด รายเดือน / รายปี -->
-                <div class="join bg-base-200 p-1 rounded-xl">
-                    <button class="btn btn-sm join-item border-none"
-                        :class="viewMode === 'monthly' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'"
-                        @click="setViewMode('monthly')">
-                        รายเดือน
-                    </button>
-                    <button class="btn btn-sm join-item border-none"
-                        :class="viewMode === 'yearly' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'"
-                        @click="setViewMode('yearly')">
-                        รายปี
-                    </button>
-                </div>
 
                 <!-- ตัวเลือก ปี / เดือน -->
                 <PeriodFilter :years="years" :months="viewMode === 'monthly' ? months : []" :model-year="selectedYear"
                     :model-month="viewMode === 'monthly' ? selectedMonth : null"
-                    @update:model-year="selectedYear = $event; fetchSummary()"
-                    @update:model-month="selectedMonth = $event; fetchSummary()"
-                    @year-change="handleYearChange(); fetchSummary()" @month-change="fetchSummary()" />
+                    @update:model-year="updateYear"
+                    @update:model-month="updateMonth" />
 
-                <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts"
-                    @update:model-value="fetchSummary()" />
+                <AccountFilter :model-value="selectedAccountId" :accounts="accountStore.accounts"
+                    @update:model-value="updateAccount" />
             </div>
         </div>
 
         <!-- Loading State -->
-        <div v-if="isLoadingTransactions" class="flex justify-center py-12">
+        <div v-if="isLoadingSummary" class="flex justify-center py-12">
             <span class="loading loading-spinner loading-lg text-primary" />
         </div>
 
-        <template v-else>
+        <!-- <template v-else> -->
+        <template v-else-if="summary">
             <!-- 2. Overview Stat Cards (4 ใบ) -->
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <!-- รายรับรวม -->
@@ -167,7 +135,7 @@ onMounted(async () => {
                         <ArrowDownLeft class="size-5" />
                     </div>
                     <p class="mt-3 text-2xl font-bold text-success">
-                        +฿{{ formatMoney(totalIncome) }}
+                        +฿{{ formatMoney(summary.totalIncome) }}
                     </p>
                 </div>
 
@@ -178,7 +146,7 @@ onMounted(async () => {
                         <ArrowUpRight class="size-5" />
                     </div>
                     <p class="mt-3 text-2xl font-bold text-error">
-                        -฿{{ formatMoney(totalExpense) }}
+                        -฿{{ formatMoney(summary.totalExpense) }}
                     </p>
                 </div>
 
@@ -188,8 +156,8 @@ onMounted(async () => {
                         <span class="text-sm font-medium">สุทธิคงเหลือ</span>
                         <Wallet class="size-5" />
                     </div>
-                    <p class="mt-3 text-2xl font-bold" :class="netBalance >= 0 ? 'text-success' : 'text-error'">
-                        {{ netBalance >= 0 ? '+' : '' }}฿{{ formatMoney(netBalance) }}
+                    <p class="mt-3 text-2xl font-bold" :class="summary.netBalance >= 0 ? 'text-success' : 'text-error'">
+                        {{ summary.netBalance >= 0 ? '+' : '' }}฿{{ formatMoney(summary.netBalance) }}
                     </p>
                 </div>
 
@@ -201,7 +169,7 @@ onMounted(async () => {
                     </div>
                     <div class="mt-3 flex items-baseline gap-2">
                         <p class="text-2xl font-bold text-primary">
-                            {{ savingsRate.toFixed(1) }}%
+                            {{ summary.savingsRate.toFixed(1) }}%
                         </p>
                         <span class="text-xs text-base-content/60">ของรายรับ</span>
                     </div>
@@ -214,24 +182,26 @@ onMounted(async () => {
                 <div class="card bg-base-100 p-5 border border-base-200 shadow-sm rounded-2xl">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-bold text-lg text-success">สัดส่วนรายรับตามหมวดหมู่</h2>
-                        <span class="text-sm font-semibold text-success">+฿{{ formatMoney(totalIncome) }}</span>
+                        <span class="text-sm font-semibold text-success">+฿{{ formatMoney(summary.totalIncome) }}</span>
                     </div>
-                    <CategoryPieChart :items="incomeByCategory" empty-text="ไม่มีข้อมูลรายรับในช่วงเวลานี้" />
+                    <CategoryPieChart :items="summary.incomeByCategory" empty-text="ไม่มีข้อมูลรายรับในช่วงเวลานี้" />
                 </div>
                 <!-- สัดส่วนรายจ่าย -->
                 <div class="card bg-base-100 p-5 border border-base-200 shadow-sm rounded-2xl">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-bold text-lg text-error">สัดส่วนรายจ่ายตามหมวดหมู่</h2>
-                        <span class="text-sm font-semibold text-error">-฿{{ formatMoney(totalExpense) }}</span>
+                        <span class="text-sm font-semibold text-error">-฿{{ formatMoney(summary.totalExpense) }}</span>
                     </div>
-                    <CategoryPieChart :items="expenseByCategory" empty-text="ไม่มีข้อมูลรายจ่ายในช่วงเวลานี้" />
+                    <CategoryPieChart :items="summary.expenseByCategory" empty-text="ไม่มีข้อมูลรายจ่ายในช่วงเวลานี้" />
                 </div>
             </div>
-            <!-- กราฟเปรียบเทียบ รายรับ vs รายจ่าย ตลอดปี (เต็มความกว้าง) -->
+            <!-- กราฟเปรียบเทียบรายรับและรายจ่ายตามช่วงเวลาที่เลือก -->
             <div class="card bg-base-100 p-5 border border-base-200 shadow-sm rounded-2xl">
-                <h2 class="font-bold text-lg mb-4">เปรียบเทียบ รายรับ vs รายจ่าย (ปี {{ selectedYear ? selectedYear +
-                    543 : '' }})</h2>
-                <MonthlyComparisonChart :transactions="transactions" />
+                <h2 class="font-bold text-lg mb-4">
+                    เปรียบเทียบรายรับ vs รายจ่าย{{ summary.comparisonPeriod === "day" ? "รายวัน" : "รายเดือน" }}
+                    ({{ summary.comparisonPeriod === "day" ? "เดือน " + selectedMonth : "ปี " + (selectedYear ? selectedYear + 543 : "") }})
+                </h2>
+                <MonthlyComparisonChart :items="summary.comparison" :period="summary.comparisonPeriod" />
             </div>
 
             <!-- 4. 5 อันดับหมวดหมู่ที่มีรายจ่ายสูงสุด -->
@@ -255,13 +225,15 @@ onMounted(async () => {
                             <div class="flex items-center gap-3">
                                 <span class="font-bold text-error">-฿{{ formatMoney(item.amount) }}</span>
                                 <span class="text-xs text-base-content/60 w-12 text-right">
-                                    {{ totalExpense > 0 ? ((item.amount / totalExpense) * 100).toFixed(1) : 0 }}%
+                                    {{ summary.totalExpense > 0 ? ((item.amount / summary.totalExpense) *
+                                    100).toFixed(1) : 0 }}%
                                 </span>
                             </div>
                         </div>
 
                         <!-- Progress bar สัดส่วน -->
-                        <progress class="progress progress-error w-full h-2" :value="item.amount" :max="totalExpense" />
+                        <progress class="progress progress-error w-full h-2" :value="item.amount"
+                            :max="summary.totalExpense" />
                     </div>
                 </div>
             </div>

@@ -52,31 +52,6 @@ const isLoading = ref(false)
 const budget = computed(() => budgetDetail.value?.budget)
 const transactions = computed(() => budgetDetail.value?.transactions ?? [])
 
-// const remaining = computed(() => {
-//     if (!budget.value) return 0
-//     return budget.value.amount - budget.value.spent
-// })
-// const percent = computed(() => {
-//     if (!budget.value || budget.value.amount === 0) return 0
-//     return Math.min((budget.value.spent / budget.value.amount) * 100, 100)
-// })
-// const realPercent = computed(() => {
-//     if (!budget.value || budget.value.amount === 0) return 0
-//     return (budget.value.spent / budget.value.amount) * 100
-// })
-// // คำนวณจำนวนวันทั้งหมดของงบนี้
-// const totalDays = computed(() => {
-//     if (!budget.value) return 1
-//     const start = new Date(budget.value.startDate).getTime()
-//     const end = new Date(budget.value.endDate).getTime()
-//     const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1
-//     return diff > 0 ? diff : 1
-// })
-// // คำนวณค่าใช้จ่ายเฉลี่ยต่อวัน
-// const averagePerDay = computed(() => {
-//     if (!budget.value) return 0
-//     return budget.value.spent / totalDays.value
-// })
 const groupedTransactions = computed(() =>
   groupTransactionsByDate(budgetDetail.value?.transactions ?? [])
 )

@@ -14,48 +14,33 @@ import { Bar } from "vue-chartjs"
 import { formatMoney } from "@/utils/format"
 import { THAI_MONTHS } from "@/utils/date"
 import type { Transaction } from "@/types/transaction"
+import type { ComparisonPeriod, ComparisonTotal } from "@/types/summary"
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface Props {
-  transactions: Transaction[]
+  items: ComparisonTotal[]
+  period: ComparisonPeriod
 }
 
 const props = defineProps<Props>()
 
-// รวมยอดรายรับ และรายจ่าย แยกตาม 12 เดือน
-const monthlyData = computed(() => {
-  const income = new Array(12).fill(0)
-  const expense = new Array(12).fill(0)
-
-  for (const t of props.transactions) {
-    const monthIndex = new Date(t.transactionDate).getMonth() // 0 - 11
-    if (monthIndex >= 0 && monthIndex < 12) {
-      if (t.type === "income") {
-        income[monthIndex] += t.amount
-      } else if (t.type === "expense") {
-        expense[monthIndex] += t.amount
-      }
-    }
-  }
-
-  return { income, expense }
-})
-
 const chartData = computed(() => ({
-  labels: THAI_MONTHS.map((m) => m.shortLabel),
+  labels: props.period === "month"
+    ? THAI_MONTHS.map((m) => m.shortLabel)
+    : props.items.map((item) => String(item.period)),
   datasets: [
     {
       label: "รายรับ",
       backgroundColor: "#22c55e",
       borderRadius: 6,
-      data: monthlyData.value.income,
+      data: props.items.map((item) => item.income),
     },
     {
       label: "รายจ่าย",
       backgroundColor: "#ef4444",
       borderRadius: 6,
-      data: monthlyData.value.expense,
+      data: props.items.map((item) => item.expense),
     },
   ],
 }))

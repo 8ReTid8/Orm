@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"backend/internal/dto"
 	"backend/internal/services"
@@ -65,7 +66,6 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 	})
 }
 
-// func GetAccounts(c *gin.Context) {
 func (h *AccountHandler) GetAccounts(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
@@ -99,3 +99,41 @@ func (h *AccountHandler) GetAccounts(c *gin.Context) {
 	c.JSON(http.StatusOK, responses)
 }
 
+func (h *AccountHandler) DeleteAccount(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	accountID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil || accountID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "account id ไม่ถูกต้อง",
+		})
+		return
+	}
+
+	err = h.service.Delete(
+		c.Request.Context(),
+		userID,
+		uint(accountID),
+	)
+
+	if errors.Is(err, services.ErrAccountNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "ไม่พบบัญชี",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถลบบัญชีได้",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "ลบบัญชีสำเร็จ",
+	})
+}

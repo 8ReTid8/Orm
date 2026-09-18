@@ -121,3 +121,13 @@ func (r *AccountRepository) ListByUser(
 
 	return accounts, nil
 }
+
+func (r *AccountRepository) Delete(
+	ctx context.Context,
+	account *models.Account,
+) error {
+	return r.db.WithContext(ctx).
+		Where("id = ? AND user_id = ?", account.ID, account.UserID).
+		Delete(&models.Account{}).
+		Error
+}

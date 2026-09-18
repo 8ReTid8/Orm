@@ -1,7 +1,10 @@
 import { onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useAccountStore } from "@/stores/account"
-import { createAccount } from "@/services/account"
+import { 
+  createAccount,
+  deleteAccount as deleteAccountApi
+ } from "@/services/account"
 
 export function useAccount() {
   const accountStore = useAccountStore()
@@ -33,7 +36,16 @@ export function useAccount() {
       console.error("Create account failed:", error)
     }
   }
-
+  async function deleteAccount(id: number) {
+    try {
+      await deleteAccountApi(id)
+      // accountStore.removeAccount(id)
+      accountStore.loadAccounts(true)
+    } catch (error) {
+      console.error("Delete account failed:", error)
+      throw error
+    }
+  }
   onMounted(() => {
     accountStore.loadAccounts(true)
   })
@@ -45,5 +57,6 @@ export function useAccount() {
     closeAddAccount,
     openAccountDetail,
     saveAccount,
+    deleteAccount,
   }
 }

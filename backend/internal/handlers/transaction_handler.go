@@ -24,7 +24,6 @@ func NewTransactionHandler(
 	}
 }
 
-// func CreateTransaction(c *gin.Context) {
 func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	// 1. User จาก JWT
 	// userIDValue, exists := c.Get("userID")
@@ -101,7 +100,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	})
 }
 
-// func GetTransactions(c *gin.Context) {
+
 func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 
 	userID, ok := getUserID(c)
@@ -117,7 +116,6 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 		return
 	}
 
-	// service := services.NewTransactionService(database.DB)
 
 	transactions, err := h.service.Get(
 		c.Request.Context(),
@@ -147,7 +145,7 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 	})
 }
 
-// func UpdateTransaction(c *gin.Context) {
+
 func (h *TransactionHandler) UpdateTransaction(c *gin.Context) {
 	// 1. user จาก JWT
 	userID, ok := getUserID(c)
@@ -169,10 +167,7 @@ func (h *TransactionHandler) UpdateTransaction(c *gin.Context) {
 		return
 	}
 
-	// transactionID := uint(transactionID64)
-
 	// 3. รับข้อมูลใหม่
-
 	input, err := parseTransactionForm(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -229,7 +224,6 @@ func (h *TransactionHandler) UpdateTransaction(c *gin.Context) {
 	})
 }
 
-// func DeleteTransaction(c *gin.Context) {
 func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {
 	// 1. user จาก JWT
 	userID, ok := getUserID(c)

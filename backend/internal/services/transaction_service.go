@@ -12,11 +12,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// var (
-// 	ErrAccountNotFound     = errors.New("account not found")
-// 	ErrTransactionNotFound = errors.New("transaction not found")
-// )
-
 type TransactionService struct {
 	db              *gorm.DB
 	accountRepo     *repositories.AccountRepository
@@ -55,18 +50,7 @@ func (s *TransactionService) Create(
 	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		accountRepo := s.accountRepo.WithTx(tx)
 		transactionRepo := s.transactionRepo.WithTx(tx)
-		// var account models.Account
 
-		// lock บัญชีภายใน transaction
-		// err := tx.
-		// 	Clauses(clause.Locking{Strength: "UPDATE"}).
-		// 	Where(
-		// 		"id = ? AND user_id = ?",
-		// 		input.AccountID,
-		// 		userID,
-		// 	).
-		// 	First(&account).
-		// 	Error
 		account, err := accountRepo.FindOwnedForUpdate(
 			ctx,
 			userID,
@@ -92,20 +76,6 @@ func (s *TransactionService) Create(
 
 		account.Balance = newBalance
 
-		// if err := tx.
-		// 	Model(&models.Account{}).
-		// 	Where("id = ?", account.ID).
-		// 	Update("balance", newBalance).
-		// 	Error; err != nil {
-		// 	return err
-		// }
-
-		// // สร้างรายการ
-		// if err := tx.Create(transaction).Error; err != nil {
-		// 	return err
-		// }
-
-		// return nil
 		if err := accountRepo.UpdateBalance(ctx, account); err != nil {
 			return err
 		}
@@ -146,13 +116,6 @@ func (s *TransactionService) Update(
 			return err
 		}
 
-		// lock account เก่าและ account ใหม่
-		// oldAccount, newAccount, err := lockAccountsForUpdate(
-		// 	tx,
-		// 	userID,
-		// 	oldTransaction.AccountID,
-		// 	input.AccountID,
-		// )
 		oldAccount, newAccount, err := lockAccountsForUpdate(
 			ctx,
 			accountRepo,
@@ -199,19 +162,6 @@ func (s *TransactionService) Update(
 				return err
 			}
 		}
-		// if oldAccount.ID == newAccount.ID {
-		// 	if err := updateBalance(tx, oldAccount); err != nil {
-		// 		return err
-		// 	}
-		// } else {
-		// 	if err := updateBalance(tx, oldAccount); err != nil {
-		// 		return err
-		// 	}
-
-		// 	if err := updateBalance(tx, newAccount); err != nil {
-		// 		return err
-		// 	}
-		// }
 
 		// ถ้าไม่ได้ส่งรูปใหม่ ใช้รูปเดิม
 		imagePath := oldTransaction.Image
@@ -259,20 +209,6 @@ func (s *TransactionService) Delete(
 			userID,
 			transactionID,
 		)
-		// หาและ lock transaction พร้อมตรวจว่าเป็นของ user นี้
-		// err := tx.
-		// 	Clauses(clause.Locking{
-		// 		Strength: "UPDATE",
-		// 		Table:    clause.Table{Name: "transactions"},
-		// 	}).
-		// 	Joins("JOIN accounts ON accounts.id = transactions.account_id").
-		// 	Where(
-		// 		"transactions.id = ? AND accounts.user_id = ?",
-		// 		transactionID,
-		// 		userID,
-		// 	).
-		// 	First(&transaction).
-		// 	Error
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrTransactionNotFound
@@ -282,11 +218,6 @@ func (s *TransactionService) Delete(
 		}
 
 		// lock account ที่เกี่ยวข้อง
-		// account, err := findAccountForUpdate(
-		// 	tx,
-		// 	userID,
-		// 	transaction.AccountID,
-		// )
 		account, err := accountRepo.FindOwnedForUpdate(
 			ctx,
 			userID,
@@ -311,12 +242,6 @@ func (s *TransactionService) Delete(
 
 		account.Balance = newBalance
 
-		// if err := updateBalance(tx, account); err != nil {
-		// 	return err
-		// }
-
-		// // ลบ transaction เมื่อคืนยอดสำเร็จแล้ว
-		// return tx.Delete(&transaction).Error
 		if err := accountRepo.UpdateBalance(ctx, account); err != nil {
 			return err
 		}

@@ -55,6 +55,8 @@ const statusColor = computed(() => {
   if (p >= 80) return 'warning'   // getting close — yellow/orange
   return 'success'                // healthy — green
 })
+
+
 </script>
 
 <template>

@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
 import { Plus } from "lucide-vue-next"
 import AddAccountForm from "@/components/account/AddAccountForm.vue"
-import { createAccount } from "@/services/account"
 import AccountCard from "@/components/account/AccountCard.vue"
 import { useAccountStore } from "@/stores/account"
 import { useAccount } from "@/composables/account/useAccount"
@@ -50,8 +48,20 @@ const {
     closeAddAccount,
     openAccountDetail,
     saveAccount,
+    deleteAccount,
 } = useAccount()
+async function handleDeleteAccount(id: number) {
+  try {
+    await deleteAccount(id)
+    // await fetchBudgets()
 
+  } catch (error) {
+    console.error(
+      "Delete account failed:",
+      error,
+    )
+  }
+}
 </script>
 
 <template>
@@ -72,8 +82,8 @@ const {
         <!-- Account grid -->
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
 
-            <AccountCard v-for="account in accounts" :key="account.id" :account="account"
-                @detail="openAccountDetail" />
+            <AccountCard v-for="account in accounts" :key="account.id" :account="account" @detail="openAccountDetail"
+                @delete="handleDeleteAccount" />
 
             <!-- Add account card -->
             <button type="button"

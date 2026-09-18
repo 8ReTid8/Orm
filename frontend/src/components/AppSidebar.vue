@@ -35,16 +35,16 @@ const menuItems = [
         path: "/summary",
         icon: PieChart,
     },
-    {
-        name: "Saving Goals",
-        path: "/saving-goals",
-        icon: PiggyBank,
-    },
-    {
-        name: "Categories",
-        path: "/categories",
-        icon: Tags,
-    },
+    // {
+    //     name: "Saving Goals",
+    //     path: "/saving-goals",
+    //     icon: PiggyBank,
+    // },
+    // {
+    //     name: "Categories",
+    //     path: "/categories",
+    //     icon: Tags,
+    // },
 ]
 async function logout() {
     authStore.clearAuth()
