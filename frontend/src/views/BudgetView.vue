@@ -126,7 +126,7 @@ onMounted(async () => {
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold">
-          Budget
+          Budgets
         </h1>
 
         <p class="text-base-content/60">

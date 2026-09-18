@@ -34,12 +34,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		})
 		return
 	}
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "ข้อมูลไม่ถูกต้อง",
-		})
-		return
-	}
 
 	err := h.service.Register(
 		c.Request.Context(),

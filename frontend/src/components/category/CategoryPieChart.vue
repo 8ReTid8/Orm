@@ -14,9 +14,13 @@ interface CategoryItem {
 
 interface Props {
   items: CategoryItem[]
+  emptyText?: string // 👈 เพิ่ม prop นี้
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  emptyText: "ไม่มีข้อมูลในช่วงเวลานี้", // 👈 กำหนดค่าเริ่มต้น
+})
+// const props = defineProps<Props>()
 
 // จานสีสวยงามสำหรับหมวดหมู่ต่างๆ
 const palette = [
@@ -52,7 +56,7 @@ const chartOptions = {
   <div class="h-64 w-full">
     <Doughnut v-if="items.length > 0" :data="chartData" :options="chartOptions" />
     <div v-else class="flex h-full items-center justify-center text-base-content/50">
-      ไม่มีข้อมูลรายจ่ายในช่วงเวลานี้
+      {{ emptyText }}
     </div>
   </div>
 </template>

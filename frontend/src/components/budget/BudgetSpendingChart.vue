@@ -97,7 +97,8 @@ const chartData = computed<ChartData<"line">>(() => {
         // backgroundColor: "rgba(99, 102, 241, 0.12)", // พื้นที่ไล่สีใต้กราฟ
         backgroundColor: "rgba(46, 139, 87, 0.15)",
         fill: true,
-        tension: 0.35, // เส้นโค้งนุ่มนวล
+        cubicInterpolationMode: "monotone",
+        tension: 0.3, // เส้นโค้งนุ่มนวล
         borderWidth: 3,
         pointRadius: 4,
         pointHoverRadius: 7,
