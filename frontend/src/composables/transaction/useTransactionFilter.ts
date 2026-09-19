@@ -121,17 +121,14 @@ export function useTransactionFilter(
   const filteredTransactions = computed(() => {
     return transactions.value.filter((transaction) => {
       // กรองบัญชี (Client)
-      const accountMatch =
-        clientAccountId.value === null ||
-        transaction.accountId === clientAccountId.value
-      // กรองหมวดหมู่ (Client)
+      
       const categoryMatch =
         clientCategory.value === null ||
         transaction.category === clientCategory.value
       // กรองประเภท รายรับ/รายจ่าย (Client)
       const typeMatch =
         clientType.value === null || transaction.type === clientType.value
-      return accountMatch && categoryMatch && typeMatch
+      return categoryMatch && typeMatch
     })
   })
   // กรองเฉพาะวันนั้นๆ สำหรับ Daily List

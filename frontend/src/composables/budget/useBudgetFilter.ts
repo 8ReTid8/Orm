@@ -18,9 +18,6 @@ export function useBudgetFilter(
 ) {
   const status = ref<BudgetStatus>("active")
   const selectedAccountId = ref<number | null>(null)
-  // const selectedYear = ref<number | null>(null)
-  // const selectedMonth = ref<number | null>(null)
-
 
   async function fetchBudgets() {
     if (selectedAccountId.value === null) {
