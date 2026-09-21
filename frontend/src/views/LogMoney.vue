@@ -53,10 +53,10 @@ const {
   fetchTransactions,
   handleMonthChange,
   selectedDate,
-  // selectedAccountId,
+  selectedAccountId,
   // selectedCategory,
   // clientAccountId,
-  serverAccountId,
+ 
   clientCategory,
   filteredTransactions,
   selectedDayTransactions,
@@ -152,7 +152,7 @@ onMounted(async () => {
   const firstAccount = accountStore.accounts[0]
   if (firstAccount) {
     // clientAccountId.value = firstAccount.id
-    serverAccountId.value = firstAccount.id
+    selectedAccountId.value = firstAccount.id
   }
 
   // 3. ยิงดึงข้อมูล Transaction ประจำเดือน
@@ -179,7 +179,7 @@ onMounted(async () => {
       <!-- Actions -->
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
         <CategoryFilter v-model="clientCategory" :categories="categoryStore.categories" />
-        <AccountFilter v-model="serverAccountId" :accounts="accountStore.accounts" /> 
+        <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" /> 
         <button class="btn text-white bg-green-700" type="button" @click="openTodayTransaction">
           <Plus class="size-4" />
           เพิ่มรายการวันนี้

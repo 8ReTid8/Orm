@@ -1,60 +1,7 @@
-// import { computed, ref } from "vue"
-// import type { Transaction } from "@/types/transaction"
-// import { formatDate} from "@/utils/format"
-
-// export function useTransactionFilter(
-//   transactions: {
-//     value: Transaction[]
-//   },
-// ) {
-//   const selectedDate = ref<Date>(new Date())
-//   const selectedAccountId = ref<number | null>(null)
-//   const selectedCategory = ref<string | null>(null)
-//   const filteredTransactions = computed(() => {
-//     return transactions.value.filter(transaction => {
-
-//       const accountMatch =
-//         selectedAccountId.value === null ||
-//         transaction.accountId === selectedAccountId.value
-
-//       const categoryMatch =
-//         selectedCategory.value === null ||
-//         transaction.category === selectedCategory.value
-
-//       return accountMatch && categoryMatch
-//     })
-//   })
-
-
-//   const selectedDayTransactions = computed(() => {
-//     const date = formatDate(selectedDate.value)
-
-//     return filteredTransactions.value.filter(
-//       transaction =>
-//         transaction.transactionDate.startsWith(date),
-//     )
-//   })
-
-//   function selectDate(date: Date) {
-//     selectedDate.value = date
-//   }
-
-//   return {
-//     selectedDate,
-//     selectedAccountId,
-//     selectedCategory,
-//     filteredTransactions,
-//     selectedDayTransactions,
-//     selectDate,
-//   }
-// }
-
 import { ref, computed, watch } from "vue"
 import type { Ref } from "vue"
 import type { Transaction, TransactionFilter } from "@/types/transaction"
 import { formatDate } from "@/utils/format"
-import { THAI_MONTHS } from "@/utils/date"
-import { usePeriodFilter } from "../period/usePeriodFilter"
 // พารามิเตอร์สำหรับส่งไปหา Backend API
 export interface TransactionServerParams {
   year?: number | null
@@ -73,15 +20,10 @@ export function useTransactionFilter(
   // ==========================================
   // 1. Backend Filter State (ยิงไป Server)
   // ==========================================
-  // const { selectedYear, selectedMonth } = usePeriodFilter("transaction")
-  // const now = new Date()
-  // selectedYear.value = now.getFullYear()
-  // selectedMonth.value = now.getMonth() + 1
-  // const selectedYear = ref<number>(now.getFullYear())
-  // const selectedMonth = ref<number>(now.getMonth() + 1)
+  const selectedAccountId = ref<number | null>(null)
   const serverStartDate = ref<string | null>(null)
   const serverEndDate = ref<string | null>(null)
-  const serverAccountId = ref<number | null>(null)
+  // const serverAccountId = ref<number | null>(null)
   const serverCategory = ref<string | null>(null)
   // รายการเดือนและปีย้อนหลัง สำหรับ Dropdown
   // ฟังก์ชัน Fetch ข้อมูลจาก Backend (เหมือนใน useBudgetFilter)
@@ -92,7 +34,7 @@ export function useTransactionFilter(
       month: selectedMonth.value,
       startDate: serverStartDate.value,
       endDate: serverEndDate.value,
-      accountId: serverAccountId.value,
+      accountId: selectedAccountId.value,
       category: serverCategory.value,
     })
   }
@@ -103,7 +45,7 @@ export function useTransactionFilter(
     await fetchTransactions()
   }
 
-  watch(serverAccountId, async (newValue, oldValue) => {
+  watch(selectedAccountId, async (newValue, oldValue) => {
     if (newValue === null || newValue === oldValue) {
       return
     }
@@ -114,7 +56,6 @@ export function useTransactionFilter(
   // 2. Frontend Filter State (กรองในเครื่องแบบ Instant)
   // ==========================================
   const selectedDate = ref<Date>(new Date()) // วันที่เลือกบนปฏิทิน
-  const clientAccountId = ref<number | null>(null)
   const clientCategory = ref<string | null>(null)
   const clientType = ref<"income" | "expense" | null>(null)
   // กรองในเครื่องจาก transactions ทั้งก้อนที่โหลดมาแล้ว
@@ -143,7 +84,6 @@ export function useTransactionFilter(
   }
   // ล้างตัวกรอง Frontend
   function resetClientFilters() {
-    clientAccountId.value = null
     clientCategory.value = null
     clientType.value = null
   }
@@ -153,13 +93,12 @@ export function useTransactionFilter(
     selectedMonth,
     serverStartDate,
     serverEndDate,
-    serverAccountId,
+    selectedAccountId,
     serverCategory,
     fetchTransactions,
     handleMonthChange,
     // Frontend filters
     selectedDate,
-    clientAccountId,
     clientCategory,
     clientType,
     filteredTransactions,
