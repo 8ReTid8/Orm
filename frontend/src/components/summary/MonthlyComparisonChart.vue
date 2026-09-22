@@ -13,7 +13,6 @@ import {
 import { Bar } from "vue-chartjs"
 import { formatMoney } from "@/utils/format"
 import { THAI_MONTHS } from "@/utils/date"
-import type { Transaction } from "@/types/transaction"
 import type { ComparisonPeriod, ComparisonTotal } from "@/types/summary"
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)

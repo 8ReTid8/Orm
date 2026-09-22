@@ -246,7 +246,8 @@ func (r *TransactionRepository) ListCategoryTotals(
 		)
 	}
 
-	var totals []dto.CategoryTotal
+	// var totals []dto.CategoryTotal
+	totals := make([]dto.CategoryTotal, 0)
 
 	if err := query.
 		Group("transactions.category").

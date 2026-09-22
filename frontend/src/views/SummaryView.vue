@@ -12,12 +12,17 @@ import { usePeriodFilter } from "@/composables/period/usePeriodFilter"
 import { formatMoney } from "@/utils/format"
 import PeriodFilter from "@/components/filter/PeriodFilter.vue"
 import AccountFilter from "@/components/filter/accountFilter.vue"
-import CategoryPieChart from "@/components/category/CategoryPieChart.vue"
-import MonthlyComparisonChart from "@/components/category/MonthlyComparisonChart.vue"
+import CategoryPieChart from "@/components/summary/CategoryPieChart.vue"
+import MonthlyComparisonChart from "@/components/summary/MonthlyComparisonChart.vue"
 import { useSummary } from "@/composables/summary/useSummary"
+import { useCategoryStore } from "@/stores/category"
+import CategoryTransactionsModal from "@/components/summary/CategoryTransactionsModal.vue"
 
+const categoryStore = useCategoryStore()
 const accountStore = useAccountStore()
 const selectedAccountId = ref<number | null>(null)
+const selectedCategoryName = ref<string>("")
+const isCategoryModalOpen = ref(false)
 const viewMode = ref<"monthly" | "yearly">("monthly")
 
 // 👈 ใช้ usePeriodFilter ตัวกลาง
@@ -50,6 +55,14 @@ async function fetchSummary() {
     )
 }
 
+function openCategoryTransactions(categoryName: string) {
+    selectedCategoryName.value = categoryName
+    isCategoryModalOpen.value = true
+}
+function closeCategoryTransactions() {
+    isCategoryModalOpen.value = false
+    selectedCategoryName.value = ""
+}
 async function updateYear(year: number | null) {
     selectedYear.value = year
     await fetchSummary()
@@ -65,14 +78,6 @@ async function updateAccount(accountId: number | null) {
     await fetchSummary()
 }
 
-// เมื่อสลับโหมด รายเดือน / รายปี
-async function setViewMode(mode: "monthly" | "yearly") {
-    viewMode.value = mode
-    if (mode === "monthly" && !selectedMonth.value) {
-        selectedMonth.value = new Date().getMonth() + 1
-    }
-    await fetchSummary()
-}
 
 // 5 อันดับแรกที่มีรายจ่ายสูงสุด
 const topExpenseCategories = computed(() => summary.value?.expenseByCategory.slice(0, 5) ?? [],)
@@ -84,6 +89,7 @@ onMounted(async () => {
 
     await Promise.all([
         accountStore.loadAccounts(),
+        categoryStore.loadCategories(),
         loadYears(),
     ])
 
@@ -110,8 +116,7 @@ onMounted(async () => {
 
                 <!-- ตัวเลือก ปี / เดือน -->
                 <PeriodFilter :years="years" :months="viewMode === 'monthly' ? months : []" :model-year="selectedYear"
-                    :model-month="viewMode === 'monthly' ? selectedMonth : null"
-                    @update:model-year="updateYear"
+                    :model-month="viewMode === 'monthly' ? selectedMonth : null" @update:model-year="updateYear"
                     @update:model-month="updateMonth" />
 
                 <AccountFilter :model-value="selectedAccountId" :accounts="accountStore.accounts"
@@ -199,7 +204,8 @@ onMounted(async () => {
             <div class="card bg-base-100 p-5 border border-base-200 shadow-sm rounded-2xl">
                 <h2 class="font-bold text-lg mb-4">
                     เปรียบเทียบรายรับ vs รายจ่าย{{ summary.comparisonPeriod === "day" ? "รายวัน" : "รายเดือน" }}
-                    ({{ summary.comparisonPeriod === "day" ? "เดือน " + selectedMonth : "ปี " + (selectedYear ? selectedYear + 543 : "") }})
+                    ({{ summary.comparisonPeriod === "day" ? "เดือน " + selectedMonth : "ปี " + (selectedYear ?
+                        selectedYear + 543 : "") }})
                 </h2>
                 <MonthlyComparisonChart :items="summary.comparison" :period="summary.comparisonPeriod" />
             </div>
@@ -216,27 +222,36 @@ onMounted(async () => {
                 </div>
 
                 <div v-else class="space-y-4">
-                    <div v-for="(item, index) in topExpenseCategories" :key="item.name" class="space-y-1.5">
+                    <div v-for="(item, index) in topExpenseCategories" :key="item.name"
+                        class="group cursor-pointer rounded-xl p-2 transition-all hover:bg-base-200/60"
+                        @click="openCategoryTransactions(item.name)">
                         <div class="flex items-center justify-between text-sm">
                             <div class="flex items-center gap-2">
                                 <span class="font-semibold text-base-content/50 w-5">#{{ index + 1 }}</span>
-                                <span class="font-medium">{{ item.name }}</span>
+                                <span class="font-medium group-hover:text-primary transition-colors">{{ item.name
+                                }}</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="font-bold text-error">-฿{{ formatMoney(item.amount) }}</span>
                                 <span class="text-xs text-base-content/60 w-12 text-right">
                                     {{ summary.totalExpense > 0 ? ((item.amount / summary.totalExpense) *
-                                    100).toFixed(1) : 0 }}%
+                                        100).toFixed(1) : 0 }}%
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Progress bar สัดส่วน -->
-                        <progress class="progress progress-error w-full h-2" :value="item.amount"
+                        <!-- Progress bar -->
+                        <progress class="progress progress-error w-full h-2 mt-1.5" :value="item.amount"
                             :max="summary.totalExpense" />
                     </div>
                 </div>
+
             </div>
         </template>
+        <CategoryTransactionsModal :open="isCategoryModalOpen" :category-name="selectedCategoryName"
+            category-type="expense" :year="selectedYear" :month="viewMode === 'monthly' ? selectedMonth : null"
+            :account-id="selectedAccountId" :accounts="accountStore.accounts" :categories="categoryStore.categories"
+            @close="closeCategoryTransactions" @refresh="fetchSummary" />
     </section>
+
 </template>

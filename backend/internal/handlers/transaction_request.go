@@ -87,21 +87,47 @@ func parseTransactionFilter(
 		if err != nil || year < 1 {
 			return filter, fmt.Errorf("ปีไม่ถูกต้อง")
 		}
-
-		month, err := strconv.Atoi(c.Query("month"))
-		if err != nil || month < 1 || month > 12 {
-			return filter, fmt.Errorf("เดือนไม่ถูกต้อง")
+		
+		monthString := c.Query("month")
+		// ถ้ามีส่งเดือนมา -> กรองเฉพาะเดือนนั้น
+		if monthString != "" {
+			month, err := strconv.Atoi(monthString)
+			if err != nil || month < 1 || month > 12 {
+				return filter, fmt.Errorf("เดือนไม่ถูกต้อง")
+			}
+			filter.StartDate = time.Date(
+				year,
+				time.Month(month),
+				1,
+				0, 0, 0, 0,
+				time.Local,
+			)
+			filter.EndDate = filter.StartDate.AddDate(0, 1, 0) // บวก 1 เดือน
+		} else {
+			// 👈 ถ้าส่งมาแค่ปี -> ให้ครอบคลุมทั้งปี (1 ม.ค. ถึง 1 ม.ค. ปีถัดไป)
+			filter.StartDate = time.Date(
+				year,
+				1,
+				1,
+				0, 0, 0, 0,
+				time.Local,
+			)
+			filter.EndDate = filter.StartDate.AddDate(1, 0, 0) // บวก 1 ปี
 		}
+		// month, err := strconv.Atoi(c.Query("month"))
+		// if err != nil || month < 1 || month > 12 {
+		// 	return filter, fmt.Errorf("เดือนไม่ถูกต้อง")
+		// }
 
-		filter.StartDate = time.Date(
-			year,
-			time.Month(month),
-			1,
-			0, 0, 0, 0,
-			time.Local,
-		)
+		// filter.StartDate = time.Date(
+		// 	year,
+		// 	time.Month(month),
+		// 	1,
+		// 	0, 0, 0, 0,
+		// 	time.Local,
+		// )
 
-		filter.EndDate = filter.StartDate.AddDate(0, 1, 0)
+		// filter.EndDate = filter.StartDate.AddDate(0, 1, 0)
 	}
 
 	accountIDString := c.Query("accountId")

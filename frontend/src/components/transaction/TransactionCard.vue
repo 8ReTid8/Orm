@@ -10,7 +10,6 @@ import ConfirmModal from '../common/ConfirmModal.vue'
 import { FileText, Wallet } from 'lucide-vue-next'
 
 interface Props {
-    // transactions: Transaction[]
     transaction: Transaction
     categories: Category[]
     accounts: Account[]

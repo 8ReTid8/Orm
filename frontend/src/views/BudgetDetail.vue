@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import BudgetSpendingChart from "@/components/budget/BudgetSpendingChart.vue";
 import BudgetSummary from "@/components/budget/BudgetSummary.vue";
-import EmptyState from "@/components/common/EmptyState.vue";
 import TotalList from "@/components/common/TotalList.vue";
-import TransactionCard from "@/components/transaction/TransactionCard.vue";
+import GroupedTransactionList from "@/components/transaction/GroupedTransactionList.vue";
 import TransactionForm from "@/components/transaction/TransactionForm.vue";
 import { useBudget } from "@/composables/budget/useBudget";
 import { useTransactions } from "@/composables/transaction/useTransaction";
@@ -15,7 +14,6 @@ import { resolveCategoryIcon } from "@/utils/categoryIcons";
 import { formatDate, formatMoney, formatThaiDateLong } from "@/utils/format";
 import { groupTransactionsByDate } from "@/utils/transaction";
 import { AlertCircle, ArrowLeft, Calendar, ReceiptText, Wallet } from "lucide-vue-next";
-
 import { ref, onMounted, computed } from "vue"
 import { useRoute, useRouter } from "vue-router";
 
@@ -52,9 +50,6 @@ const isLoading = ref(false)
 const budget = computed(() => budgetDetail.value?.budget)
 const transactions = computed(() => budgetDetail.value?.transactions ?? [])
 
-const groupedTransactions = computed(() =>
-  groupTransactionsByDate(budgetDetail.value?.transactions ?? [])
-)
 function getCategoryIcon(categoryName?: string) {
     if (!categoryName) return null
     const cat = categoryStore.categories.find((c) => c.name === categoryName)
@@ -94,7 +89,7 @@ async function handleDeleteTransaction(id: number) {
             error,
         )
     }
-} 
+}
 
 async function saveTransaction() {
     try {
@@ -158,8 +153,7 @@ onMounted(async () => {
                         <ArrowLeft class="size-5" />
                     </button>
                     <!-- Category Icon -->
-                    <div
-                        class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-error/15 text-error">
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-error/15 text-error">
                         <component :is="getCategoryIcon(budget.category)" class="size-6" />
                     </div>
                     <div class="min-w-0">
@@ -206,33 +200,13 @@ onMounted(async () => {
                                 ประวัติรายการที่อยู่ในงบประมาณช่วงเวลานี้
                             </p>
                         </div>
-                        <TotalList :total="transactions.length"/>
+                        <TotalList :total="transactions.length" />
                     </div>
-                    <!-- Empty State -->
-                    <EmptyState v-if="transactions.length === 0" :icon="ReceiptText" title="ยังไม่มีรายการใช้จ่าย"
-                        description="ยังไม่มีการบันทึกรายการในหมวดหมู่นี้ในช่วงเวลาที่กำหนด" />
-                    <!-- Transaction List -->
-                    <div v-else class="mt-4 space-y-2">
-                        <!-- ใน BudgetDetail.vue -->
-                        <div class="space-y-4">
-                            <!-- 1. วนลูปตามกลุ่มของแต่ละวัน -->
-                            <div v-for="group in groupedTransactions" :key="group.dateKey" class="space-y-2">
-                                <!-- 📅 วันที่กำกับด้านบน (แสดงแค่อันเดียวต่อวัน) -->
-                                <div class="px-1 text-base text-base-content/60 flex items-center gap-1.5 font-medium">
-                                    <Calendar class="size-3.5 text-base-content/50" />
-                                    <span>{{ group.formattedDate }}</span>
-                                </div>
-
-                                <!-- 2. Card รายการทั้งหมดที่เกิดขึ้นในวันนั้น -->
-                                <div class="space-y-1.5">
-                                    <TransactionCard v-for="transaction in group.transactions" :key="transaction.id"
-                                        :transaction="transaction" :accounts="accountStore.accounts"
-                                        :categories="categoryStore.categories" @edit="openEditTransaction"
-                                        @delete="handleDeleteTransaction" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- 👈 ใช้งาน GroupedTransactionList แทนลูปเดิมทั้งหมด -->
+                    <GroupedTransactionList :transactions="transactions" :accounts="accountStore.accounts"
+                        :categories="categoryStore.categories" empty-title="ยังไม่มีรายการใช้จ่าย"
+                        empty-description="ยังไม่มีการบันทึกรายการในหมวดหมู่นี้ในช่วงเวลาที่กำหนด"
+                        @edit="openEditTransaction" @delete="handleDeleteTransaction" />
                 </div>
             </div>
         </template>
