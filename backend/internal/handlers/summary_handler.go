@@ -54,9 +54,44 @@ func (h *SummaryHandler) GetSummary(c *gin.Context) {
 		SavingsRate:       summary.SavingsRate,
 		IncomeByCategory:  summary.IncomeByCategory,
 		ExpenseByCategory: summary.ExpenseByCategory,
-		ComparisonPeriod:  summary.ComparisonPeriod,
-		Comparison:        summary.Comparison,
+		// ComparisonPeriod:  summary.ComparisonPeriod,
+		// Comparison:        summary.Comparison,
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+
+func (h *SummaryHandler) GetComparison(
+    c *gin.Context,
+) {
+    userID, ok := getUserID(c)
+    if !ok {
+        return
+    }
+
+    filter, err := parseComparisonFilter(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": err.Error(),
+        })
+        return
+    }
+
+    comparison, err := h.service.GetComparison(
+        c.Request.Context(),
+        userID,
+        filter,
+    )
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "message": "ไม่สามารถโหลดข้อมูลเปรียบเทียบได้",
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, dto.ComparisonResponse{
+        Period: comparison.Period,
+        Items:  comparison.Items,
+    })
 }

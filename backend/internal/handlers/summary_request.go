@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"backend/internal/dto"
 
@@ -50,4 +51,27 @@ func parseSummaryFilter(
 	}
 
 	return filter, nil
+}
+
+func parseComparisonFilter(
+    c *gin.Context,
+) (dto.ComparisonFilter, error) {
+    summaryFilter, err := parseSummaryFilter(c)
+    if err != nil {
+        return dto.ComparisonFilter{}, err
+    }
+
+    filter := dto.ComparisonFilter{
+        Year:      summaryFilter.Year,
+        Month:     summaryFilter.Month,
+        AccountID: summaryFilter.AccountID,
+    }
+
+    category := strings.TrimSpace(c.Query("category"))
+
+    if category != "" {
+        filter.Category = &category
+    }
+
+    return filter, nil
 }

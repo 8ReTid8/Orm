@@ -266,6 +266,7 @@ func (r *TransactionRepository) ListMonthlyTotals(
 	yearStart time.Time,
 	yearEnd time.Time,
 	accountID *uint,
+	category *string,
 ) ([]dto.ComparisonTotal, error) {
 	query := r.db.WithContext(ctx).
 		Table("transactions").
@@ -298,7 +299,12 @@ func (r *TransactionRepository) ListMonthlyTotals(
 			*accountID,
 		)
 	}
-
+	if category != nil && *category != "" {
+		query = query.Where(
+			"transactions.category = ?",
+			*category,
+		)
+	}
 	var totals []dto.ComparisonTotal
 
 	if err := query.
@@ -322,6 +328,7 @@ func (r *TransactionRepository) ListDailyTotals(
 	monthStart time.Time,
 	monthEnd time.Time,
 	accountID *uint,
+	category *string,
 ) ([]dto.ComparisonTotal, error) {
 	query := r.db.WithContext(ctx).
 		Table("transactions").
@@ -338,7 +345,12 @@ func (r *TransactionRepository) ListDailyTotals(
 	if accountID != nil {
 		query = query.Where("transactions.account_id = ?", *accountID)
 	}
-
+	if category != nil && *category != "" {
+		query = query.Where(
+			"transactions.category = ?",
+			*category,
+		)
+	}
 	var totals []dto.ComparisonTotal
 	if err := query.
 		Group("EXTRACT(DAY FROM transactions.transaction_date)").

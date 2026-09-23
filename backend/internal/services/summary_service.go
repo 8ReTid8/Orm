@@ -88,29 +88,29 @@ func (s *SummaryService) Get(
 		return nil, err
 	}
 
-	comparisonPeriod := "month"
-	comparisonLength := 12
-	var comparisonRows []dto.ComparisonTotal
+	// comparisonPeriod := "month"
+	// comparisonLength := 12
+	// var comparisonRows []dto.ComparisonTotal
 
-	if filter.Month != nil {
-		comparisonPeriod = "day"
-		comparisonLength = endDate.AddDate(0, 0, -1).Day()
-		comparisonRows, err = s.transactionRepo.ListDailyTotals(ctx, userID, startDate, endDate, filter.AccountID)
-	} else {
-		comparisonRows, err = s.transactionRepo.ListMonthlyTotals(ctx, userID, yearStart, yearEnd, filter.AccountID)
-	}
-	if err != nil {
-		return nil, err
-	}
+	// if filter.Month != nil {
+	// 	comparisonPeriod = "day"
+	// 	comparisonLength = endDate.AddDate(0, 0, -1).Day()
+	// 	comparisonRows, err = s.transactionRepo.ListDailyTotals(ctx, userID, startDate, endDate, filter.AccountID)
+	// } else {
+	// 	comparisonRows, err = s.transactionRepo.ListMonthlyTotals(ctx, userID, yearStart, yearEnd, filter.AccountID)
+	// }
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	// ส่งทุกวันหรือเดือนให้ chart แม้ช่วงนั้นไม่มีรายการ
-	comparison := make([]dto.ComparisonTotal, comparisonLength)
-	for period := 1; period <= comparisonLength; period++ {
-		comparison[period-1] = dto.ComparisonTotal{Period: period}
-	}
-	for _, row := range comparisonRows {
-		comparison[row.Period-1] = row
-	}
+	// // ส่งทุกวันหรือเดือนให้ chart แม้ช่วงนั้นไม่มีรายการ
+	// comparison := make([]dto.ComparisonTotal, comparisonLength)
+	// for period := 1; period <= comparisonLength; period++ {
+	// 	comparison[period-1] = dto.ComparisonTotal{Period: period}
+	// }
+	// for _, row := range comparisonRows {
+	// 	comparison[row.Period-1] = row
+	// }
 
 	netBalance := totals.Income - totals.Expense
 
@@ -131,7 +131,88 @@ func (s *SummaryService) Get(
 		SavingsRate:       savingsRate,
 		IncomeByCategory:  incomeByCategory,
 		ExpenseByCategory: expenseByCategory,
-		ComparisonPeriod:  comparisonPeriod,
-		Comparison:        comparison,
+		// ComparisonPeriod:  comparisonPeriod,
+		// Comparison:        comparison,
 	}, nil
+}
+
+func (s *SummaryService) GetComparison(
+    ctx context.Context,
+    userID uint,
+    filter dto.ComparisonFilter,
+) (*dto.ComparisonResult, error) {
+    yearStart := time.Date(
+        filter.Year,
+        time.January,
+        1,
+        0, 0, 0, 0,
+        time.Local,
+    )
+    yearEnd := yearStart.AddDate(1, 0, 0)
+
+    period := "month"
+    length := 12
+
+    startDate := yearStart
+    endDate := yearEnd
+
+    if filter.Month != nil {
+        period = "day"
+
+        startDate = time.Date(
+            filter.Year,
+            time.Month(*filter.Month),
+            1,
+            0, 0, 0, 0,
+            time.Local,
+        )
+        endDate = startDate.AddDate(0, 1, 0)
+        length = endDate.AddDate(0, 0, -1).Day()
+    }
+
+    var (
+        rows []dto.ComparisonTotal
+        err  error
+    )
+
+    if period == "day" {
+        rows, err = s.transactionRepo.ListDailyTotals(
+            ctx,
+            userID,
+            startDate,
+            endDate,
+            filter.AccountID,
+            filter.Category,
+        )
+    } else {
+        rows, err = s.transactionRepo.ListMonthlyTotals(
+            ctx,
+            userID,
+            startDate,
+            endDate,
+            filter.AccountID,
+            filter.Category,
+        )
+    }
+
+    if err != nil {
+        return nil, err
+    }
+
+    items := make([]dto.ComparisonTotal, length)
+
+    for i := 1; i <= length; i++ {
+        items[i-1] = dto.ComparisonTotal{
+            Period: i,
+        }
+    }
+
+    for _, row := range rows {
+        items[row.Period-1] = row
+    }
+
+    return &dto.ComparisonResult{
+        Period: period,
+        Items:  items,
+    }, nil
 }

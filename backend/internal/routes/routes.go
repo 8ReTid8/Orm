@@ -27,6 +27,7 @@ func SetupRoutes(
 	protected.Use(middleware.AuthMiddleware())
 	{
 		protected.GET("/summary", summaryHandler.GetSummary)
+		protected.GET("/summary/comparison", summaryHandler.GetComparison)
 		protected.GET("/period/years", periodHandler.GetAvailableYears)
 
 		protected.GET("/categories", handlers.GetCategories)

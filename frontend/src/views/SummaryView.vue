@@ -22,6 +22,7 @@ const categoryStore = useCategoryStore()
 const accountStore = useAccountStore()
 const selectedAccountId = ref<number | null>(null)
 const selectedCategoryName = ref<string>("")
+const selectedComparisonCategory = ref<string | null>(null)
 const isCategoryModalOpen = ref(false)
 const viewMode = ref<"monthly" | "yearly">("monthly")
 
@@ -36,7 +37,10 @@ const {
 
 const {
     summary,
+    comparison,
+    isLoadingComparison,
     isLoadingSummary,
+    loadComparison,
     loadSummary,
 } = useSummary()
 
@@ -45,13 +49,24 @@ async function fetchSummary() {
     if (!selectedYear.value) {
         return
     }
-
     await loadSummary(
         selectedYear.value,
-        viewMode.value === "monthly"
-            ? selectedMonth.value
-            : null,
+        // viewMode.value === "monthly"
+        //     ? selectedMonth.value
+        //     : null,
+        selectedMonth.value,
         selectedAccountId.value,
+    )
+}
+async function fetchComparison() {
+    if (!selectedYear.value) {
+        return
+    }
+    await loadComparison(
+        selectedYear.value,
+        selectedMonth.value,
+        selectedAccountId.value,
+        selectedComparisonCategory.value,
     )
 }
 
@@ -65,17 +80,36 @@ function closeCategoryTransactions() {
 }
 async function updateYear(year: number | null) {
     selectedYear.value = year
-    await fetchSummary()
+    // await fetchSummary()
+    await Promise.all([
+        fetchSummary(),
+        fetchComparison(),
+    ])
 }
 
 async function updateMonth(month: number | null) {
     selectedMonth.value = month
-    await fetchSummary()
+    // await fetchSummary()
+    await Promise.all([
+        fetchSummary(),
+        fetchComparison(),
+    ])
+}
+async function updateComparisonCategory(
+    category: string | null,
+) {
+    selectedComparisonCategory.value = category
+
+    await fetchComparison()
 }
 
 async function updateAccount(accountId: number | null) {
     selectedAccountId.value = accountId
-    await fetchSummary()
+    // await fetchSummary()
+    await Promise.all([
+        fetchSummary(),
+        fetchComparison(),
+    ])
 }
 
 
@@ -98,7 +132,11 @@ onMounted(async () => {
         selectedAccountId.value = firstAccount.id
     }
 
-    await fetchSummary()
+    // await fetchSummary()
+    await Promise.all([
+        fetchSummary(),
+        fetchComparison(),
+    ])
 })
 </script>
 
@@ -202,12 +240,33 @@ onMounted(async () => {
             </div>
             <!-- กราฟเปรียบเทียบรายรับและรายจ่ายตามช่วงเวลาที่เลือก -->
             <div class="card bg-base-100 p-5 border border-base-200 shadow-sm rounded-2xl">
-                <h2 class="font-bold text-lg mb-4">
+                <!-- <h2 class="font-bold text-lg mb-4">
                     เปรียบเทียบรายรับ vs รายจ่าย{{ summary.comparisonPeriod === "day" ? "รายวัน" : "รายเดือน" }}
                     ({{ summary.comparisonPeriod === "day" ? "เดือน " + selectedMonth : "ปี " + (selectedYear ?
                         selectedYear + 543 : "") }})
-                </h2>
-                <MonthlyComparisonChart :items="summary.comparison" :period="summary.comparisonPeriod" />
+                </h2> -->
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <h2 class="font-bold text-lg">
+                        เปรียบเทียบรายรับ vs รายจ่าย
+                        {{ comparison?.period === "day" ? "รายวัน" : "รายเดือน" }}
+                    </h2>
+
+                    <select :value="selectedComparisonCategory" class="select select-bordered select-sm" @change="updateComparisonCategory(
+                        ($event.target as HTMLSelectElement).value || null
+                    )">
+                        <option value="">ทุกหมวดหมู่</option>
+
+                        <option v-for="category in categoryStore.categories" :key="category.id" :value="category.name">
+                            {{ category.name }}
+                        </option>
+                    </select>
+                </div>
+
+                <div v-if="isLoadingComparison" class="flex justify-center py-12">
+                    <span class="loading loading-spinner text-primary" />
+                </div>
+                <MonthlyComparisonChart v-else-if="comparison" :items="comparison.items" :period="comparison.period" />
+                <!-- <MonthlyComparisonChart :items="summary.comparison" :period="summary.comparisonPeriod" /> -->
             </div>
 
             <!-- 4. 5 อันดับหมวดหมู่ที่มีรายจ่ายสูงสุด -->
@@ -229,7 +288,7 @@ onMounted(async () => {
                             <div class="flex items-center gap-2">
                                 <span class="font-semibold text-base-content/50 w-5">#{{ index + 1 }}</span>
                                 <span class="font-medium group-hover:text-primary transition-colors">{{ item.name
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="font-bold text-error">-฿{{ formatMoney(item.amount) }}</span>

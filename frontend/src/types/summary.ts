@@ -17,6 +17,11 @@ export interface Summary{
     savingsRate: number
     incomeByCategory: CategoryTotal[]
     expenseByCategory: CategoryTotal[]
-    comparisonPeriod: ComparisonPeriod
-    comparison: ComparisonTotal[]
+    // comparisonPeriod: ComparisonPeriod
+    // comparison: ComparisonTotal[]
+}
+
+export interface ComparisonResponse {
+  period: ComparisonPeriod
+  items: ComparisonTotal[]
 }
