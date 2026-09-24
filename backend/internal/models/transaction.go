@@ -10,7 +10,7 @@ type Transaction struct {
 
 
 	ID              uint      `gorm:"primaryKey" json:"id"`
-	Title           string    `gorm:"size:255;not null" json:"title"`
+	// Title           string    `gorm:"size:255;not null" json:"title"`
 	Note            string    `gorm:"type:text" json:"note"`
 	Amount          float64   `gorm:"not null" json:"amount"`
 	Category        string    `gorm:"size:20;not null" json:"category"`

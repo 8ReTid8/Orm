@@ -8,6 +8,7 @@ import AccountsView from "@/views/AccountsView.vue"
 import BudgetView from "@/views/BudgetView.vue"
 import BudgetDetail from "@/views/BudgetDetail.vue"
 import SummaryView from "@/views/SummaryView.vue"
+import AccountDetail from "@/views/AccountDetail.vue"
 // import DashboardView from "@/views/DashboardView.vue"
 // import TransactionView from "@/views/TransactionView.vue"
 // import SavingGoalView from "@/views/SavingGoalView.vue"
@@ -47,6 +48,11 @@ const router = createRouter({
           path: "accounts",
           name: "accounts",
           component: AccountsView,
+        },
+        {
+          path: "accounts/:id", // 👈 เพิ่ม Route นี้
+          name: "account-detail",
+          component: AccountDetail,
         },
         {
           path: "budgets",

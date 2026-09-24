@@ -87,55 +87,154 @@ func (r *TransactionRepository) Delete(
 		Error
 }
 
-func (r *TransactionRepository) FindAllByUser(
-	ctx context.Context,
-	userID uint,
-	filter dto.TransactionFilter,
-) ([]models.Transaction, error) {
-	query := r.db.WithContext(ctx).
-		Joins(
-			"JOIN accounts ON accounts.id = transactions.account_id",
-		).
-		Where("accounts.user_id = ?", userID).
-		Where(
-			"transactions.transaction_date >= ? AND transactions.transaction_date < ?",
-			filter.StartDate,
-			filter.EndDate,
-		)
+func (r *TransactionRepository) listByUserQuery(
+    ctx context.Context,
+    userID uint,
+    filter dto.TransactionFilter,
+) *gorm.DB {
+    query := r.db.WithContext(ctx).
+        Model(&models.Transaction{}).
+        Joins("JOIN accounts ON accounts.id = transactions.account_id").
+        Where("accounts.user_id = ?", userID).
+        Where(
+            "transactions.transaction_date >= ? AND transactions.transaction_date < ?",
+            filter.StartDate,
+            filter.EndDate,
+        )
 
-	if filter.AccountID != nil {
-		query = query.Where(
-			"transactions.account_id = ?",
-			*filter.AccountID,
-		)
-	}
+    if filter.AccountID != nil {
+        query = query.Where(
+            "transactions.account_id = ?",
+            *filter.AccountID,
+        )
+    }
 
-	if filter.Type != "" {
-		query = query.Where(
-			"transactions.type = ?",
-			filter.Type,
-		)
-	}
+    if filter.Type != "" {
+        query = query.Where(
+            "transactions.type = ?",
+            filter.Type,
+        )
+    }
 
-	if filter.Category != "" {
-		query = query.Where(
-			"transactions.category = ?",
-			filter.Category,
-		)
-	}
+    if filter.Category != "" {
+        query = query.Where(
+            "transactions.category = ?",
+            filter.Category,
+        )
+    }
 
-	var transactions []models.Transaction
-
-	if err := query.
-		Order("transactions.created_at DESC").
-		Find(&transactions).
-		Error; err != nil {
-		return nil, err
-	}
-
-	return transactions, nil
+    return query
 }
 
+// func (r *TransactionRepository) FindAllByUser(
+// 	ctx context.Context,
+// 	userID uint,
+// 	filter dto.TransactionFilter,
+// ) ([]models.Transaction, error) {
+// 	query := r.db.WithContext(ctx).
+// 		Joins(
+// 			"JOIN accounts ON accounts.id = transactions.account_id",
+// 		).
+// 		Where("accounts.user_id = ?", userID).
+// 		Where(
+// 			"transactions.transaction_date >= ? AND transactions.transaction_date < ?",
+// 			filter.StartDate,
+// 			filter.EndDate,
+// 		)
+
+// 	if filter.AccountID != nil {
+// 		query = query.Where(
+// 			"transactions.account_id = ?",
+// 			*filter.AccountID,
+// 		)
+// 	}
+
+// 	if filter.Type != "" {
+// 		query = query.Where(
+// 			"transactions.type = ?",
+// 			filter.Type,
+// 		)
+// 	}
+
+// 	if filter.Category != "" {
+// 		query = query.Where(
+// 			"transactions.category = ?",
+// 			filter.Category,
+// 		)
+// 	}
+
+// 	var transactions []models.Transaction
+
+// 	if err := query.
+// 		Order("transactions.created_at DESC").
+// 		Find(&transactions).
+// 		Error; err != nil {
+// 		return nil, err
+// 	}
+
+// 	return transactions, nil
+// }
+func (r *TransactionRepository) FindAllByUser(
+    ctx context.Context,
+    userID uint,
+    filter dto.TransactionFilter,
+) ([]models.Transaction, error) {
+    var transactions []models.Transaction
+
+    err := r.listByUserQuery(ctx, userID, filter).
+        Order("transactions.transaction_date DESC").
+        Order("transactions.id DESC").
+        Find(&transactions).
+        Error
+
+    if err != nil {
+        return nil, err
+    }
+
+    return transactions, nil
+}
+
+func (r *TransactionRepository) FindPageByUser(
+    ctx context.Context,
+    userID uint,
+    filter dto.TransactionFilter,
+    page int,
+    limit int,
+) ([]models.Transaction, int64, error) {
+    if page < 1 {
+        page = 1
+    }
+
+    if limit < 1 {
+        limit = 20
+    }
+
+    var total int64
+
+    if err := r.listByUserQuery(ctx, userID, filter).
+        Count(&total).
+        Error; err != nil {
+        return nil, 0, err
+    }
+
+    offset := (page - 1) * limit
+
+    var transactions []models.Transaction
+
+    err := r.listByUserQuery(ctx, userID, filter).
+        Order("transactions.transaction_date DESC").
+        Order("transactions.id DESC").
+        Offset(offset).
+        Limit(limit).
+        Find(&transactions).
+        Error
+
+    if err != nil {
+        return nil, 0, err
+    }
+
+    return transactions, total, nil
+}
 func (r *TransactionRepository) DeleteByAccountID(
 	ctx context.Context,
 	accountID uint,

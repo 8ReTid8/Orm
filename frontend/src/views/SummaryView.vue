@@ -17,6 +17,7 @@ import MonthlyComparisonChart from "@/components/summary/MonthlyComparisonChart.
 import { useSummary } from "@/composables/summary/useSummary"
 import { useCategoryStore } from "@/stores/category"
 import CategoryTransactionsModal from "@/components/summary/CategoryTransactionsModal.vue"
+import CategoryFilter from "@/components/filter/categoryFilter.vue"
 
 const categoryStore = useCategoryStore()
 const accountStore = useAccountStore()
@@ -251,7 +252,7 @@ onMounted(async () => {
                         {{ comparison?.period === "day" ? "รายวัน" : "รายเดือน" }}
                     </h2>
 
-                    <select :value="selectedComparisonCategory" class="select select-bordered select-sm" @change="updateComparisonCategory(
+                    <!-- <select :value="selectedComparisonCategory" class="select select-bordered select-sm" @change="updateComparisonCategory(
                         ($event.target as HTMLSelectElement).value || null
                     )">
                         <option value="">ทุกหมวดหมู่</option>
@@ -259,7 +260,8 @@ onMounted(async () => {
                         <option v-for="category in categoryStore.categories" :key="category.id" :value="category.name">
                             {{ category.name }}
                         </option>
-                    </select>
+                    </select> -->
+                    <CategoryFilter v-model="selectedComparisonCategory" :categories="categoryStore.categories" @update:model-value="updateComparisonCategory"/>
                 </div>
 
                 <div v-if="isLoadingComparison" class="flex justify-center py-12">
@@ -288,7 +290,7 @@ onMounted(async () => {
                             <div class="flex items-center gap-2">
                                 <span class="font-semibold text-base-content/50 w-5">#{{ index + 1 }}</span>
                                 <span class="font-medium group-hover:text-primary transition-colors">{{ item.name
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="font-bold text-error">-฿{{ formatMoney(item.amount) }}</span>

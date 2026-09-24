@@ -58,7 +58,7 @@ export function useTransactions() {
 
     if (
       !form.amount ||
-      !form.title ||
+      // !form.title ||
       !form.category ||
       !form.accountId
     ) {

@@ -285,3 +285,74 @@ func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {
 
 }
 
+func (h *TransactionHandler) GetAccountTransactions(
+    c *gin.Context,
+) {
+    userID, ok := getUserID(c)
+    if !ok {
+        return
+    }
+
+    accountID64, err := strconv.ParseUint(
+        c.Param("id"),
+        10,
+        64,
+    )
+    if err != nil || accountID64 == 0 {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "account id ไม่ถูกต้อง",
+        })
+        return
+    }
+
+    filter, err := parseTransactionFilter(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": err.Error(),
+        })
+        return
+    }
+
+    pageRequest, err := parsePageRequest(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": err.Error(),
+        })
+        return
+    }
+
+    // ไม่รับ accountId จาก query เพราะ URL เป็นตัวกำหนดบัญชี
+    accountID := uint(accountID64)
+    filter.AccountID = &accountID
+
+    result, err := h.service.GetPage(
+        c.Request.Context(),
+        userID,
+        filter,
+        pageRequest,
+    )
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "message": "ไม่สามารถโหลดรายการเดินบัญชีได้",
+        })
+        return
+    }
+
+    transactions := make(
+        []dto.TransactionResponse,
+        0,
+        len(result.Transactions),
+    )
+
+    for _, transaction := range result.Transactions {
+        transactions = append(
+            transactions,
+            dto.ToTransactionResponse(transaction),
+        )
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "transactions": transactions,
+        "meta":         result.Meta,
+    })
+}

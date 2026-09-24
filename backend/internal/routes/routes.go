@@ -41,6 +41,7 @@ func SetupRoutes(
 		//Transaction
 		protected.POST("/transactions", transactionHandler.CreateTransaction)
 		protected.GET("/transactions", transactionHandler.GetTransactions)
+		protected.GET("/accounts/:id/transactions",transactionHandler.GetAccountTransactions,)
 		protected.PATCH("/transactions/:id", transactionHandler.UpdateTransaction)
 		protected.DELETE("/transactions/:id", transactionHandler.DeleteTransaction)
 

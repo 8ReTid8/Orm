@@ -5,9 +5,15 @@ import { formatMoney } from "@/utils/format.ts";
 import ActionButton from "../common/ActionButton.vue";
 import { ref } from "vue";
 import ConfirmModal from "../common/ConfirmModal.vue";
+import { useRouter } from "vue-router";
 
 interface Props {
   account: Account
+}
+
+const router = useRouter()
+function openAccountDetail(accountId: number) {
+  router.push(`/accounts/${accountId}`)
 }
 
 const props = defineProps<Props>()
@@ -63,7 +69,7 @@ function handleConfirmDelete() {
 
       <!-- Footer -->
       <div class="mt-5 flex items-center justify-between border-t border-base-300 pt-4">
-        <button type="button" class="link link-primary text-sm font-medium" @click="emit('detail', account.id)">
+        <button type="button" class="link link-primary text-sm font-medium" @click.stop="openAccountDetail(account.id)">
           ดูรายละเอียด
         </button>
 

@@ -41,7 +41,7 @@ func (s *TransactionService) Create(
 		Category:        input.Category,
 		Type:            input.Type,
 		Amount:          input.Amount,
-		Title:           input.Title,
+		// Title:           input.Title,
 		Note:            input.Note,
 		Image:           slipPath,
 		TransactionDate: input.TransactionDate,
@@ -173,7 +173,7 @@ func (s *TransactionService) Update(
 		oldTransaction.Type = input.Type
 		oldTransaction.Amount = input.Amount
 		oldTransaction.Category = input.Category
-		oldTransaction.Title = input.Title
+		// oldTransaction.Title = input.Title
 		oldTransaction.Note = input.Note
 		oldTransaction.Image = imagePath
 		oldTransaction.TransactionDate = input.TransactionDate
@@ -262,3 +262,37 @@ func (s *TransactionService) Get(
 	)
 }
 
+func (s *TransactionService) GetPage(
+    ctx context.Context,
+    userID uint,
+    filter dto.TransactionFilter,
+    page dto.PageRequest,
+) (*dto.TransactionPageResult, error) {
+    transactions, total, err := s.transactionRepo.FindPageByUser(
+        ctx,
+        userID,
+        filter,
+        page.Page,
+        page.Limit,
+    )
+    if err != nil {
+        return nil, err
+    }
+
+    totalPages := 0
+    if total > 0 {
+        totalPages = int(
+            (total + int64(page.Limit) - 1) / int64(page.Limit),
+        )
+    }
+
+    return &dto.TransactionPageResult{
+        Transactions: transactions,
+        Meta: dto.PageMeta{
+            Page:       page.Page,
+            Limit:      page.Limit,
+            Total:      total,
+            TotalPages: totalPages,
+        },
+    }, nil
+}

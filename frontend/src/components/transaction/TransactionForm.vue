@@ -151,11 +151,11 @@ function closeDialog() {
                 </fieldset>
 
                 <!-- Title -->
-                <fieldset class="fieldset gap-0.5">
+                <!-- <fieldset class="fieldset gap-0.5">
                     <label class="label text-base">ชื่อรายการ</label>
                     <input v-model.trim="form.title" type="text" class="input w-full" placeholder="เช่น ค่าอาหาร"
                         required />
-                </fieldset>
+                </fieldset> -->
 
                 <!-- Amount -->
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

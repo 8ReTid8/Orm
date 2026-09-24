@@ -7,7 +7,7 @@ export interface TransactionForm {
   amount: number | null
   category: string
   accountId: number | null
-  title: string
+  // title: string
   note: string
   transactionDate: string
   slipImage: File | null
@@ -21,7 +21,7 @@ export interface Transaction {
   amount: number
   category: string
   bankName: string
-  title: string
+  // title: string
   note: string
   transactionDate: string
   slipImage?: string | null

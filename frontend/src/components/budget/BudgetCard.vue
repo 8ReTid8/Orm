@@ -11,11 +11,11 @@ import type { Account } from "@/types/account.ts"
 import { useRouter } from "vue-router"
 
 interface Props {
-  // budgets: Budget[]
   budget: Budget
   categories: Category[]
   accounts: Account[]
 }
+
 const router = useRouter()
 
 function goToBudgetDetail(budget: Budget) {

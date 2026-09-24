@@ -18,7 +18,7 @@ export async function createTransaction(
   payload.append("amount", String(form.amount))
   payload.append("category", form.category)
   payload.append("accountId", String(form.accountId))
-  payload.append("title", form.title)
+  // payload.append("title", form.title)
   payload.append("note", form.note)
   payload.append("transactionDate",form.transactionDate)
 
@@ -50,7 +50,7 @@ export async function updateTransaction(
   payload.append("amount", String(form.amount))
   payload.append("category", form.category)
   payload.append("accountId", String(form.accountId),)
-  payload.append("title", form.title)
+  // payload.append("title", form.title)
   payload.append("note", form.note)
   payload.append("transactionDate",form.transactionDate)
 

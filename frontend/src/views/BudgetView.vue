@@ -56,7 +56,6 @@ const {
 } = useBudgetFilter(loadBudgets, selectedYear, selectedMonth)
 
 
-
 function openEditBudget(budget: Budget) {
   startEdit(budget)
   setEditForm(budget)

@@ -14,14 +14,17 @@ import (
 func parseTransactionForm(c *gin.Context) (dto.TransactionInput, error) {
 	transactionType := c.PostForm("type")
 	category := c.PostForm("category")
-	title := c.PostForm("title")
+	// title := c.PostForm("title")
 	note := c.PostForm("note")
 
 	if transactionType != "income" && transactionType != "expense" {
 		return dto.TransactionInput{}, fmt.Errorf("ประเภท transaction ไม่ถูกต้อง")
 	}
 
-	if title == "" || category == "" {
+	// if title == "" || category == "" {
+	// 	return dto.TransactionInput{}, fmt.Errorf("กรุณากรอกข้อมูลให้ครบ")
+	// }
+	if category == "" {
 		return dto.TransactionInput{}, fmt.Errorf("กรุณากรอกข้อมูลให้ครบ")
 	}
 
@@ -48,7 +51,7 @@ func parseTransactionForm(c *gin.Context) (dto.TransactionInput, error) {
 		Amount:          amount,
 		Category:        category,
 		AccountID:       uint(accountID),
-		Title:           title,
+		// Title:           title,
 		Note:            note,
 		TransactionDate: transactionDate,
 	}, nil
