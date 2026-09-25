@@ -1,3 +1,6 @@
+import type { PageMeta } from "./pagination"
+import type { Transaction } from "./transaction"
+
 export interface Account {
   id: number
   userId: number
@@ -16,4 +19,18 @@ export interface CreateAccountInput {
 
 export interface DeleteAccountResponse {
   message: string
+}
+
+
+
+export interface AccountTransactionSummary {
+  income: number
+  expense: number
+  netFlow: number
+}
+
+export interface AccountTransactionsResponse {
+  transactions: Transaction[]
+  meta: PageMeta
+  summary: AccountTransactionSummary
 }

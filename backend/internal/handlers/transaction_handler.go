@@ -321,11 +321,11 @@ func (h *TransactionHandler) GetAccountTransactions(
         return
     }
 
-    // ไม่รับ accountId จาก query เพราะ URL เป็นตัวกำหนดบัญชี
+    // accountId ใน URL เป็นค่าที่เชื่อถือได้สำหรับ endpoint นี้
     accountID := uint(accountID64)
     filter.AccountID = &accountID
 
-    result, err := h.service.GetPage(
+    pageResult, err := h.service.GetPage(
         c.Request.Context(),
         userID,
         filter,
@@ -338,13 +338,25 @@ func (h *TransactionHandler) GetAccountTransactions(
         return
     }
 
+    totals, err := h.service.GetTotals(
+        c.Request.Context(),
+        userID,
+        filter,
+    )
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "message": "ไม่สามารถโหลดข้อมูลสรุปได้",
+        })
+        return
+    }
+
     transactions := make(
         []dto.TransactionResponse,
         0,
-        len(result.Transactions),
+        len(pageResult.Transactions),
     )
 
-    for _, transaction := range result.Transactions {
+    for _, transaction := range pageResult.Transactions {
         transactions = append(
             transactions,
             dto.ToTransactionResponse(transaction),
@@ -353,6 +365,11 @@ func (h *TransactionHandler) GetAccountTransactions(
 
     c.JSON(http.StatusOK, gin.H{
         "transactions": transactions,
-        "meta":         result.Meta,
+        "meta":         pageResult.Meta,
+        "summary": gin.H{
+            "income":  totals.Income,
+            "expense": totals.Expense,
+            "netFlow": totals.Income - totals.Expense,
+        },
     })
 }

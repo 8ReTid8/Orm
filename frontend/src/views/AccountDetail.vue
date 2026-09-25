@@ -20,12 +20,14 @@ import GroupedTransactionList from "@/components/transaction/GroupedTransactionL
 import TransactionForm from "@/components/transaction/TransactionForm.vue"
 import TotalList from "@/components/common/TotalList.vue"
 import type { Transaction } from "@/types/transaction"
+import Pagination from "@/components/common/Pagination.vue"
 
 const route = useRoute()
 const router = useRouter()
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
 
+const currentPage = ref(1)
 const accountId = computed(() => Number(route.params.id))
 const account = computed(() =>
   accountStore.accounts.find((a) => a.id === accountId.value)
@@ -42,36 +44,56 @@ const {
   loadYears,
 } = usePeriodFilter("transaction")
 
+// const {
+//   transactions,
+//   isLoadingTransactions,
+//   loadTransactions,
+//   deleteTransaction,
+//   saveTransaction: saveTransactionApi,
+//   startEdit,
+//   cancelEdit,
+// } = useTransactions()
 const {
   transactions,
+  meta,
+  totals,
   isLoadingTransactions,
-  loadTransactions,
+  loadAccountTransactions,
   deleteTransaction,
   saveTransaction: saveTransactionApi,
   startEdit,
   cancelEdit,
 } = useTransactions()
-
 const { form, setEditForm, resetForm } = useTransactionForm()
 
 // ดึงรายการเดินบัญชีของบัญชีนี้
 async function fetchTransactions() {
   if (!accountId.value || !selectedYear.value) return
 
-  await loadTransactions({
-    accountId: accountId.value,
-    year: selectedYear.value,
-    month: viewMode.value === "monthly" ? selectedMonth.value : null,
-  })
+  // await loadTransactions({
+  //   accountId: accountId.value,
+  //   year: selectedYear.value,
+  //   month: viewMode.value === "monthly" ? selectedMonth.value : null,
+  // })
+  await loadAccountTransactions(
+    accountId.value,
+    selectedYear.value,
+    viewMode.value === "monthly"
+      ? selectedMonth.value
+      : null,
+    currentPage.value,
+  )
 }
 
 async function updateYear(year: number | null) {
   selectedYear.value = year
+  currentPage.value = 1
   await fetchTransactions()
 }
 
 async function updateMonth(month: number | null) {
   selectedMonth.value = month
+  currentPage.value = 1
   await fetchTransactions()
 }
 
@@ -80,23 +102,27 @@ async function setViewMode(mode: "monthly" | "yearly") {
   if (mode === "monthly" && !selectedMonth.value) {
     selectedMonth.value = new Date().getMonth() + 1
   }
+  currentPage.value = 1
   await fetchTransactions()
 }
 
+const totalIncome = computed(() => totals.value.income)
+const totalExpense = computed(() => totals.value.expense)
+const netFlow = computed(() => totals.value.netFlow)
 // คำนวณกระแสเงินสดเฉพาะช่วงเวลานี้
-const totalIncome = computed(() =>
-  transactions.value
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0)
-)
+// const totalIncome = computed(() =>
+//   transactions.value
+//     .filter((t) => t.type === "income")
+//     .reduce((sum, t) => sum + t.amount, 0)
+// )
 
-const totalExpense = computed(() =>
-  transactions.value
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0)
-)
+// const totalExpense = computed(() =>
+//   transactions.value
+//     .filter((t) => t.type === "expense")
+//     .reduce((sum, t) => sum + t.amount, 0)
+// )
 
-const netFlow = computed(() => totalIncome.value - totalExpense.value)
+// const netFlow = computed(() => totalIncome.value - totalExpense.value)
 
 // แก้ไขและลบรายการ
 function openEditTransaction(transaction: Transaction) {
@@ -108,7 +134,7 @@ function openEditTransaction(transaction: Transaction) {
 function closeDialog() {
   isDialogOpen.value = false
   cancelEdit()
-//   resetForm()
+  //   resetForm()
 }
 
 async function saveTransaction() {
@@ -166,12 +192,8 @@ onMounted(async () => {
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-3 min-w-0">
           <!-- ปุ่มย้อนกลับ -->
-          <button
-            type="button"
-            class="btn btn-circle btn-ghost btn-sm shrink-0"
-            title="ย้อนกลับ"
-            @click="router.back()"
-          >
+          <button type="button" class="btn btn-circle btn-ghost btn-sm shrink-0" title="ย้อนกลับ"
+            @click="router.back()">
             <ArrowLeft class="size-5" />
           </button>
 
@@ -229,10 +251,7 @@ onMounted(async () => {
             <span class="text-sm font-medium">ส่วนต่างเงินในรอบนี้</span>
             <Wallet class="size-5" />
           </div>
-          <p
-            class="mt-3 text-2xl font-bold"
-            :class="netFlow >= 0 ? 'text-success' : 'text-error'"
-          >
+          <p class="mt-3 text-2xl font-bold" :class="netFlow >= 0 ? 'text-success' : 'text-error'">
             {{ netFlow >= 0 ? '+' : '' }}฿{{ formatMoney(netFlow) }}
           </p>
         </div>
@@ -241,31 +260,22 @@ onMounted(async () => {
       <!-- 3. แถบควบคุมตัวกรอง (สลับ รายเดือน / รายปี) -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="join bg-base-200 p-1 rounded-xl">
-          <button
-            class="btn btn-sm join-item border-none"
+          <button class="btn btn-sm join-item border-none"
             :class="viewMode === 'monthly' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'"
-            @click="setViewMode('monthly')"
-          >
+            @click="setViewMode('monthly')">
             รายเดือน
           </button>
-          <button
-            class="btn btn-sm join-item border-none"
+          <button class="btn btn-sm join-item border-none"
             :class="viewMode === 'yearly' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'"
-            @click="setViewMode('yearly')"
-          >
+            @click="setViewMode('yearly')">
             รายปี
           </button>
         </div>
 
         <!-- PeriodFilter -->
-        <PeriodFilter
-          :years="years"
-          :months="viewMode === 'monthly' ? months : []"
-          :model-year="selectedYear"
-          :model-month="viewMode === 'monthly' ? selectedMonth : null"
-          @update:model-year="updateYear"
-          @update:model-month="updateMonth"
-        />
+        <PeriodFilter :years="years" :months="viewMode === 'monthly' ? months : []" :model-year="selectedYear"
+          :model-month="viewMode === 'monthly' ? selectedMonth : null" @update:model-year="updateYear"
+          @update:model-month="updateMonth" />
       </div>
 
       <!-- 4. Section รายการเดินบัญชี (Statement) -->
@@ -278,32 +288,37 @@ onMounted(async () => {
                 ประวัติรายการเงินเข้าและเงินออกของบัญชีนี้
               </p>
             </div>
-            <TotalList :total="transactions.length" />
+            <TotalList :total="meta.total" />
           </div>
 
           <!-- ใช้ GroupedTransactionList component -->
-          <GroupedTransactionList
-            :transactions="transactions"
-            :accounts="accountStore.accounts"
-            :categories="categoryStore.categories"
-            :loading="isLoadingTransactions"
-            empty-title="ยังไม่มีรายการเดินบัญชี"
-            empty-description="ไม่มีรายการเงินเข้าหรือเงินออกในช่วงเวลาที่เลือก"
-            @edit="openEditTransaction"
-            @delete="handleDeleteTransaction"
-          />
+          <GroupedTransactionList :transactions="transactions" :accounts="accountStore.accounts"
+            :categories="categoryStore.categories" :loading="isLoadingTransactions"
+            empty-title="ยังไม่มีรายการเดินบัญชี" empty-description="ไม่มีรายการเงินเข้าหรือเงินออกในช่วงเวลาที่เลือก"
+            @edit="openEditTransaction" @delete="handleDeleteTransaction" />
+          <!-- <div v-if="meta.totalPages > 1" class="mt-6 flex items-center justify-center gap-3">
+            <button class="btn btn-sm" :disabled="meta.page <= 1"
+              @click="currentPage = meta.page - 1; fetchTransactions()">
+              ก่อนหน้า
+            </button>
+
+            <span class="text-sm text-base-content/60">
+              หน้า {{ meta.page }} / {{ meta.totalPages }}
+            </span>
+
+            <button class="btn btn-sm" :disabled="meta.page >= meta.totalPages"
+              @click="currentPage = meta.page + 1; fetchTransactions()">
+              ถัดไป
+            </button>
+          </div> -->
+          <Pagination v-model:current-page="currentPage" :total-pages="meta.totalPages"
+            :disabled="isLoadingTransactions" @change="fetchTransactions" />
         </div>
       </div>
     </template>
   </section>
 
   <!-- ฟอร์มแก้ไขรายการ -->
-  <TransactionForm
-    :open="isDialogOpen"
-    :form="form"
-    :accounts="accountStore.accounts"
-    :categories="categoryStore.categories"
-    @close="closeDialog"
-    @save="saveTransaction"
-  />
+  <TransactionForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
+    :categories="categoryStore.categories" @close="closeDialog" @save="saveTransaction" />
 </template>

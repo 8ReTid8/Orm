@@ -1,4 +1,5 @@
 import type { Account } from "./account"
+import type { PageMeta } from "./pagination"
 
 export type TransactionType = "income" | "expense"
 
@@ -47,4 +48,16 @@ export interface GetTransactionsResponse {
 
 export interface DeleteTransactionResponse {
   message: string
+}
+
+export interface TransactionTotals {
+  income: number
+  expense: number
+  netFlow: number
+}
+
+export interface GetAccountTransactionsResponse {
+  transactions: Transaction[]
+  meta: PageMeta
+  summary: TransactionTotals
 }

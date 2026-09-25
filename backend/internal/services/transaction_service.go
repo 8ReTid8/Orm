@@ -296,3 +296,17 @@ func (s *TransactionService) GetPage(
         },
     }, nil
 }
+
+func (s *TransactionService) GetTotals(
+    ctx context.Context,
+    userID uint,
+    filter dto.TransactionFilter,
+) (dto.SummaryTotals, error) {
+    return s.transactionRepo.GetSummaryTotals(
+        ctx,
+        userID,
+        filter.StartDate,
+        filter.EndDate,
+        filter.AccountID,
+    )
+}

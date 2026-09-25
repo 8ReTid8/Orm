@@ -1,5 +1,5 @@
 import api from "./api"
-import type { Account, CreateAccountInput, CreateAccountResponse, DeleteAccountResponse } from "@/types/account"
+import type { Account, AccountTransactionsResponse, CreateAccountInput, CreateAccountResponse, DeleteAccountResponse } from "@/types/account"
 
 export async function createAccount(
   input: CreateAccountInput,
@@ -23,6 +23,28 @@ export async function deleteAccount(
 ) {
   const response = await api.delete<DeleteAccountResponse>(
     `/accounts/${id}`,
+  )
+
+  return response.data
+}
+
+export async function getAccountTransactions(
+  accountId: number,
+  year: number,
+  month: number | null,
+  page: number,
+  limit = 20,
+) {
+  const response = await api.get<AccountTransactionsResponse>(
+    `/accounts/${accountId}/transactions`,
+    {
+      params: {
+        year,
+        month,
+        page,
+        limit,
+      },
+    },
   )
 
   return response.data

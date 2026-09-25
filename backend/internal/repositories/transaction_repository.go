@@ -461,3 +461,4 @@ func (r *TransactionRepository) ListDailyTotals(
 
 	return totals, nil
 }
+
