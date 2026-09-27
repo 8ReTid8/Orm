@@ -18,12 +18,15 @@ import { useSummary } from "@/composables/summary/useSummary"
 import { useCategoryStore } from "@/stores/category"
 import CategoryTransactionsModal from "@/components/summary/CategoryTransactionsModal.vue"
 import CategoryFilter from "@/components/filter/categoryFilter.vue"
+import TransactionSummary from "@/components/transaction/TransactionSummary.vue"
 
 const categoryStore = useCategoryStore()
 const accountStore = useAccountStore()
+// const selectedCategoryTotal = ref(0)
 const selectedAccountId = ref<number | null>(null)
 const selectedCategoryName = ref<string>("")
 const selectedComparisonCategory = ref<string | null>(null)
+const selectedCategoryType = ref<"expense" | "income">("expense") // 👈 เพิ่มตัวนี้
 const isCategoryModalOpen = ref(false)
 const viewMode = ref<"monthly" | "yearly">("monthly")
 
@@ -52,9 +55,6 @@ async function fetchSummary() {
     }
     await loadSummary(
         selectedYear.value,
-        // viewMode.value === "monthly"
-        //     ? selectedMonth.value
-        //     : null,
         selectedMonth.value,
         selectedAccountId.value,
     )
@@ -71,8 +71,13 @@ async function fetchComparison() {
     )
 }
 
-function openCategoryTransactions(categoryName: string) {
+// function openCategoryTransactions(categoryName: string) {
+//     selectedCategoryName.value = categoryName
+//     isCategoryModalOpen.value = true
+// }
+function openCategoryTransactions(categoryName: string, type: "expense" | "income" = "expense") {
     selectedCategoryName.value = categoryName
+    selectedCategoryType.value = type
     isCategoryModalOpen.value = true
 }
 function closeCategoryTransactions() {
@@ -171,54 +176,9 @@ onMounted(async () => {
         <!-- <template v-else> -->
         <template v-else-if="summary">
             <!-- 2. Overview Stat Cards (4 ใบ) -->
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <!-- รายรับรวม -->
-                <div class="rounded-2xl bg-success/10 p-5 border border-success/20">
-                    <div class="flex items-center justify-between text-success">
-                        <span class="text-sm font-medium">รายรับรวม</span>
-                        <ArrowDownLeft class="size-5" />
-                    </div>
-                    <p class="mt-3 text-2xl font-bold text-success">
-                        +฿{{ formatMoney(summary.totalIncome) }}
-                    </p>
-                </div>
-
-                <!-- รายจ่ายรวม -->
-                <div class="rounded-2xl bg-error/10 p-5 border border-error/20">
-                    <div class="flex items-center justify-between text-error">
-                        <span class="text-sm font-medium">รายจ่ายรวม</span>
-                        <ArrowUpRight class="size-5" />
-                    </div>
-                    <p class="mt-3 text-2xl font-bold text-error">
-                        -฿{{ formatMoney(summary.totalExpense) }}
-                    </p>
-                </div>
-
-                <!-- สุทธิคงเหลือ -->
-                <div class="rounded-2xl bg-base-200 p-5 border border-base-300">
-                    <div class="flex items-center justify-between text-base-content/70">
-                        <span class="text-sm font-medium">สุทธิคงเหลือ</span>
-                        <Wallet class="size-5" />
-                    </div>
-                    <p class="mt-3 text-2xl font-bold" :class="summary.netBalance >= 0 ? 'text-success' : 'text-error'">
-                        {{ summary.netBalance >= 0 ? '+' : '' }}฿{{ formatMoney(summary.netBalance) }}
-                    </p>
-                </div>
-
-                <!-- อัตราการออม -->
-                <div class="rounded-2xl bg-base-200 p-5 border border-base-300">
-                    <div class="flex items-center justify-between text-base-content/70">
-                        <span class="text-sm font-medium">อัตราการออม</span>
-                        <Percent class="size-5" />
-                    </div>
-                    <div class="mt-3 flex items-baseline gap-2">
-                        <p class="text-2xl font-bold text-primary">
-                            {{ summary.savingsRate.toFixed(1) }}%
-                        </p>
-                        <span class="text-xs text-base-content/60">ของรายรับ</span>
-                    </div>
-                </div>
-            </div>
+            <TransactionSummary :income="summary.totalIncome" :expense="summary.totalExpense" :net="summary.netBalance"
+                :savings-rate="summary.savingsRate" income-label="รายรับรวม" expense-label="รายจ่ายรวม"
+                net-label="สุทธิคงเหลือ" />
 
             <!-- 3. กราฟ 2 ฝั่ง (โดนัท + แท่งเปรียบเทียบ) -->
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -228,7 +188,7 @@ onMounted(async () => {
                         <h2 class="font-bold text-lg text-success">สัดส่วนรายรับตามหมวดหมู่</h2>
                         <span class="text-sm font-semibold text-success">+฿{{ formatMoney(summary.totalIncome) }}</span>
                     </div>
-                    <CategoryPieChart :items="summary.incomeByCategory" empty-text="ไม่มีข้อมูลรายรับในช่วงเวลานี้" />
+                    <CategoryPieChart :items="summary.incomeByCategory" empty-text="ไม่มีข้อมูลรายรับในช่วงเวลานี้"  @select="openCategoryTransactions($event, 'income')"/>
                 </div>
                 <!-- สัดส่วนรายจ่าย -->
                 <div class="card bg-base-100 p-5 border border-base-200 shadow-sm rounded-2xl">
@@ -236,7 +196,7 @@ onMounted(async () => {
                         <h2 class="font-bold text-lg text-error">สัดส่วนรายจ่ายตามหมวดหมู่</h2>
                         <span class="text-sm font-semibold text-error">-฿{{ formatMoney(summary.totalExpense) }}</span>
                     </div>
-                    <CategoryPieChart :items="summary.expenseByCategory" empty-text="ไม่มีข้อมูลรายจ่ายในช่วงเวลานี้" />
+                    <CategoryPieChart :items="summary.expenseByCategory" empty-text="ไม่มีข้อมูลรายจ่ายในช่วงเวลานี้" @select="openCategoryTransactions($event, 'expense')" />
                 </div>
             </div>
             <!-- กราฟเปรียบเทียบรายรับและรายจ่ายตามช่วงเวลาที่เลือก -->
@@ -261,7 +221,8 @@ onMounted(async () => {
                             {{ category.name }}
                         </option>
                     </select> -->
-                    <CategoryFilter v-model="selectedComparisonCategory" :categories="categoryStore.categories" @update:model-value="updateComparisonCategory"/>
+                    <CategoryFilter v-model="selectedComparisonCategory" :categories="categoryStore.categories"
+                        @update:model-value="updateComparisonCategory" />
                 </div>
 
                 <div v-if="isLoadingComparison" class="flex justify-center py-12">
@@ -290,7 +251,7 @@ onMounted(async () => {
                             <div class="flex items-center gap-2">
                                 <span class="font-semibold text-base-content/50 w-5">#{{ index + 1 }}</span>
                                 <span class="font-medium group-hover:text-primary transition-colors">{{ item.name
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="font-bold text-error">-฿{{ formatMoney(item.amount) }}</span>
@@ -310,7 +271,7 @@ onMounted(async () => {
             </div>
         </template>
         <CategoryTransactionsModal :open="isCategoryModalOpen" :category-name="selectedCategoryName"
-            category-type="expense" :year="selectedYear" :month="viewMode === 'monthly' ? selectedMonth : null"
+            :category-type="selectedCategoryType" :year="selectedYear" :month="viewMode === 'monthly' ? selectedMonth : null"
             :account-id="selectedAccountId" :accounts="accountStore.accounts" :categories="categoryStore.categories"
             @close="closeCategoryTransactions" @refresh="fetchSummary" />
     </section>

@@ -12,6 +12,7 @@ import {
   getTransactions,
   updateTransaction,
   deleteTransaction as deleteTransactionApi,
+  getTransactionPage,
 } from "@/services/transaction"
 import type { PageMeta } from "@/types/pagination"
 import { getAccountTransactions } from "@/services/account"
@@ -60,7 +61,31 @@ export function useTransactions() {
       isLoadingTransactions.value = false
     }
   }
+  async function loadTransactionPage(
+    filter: TransactionFilter,
+    page = 1,
+    limit = 20,
+  ) {
+    try {
+      isLoadingTransactions.value = true
 
+      const response = await getTransactionPage(
+        filter,
+        page,
+        limit,
+      )
+
+      transactions.value = response.transactions
+      meta.value = response.meta
+    } catch (error) {
+      console.error(
+        "Failed to load transaction page:",
+        error,
+      )
+    } finally {
+      isLoadingTransactions.value = false
+    }
+  }
   async function loadAccountTransactions(
     accountId: number,
     year: number,
@@ -142,6 +167,7 @@ export function useTransactions() {
     editingTransactionId,
 
     loadTransactions,
+    loadTransactionPage,
     loadAccountTransactions,
     deleteTransaction,
     saveTransaction,

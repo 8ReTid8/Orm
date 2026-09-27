@@ -5,6 +5,8 @@ import type {
   CreateTransactionResponse,
   GetTransactionsResponse,
   DeleteTransactionResponse,
+  TransactionFilter,
+  GetTransactionsPageResponse,
 } from "@/types/transaction"
 
 
@@ -109,4 +111,31 @@ export async function deleteTransaction(
 export async function getTransactionYears(): Promise<number[]> {
   const response = await api.get<{ years: number[] }>("/transactions/years")
   return response.data.years
+}
+
+export async function getTransactionPage(
+  filter: TransactionFilter,
+  page = 1,
+  limit = 20,
+) {
+  const response = await api.get<GetTransactionsPageResponse>(
+    "/transactions",
+    {
+      params: {
+        year: filter.year,
+        month: filter.month,
+        startDate: filter.startDate,
+        endDate: filter.endDate,
+        accountId: filter.accountId,
+        category: filter.category,
+        type: filter.type,
+
+        // มีค่านี้ backend จึงเข้า pagination branch
+        page,
+        limit,
+      },
+    },
+  )
+
+  return response.data
 }

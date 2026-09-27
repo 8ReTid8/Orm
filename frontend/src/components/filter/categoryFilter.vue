@@ -99,7 +99,7 @@ function selectCategory(categoryName: string | null) {
   <div>
     <!-- ปุ่มกดเปิด Modal หน้าเว็บ -->
     <div class="flex items-center gap-2">
-      <label class="shrink-0 text-sm font-medium">หมวดหมู่</label>
+      <!-- <label class="shrink-0 text-sm font-medium">หมวดหมู่</label> -->
       <!-- <div class="flex flex-col gap-1">
       
       <label class="text-xs font-medium text-base-content/70">
@@ -113,7 +113,7 @@ function selectCategory(categoryName: string | null) {
         <span>{{ modelValue || "ทุกหมวดหมู่" }}</span>
 
         <X v-if="modelValue" class="size-3.5 hover:text-error ml-1" @click.stop="selectCategory(null)" />
-        <ChevronDown v-else class="size-3.5 text-base-content/50" />
+        <!-- <ChevronDown v-else class="size-3.5 text-base-content/50" /> -->
       </button>
     </div>
 

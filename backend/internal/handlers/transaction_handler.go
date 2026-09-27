@@ -100,7 +100,6 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	})
 }
 
-
 func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 
 	userID, ok := getUserID(c)
@@ -115,7 +114,17 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 		})
 		return
 	}
+	shouldPaginate := c.Query("page") != "" ||
+		c.Query("limit") != ""
 
+	if shouldPaginate {
+		h.GetTransactionsPage(
+			c,
+			userID,
+			filter,
+		)
+		return
+	}
 
 	transactions, err := h.service.Get(
 		c.Request.Context(),
@@ -144,7 +153,6 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 		"transactions": responses,
 	})
 }
-
 
 func (h *TransactionHandler) UpdateTransaction(c *gin.Context) {
 	// 1. user จาก JWT
@@ -285,91 +293,136 @@ func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {
 
 }
 
-func (h *TransactionHandler) GetAccountTransactions(
-    c *gin.Context,
+func (h *TransactionHandler) GetTransactionsPage(
+	c *gin.Context,
+	userID uint,
+	filter dto.TransactionFilter,
 ) {
-    userID, ok := getUserID(c)
-    if !ok {
-        return
-    }
+	pageRequest, err := parsePageRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 
-    accountID64, err := strconv.ParseUint(
-        c.Param("id"),
-        10,
-        64,
-    )
-    if err != nil || accountID64 == 0 {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "message": "account id ไม่ถูกต้อง",
-        })
-        return
-    }
+	result, err := h.service.GetPage(
+		c.Request.Context(),
+		userID,
+		filter,
+		pageRequest,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถโหลดรายการได้",
+		})
+		return
+	}
 
-    filter, err := parseTransactionFilter(c)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "message": err.Error(),
-        })
-        return
-    }
+	responses := make(
+		[]dto.TransactionResponse,
+		0,
+		len(result.Transactions),
+	)
 
-    pageRequest, err := parsePageRequest(c)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "message": err.Error(),
-        })
-        return
-    }
+	for _, transaction := range result.Transactions {
+		responses = append(
+			responses,
+			dto.ToTransactionResponse(transaction),
+		)
+	}
 
-    // accountId ใน URL เป็นค่าที่เชื่อถือได้สำหรับ endpoint นี้
-    accountID := uint(accountID64)
-    filter.AccountID = &accountID
+	c.JSON(http.StatusOK, gin.H{
+		"transactions": responses,
+		"meta":         result.Meta,
+	})
+}
 
-    pageResult, err := h.service.GetPage(
-        c.Request.Context(),
-        userID,
-        filter,
-        pageRequest,
-    )
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "message": "ไม่สามารถโหลดรายการเดินบัญชีได้",
-        })
-        return
-    }
+func (h *TransactionHandler) GetAccountTransactions(
+	c *gin.Context,
+) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
 
-    totals, err := h.service.GetTotals(
-        c.Request.Context(),
-        userID,
-        filter,
-    )
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "message": "ไม่สามารถโหลดข้อมูลสรุปได้",
-        })
-        return
-    }
+	accountID64, err := strconv.ParseUint(
+		c.Param("id"),
+		10,
+		64,
+	)
+	if err != nil || accountID64 == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "account id ไม่ถูกต้อง",
+		})
+		return
+	}
 
-    transactions := make(
-        []dto.TransactionResponse,
-        0,
-        len(pageResult.Transactions),
-    )
+	filter, err := parseTransactionFilter(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 
-    for _, transaction := range pageResult.Transactions {
-        transactions = append(
-            transactions,
-            dto.ToTransactionResponse(transaction),
-        )
-    }
+	pageRequest, err := parsePageRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 
-    c.JSON(http.StatusOK, gin.H{
-        "transactions": transactions,
-        "meta":         pageResult.Meta,
-        "summary": gin.H{
-            "income":  totals.Income,
-            "expense": totals.Expense,
-            "netFlow": totals.Income - totals.Expense,
-        },
-    })
+	// accountId ใน URL เป็นค่าที่เชื่อถือได้สำหรับ endpoint นี้
+	accountID := uint(accountID64)
+	filter.AccountID = &accountID
+
+	pageResult, err := h.service.GetPage(
+		c.Request.Context(),
+		userID,
+		filter,
+		pageRequest,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถโหลดรายการเดินบัญชีได้",
+		})
+		return
+	}
+
+	totals, err := h.service.GetTotals(
+		c.Request.Context(),
+		userID,
+		filter,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถโหลดข้อมูลสรุปได้",
+		})
+		return
+	}
+
+	transactions := make(
+		[]dto.TransactionResponse,
+		0,
+		len(pageResult.Transactions),
+	)
+
+	for _, transaction := range pageResult.Transactions {
+		transactions = append(
+			transactions,
+			dto.ToTransactionResponse(transaction),
+		)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"transactions": transactions,
+		"meta":         pageResult.Meta,
+		"summary": gin.H{
+			"income":  totals.Income,
+			"expense": totals.Expense,
+			"netFlow": totals.Income - totals.Expense,
+		},
+	})
 }

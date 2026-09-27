@@ -7,10 +7,10 @@ import type { Transaction } from "@/types/transaction"
 import { useTransactions } from "@/composables/transaction/useTransaction"
 import { useTransactionForm } from "@/composables/transaction/useTransactionForm"
 import { resolveCategoryIcon } from "@/utils/categoryIcons"
-import { formatMoney } from "@/utils/format"
 import TransactionForm from "@/components/transaction/TransactionForm.vue"
 import TotalList from "@/components/common/TotalList.vue"
 import GroupedTransactionList from "../transaction/GroupedTransactionList.vue"
+import Pagination from "../common/Pagination.vue"
 
 interface Props {
     open: boolean
@@ -32,13 +32,25 @@ const emit = defineEmits<{
     refresh: [] // แจ้ง SummaryView ให้โหลด useSummary ใหม่เมื่อมีการแก้ไข/ลบ
 }>()
 
+const currentPage = ref(1)
 const dialogRef = ref<HTMLDialogElement | null>(null)
 const isEditFormOpen = ref(false)
 
+// const {
+//     transactions,
+//     isLoadingTransactions,
+//     loadTransactions,
+//     deleteTransaction,
+//     saveTransaction: saveTransactionApi,
+//     startEdit,
+//     cancelEdit,
+// } = useTransactions()
+
 const {
     transactions,
+    meta,
     isLoadingTransactions,
-    loadTransactions,
+    loadTransactionPage,
     deleteTransaction,
     saveTransaction: saveTransactionApi,
     startEdit,
@@ -48,9 +60,9 @@ const {
 const { form, setEditForm, resetForm } = useTransactionForm()
 
 // รวมยอดเงินทั้งหมดในหมวดนี้
-const totalAmount = computed(() =>
-    transactions.value.reduce((sum, t) => sum + t.amount, 0)
-)
+// const totalAmount = computed(() =>
+//     transactions.value.reduce((sum, t) => sum + t.amount, 0)
+// )
 
 // ดึง Icon หมวดหมู่
 const categoryIcon = computed(() => {
@@ -59,22 +71,42 @@ const categoryIcon = computed(() => {
 })
 
 // ดึงข้อมูลเมื่อ Modal เปิด
-async function fetchCategoryTransactions() {
-    if (!props.categoryName || !props.year) return
+// async function fetchCategoryTransactions() {
+//     if (!props.categoryName || !props.year) return
 
-    await loadTransactions({
-        year: props.year,
-        month: props.month,
-        accountId: props.accountId,
-        category: props.categoryName,
-    })
+//     await loadTransactions({
+//         year: props.year,
+//         month: props.month,
+//         accountId: props.accountId,
+//         category: props.categoryName,
+//     })
+// }
+async function fetchCategoryTransactions(
+    page = currentPage.value,
+) {
+    if (!props.categoryName || !props.year) {
+        return
+    }
+
+    await loadTransactionPage(
+        {
+            year: props.year,
+            month: props.month,
+            accountId: props.accountId,
+            category: props.categoryName,
+            type: props.categoryType,
+        },
+        page,
+    )
+
+    currentPage.value = meta.value.page
 }
-
 // ควบคุมการเปิด/ปิด Dialog
 watch(
     () => props.open,
     async (isOpen) => {
         if (isOpen) {
+            currentPage.value = 1
             dialogRef.value?.showModal()
             await fetchCategoryTransactions()
         } else {
@@ -141,17 +173,18 @@ async function handleDeleteTransaction(id: number) {
                                 {{ categoryType === 'income' ? 'รายรับ' : 'รายจ่าย' }}
                             </span>
                         </div>
-                        <p class="text-xs text-base-content/60 mt-0.5">
+                        <!-- <p class="text-xs text-base-content/60 mt-0.5">
                             ยอดรวม: <span class="font-bold"
                                 :class="categoryType === 'income' ? 'text-success' : 'text-error'">
                                 ฿{{ formatMoney(totalAmount) }}
                             </span>
-                        </p>
+                        </p> -->
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <TotalList :total="transactions.length" />
+                    <!-- <TotalList :total="transactions.length" /> -->
+                    <TotalList :total="meta.total" />
                     <button type="button" class="btn btn-ghost btn-circle btn-sm" @click="handleClose">
                         <X class="size-5" />
                     </button>
@@ -164,6 +197,8 @@ async function handleDeleteTransaction(id: number) {
                     :loading="isLoadingTransactions" empty-title="ไม่พบรายการในหมวดนี้"
                     empty-description="ไม่มีการบันทึกรายการสำหรับหมวดหมู่นี้ในช่วงเวลาที่เลือก"
                     @edit="openEditTransaction" @delete="handleDeleteTransaction" />
+                <Pagination v-model:current-page="currentPage" :total-pages="meta.totalPages"
+                    :disabled="isLoadingTransactions" @change="fetchCategoryTransactions" />
             </div>
 
         </div>

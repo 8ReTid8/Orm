@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Account } from "@/types/account"
+import { Wallet } from "lucide-vue-next";
 
 interface Props {
   accounts: Account[]
@@ -23,11 +24,11 @@ function handleChange(event: Event) {
 
 <template>
   <div class="flex items-center gap-2">
-    <label class="text-sm font-medium">
+    <!-- <label class="text-sm font-medium">
       บัญชี
-    </label>
+    </label> -->
 
-    <select
+    <!-- <select
       :value="modelValue ?? ''"
       class="select select-bordered min-w-max  "
       @change="handleChange"
@@ -43,6 +44,18 @@ function handleChange(event: Event) {
       >
         {{ account.name }}
       </option>
-    </select>
+    </select> -->
+    <div class="relative flex items-center">
+      <Wallet class="pointer-events-none absolute left-3 size-4 text-base-content/60 z-10" />
+      <select :value="modelValue ?? ''"
+        class="select select-bordered select-sm h-10 pl-9 min-w-max text-sm font-normal" @change="handleChange">
+        <option value="">
+          ทุกบัญชี
+        </option>
+        <option v-for="account in accounts" :key="account.id" :value="account.id">
+          {{ account.name }}
+        </option>
+      </select>
+    </div>
   </div>
 </template>

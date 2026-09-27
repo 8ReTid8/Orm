@@ -47,10 +47,10 @@ func parseTransactionForm(c *gin.Context) (dto.TransactionInput, error) {
 	}
 
 	return dto.TransactionInput{
-		Type:            transactionType,
-		Amount:          amount,
-		Category:        category,
-		AccountID:       uint(accountID),
+		Type:      transactionType,
+		Amount:    amount,
+		Category:  category,
+		AccountID: uint(accountID),
 		// Title:           title,
 		Note:            note,
 		TransactionDate: transactionDate,
@@ -90,7 +90,7 @@ func parseTransactionFilter(
 		if err != nil || year < 1 {
 			return filter, fmt.Errorf("ปีไม่ถูกต้อง")
 		}
-		
+
 		monthString := c.Query("month")
 		// ถ้ามีส่งเดือนมา -> กรองเฉพาะเดือนนั้น
 		if monthString != "" {
@@ -149,6 +149,15 @@ func parseTransactionFilter(
 	}
 
 	filter.Category = c.Query("category")
+	transactionType := c.Query("type")
 
+	if transactionType != "" &&
+		transactionType != "income" &&
+		transactionType != "expense" {
+		return filter, fmt.Errorf("ประเภท transaction ไม่ถูกต้อง")
+	}
+
+	filter.Type = transactionType
+	
 	return filter, nil
 }

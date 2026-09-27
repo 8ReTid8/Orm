@@ -14,13 +14,13 @@ import { useTransactions } from "@/composables/transaction/useTransaction"
 import { useTransactionForm } from "@/composables/transaction/useTransactionForm"
 import { usePeriodFilter } from "@/composables/period/usePeriodFilter"
 import { formatMoney } from "@/utils/format"
-
 import PeriodFilter from "@/components/filter/PeriodFilter.vue"
 import GroupedTransactionList from "@/components/transaction/GroupedTransactionList.vue"
 import TransactionForm from "@/components/transaction/TransactionForm.vue"
 import TotalList from "@/components/common/TotalList.vue"
 import type { Transaction } from "@/types/transaction"
 import Pagination from "@/components/common/Pagination.vue"
+import TransactionSummary from "@/components/transaction/TransactionSummary.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -222,8 +222,8 @@ onMounted(async () => {
       </div>
 
       <!-- 2. Cashflow Cards (3 ใบ สรุปเงินเข้า-ออกรอบนี้) -->
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <!-- เงินเข้า -->
+      <!-- <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+       
         <div class="rounded-2xl bg-success/10 p-5 border border-success/20">
           <div class="flex items-center justify-between text-success">
             <span class="text-sm font-medium">เงินเข้า</span>
@@ -234,7 +234,7 @@ onMounted(async () => {
           </p>
         </div>
 
-        <!-- เงินออก -->
+     
         <div class="rounded-2xl bg-error/10 p-5 border border-error/20">
           <div class="flex items-center justify-between text-error">
             <span class="text-sm font-medium">เงินออก</span>
@@ -245,7 +245,7 @@ onMounted(async () => {
           </p>
         </div>
 
-        <!-- สุทธิรอบนี้ -->
+      
         <div class="rounded-2xl bg-base-200 p-5 border border-base-300">
           <div class="flex items-center justify-between text-base-content/70">
             <span class="text-sm font-medium">ส่วนต่างเงินในรอบนี้</span>
@@ -255,7 +255,10 @@ onMounted(async () => {
             {{ netFlow >= 0 ? '+' : '' }}฿{{ formatMoney(netFlow) }}
           </p>
         </div>
-      </div>
+      </div> -->
+      <!-- 2. Cashflow Cards (3 ใบ) -->
+      <TransactionSummary :income="totalIncome" :expense="totalExpense" :net="netFlow" income-label="เงินเข้า"
+        expense-label="เงินออก" net-label="ส่วนต่างเงินในรอบนี้" />
 
       <!-- 3. แถบควบคุมตัวกรอง (สลับ รายเดือน / รายปี) -->
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -296,21 +299,7 @@ onMounted(async () => {
             :categories="categoryStore.categories" :loading="isLoadingTransactions"
             empty-title="ยังไม่มีรายการเดินบัญชี" empty-description="ไม่มีรายการเงินเข้าหรือเงินออกในช่วงเวลาที่เลือก"
             @edit="openEditTransaction" @delete="handleDeleteTransaction" />
-          <!-- <div v-if="meta.totalPages > 1" class="mt-6 flex items-center justify-center gap-3">
-            <button class="btn btn-sm" :disabled="meta.page <= 1"
-              @click="currentPage = meta.page - 1; fetchTransactions()">
-              ก่อนหน้า
-            </button>
 
-            <span class="text-sm text-base-content/60">
-              หน้า {{ meta.page }} / {{ meta.totalPages }}
-            </span>
-
-            <button class="btn btn-sm" :disabled="meta.page >= meta.totalPages"
-              @click="currentPage = meta.page + 1; fetchTransactions()">
-              ถัดไป
-            </button>
-          </div> -->
           <Pagination v-model:current-page="currentPage" :total-pages="meta.totalPages"
             :disabled="isLoadingTransactions" @change="fetchTransactions" />
         </div>

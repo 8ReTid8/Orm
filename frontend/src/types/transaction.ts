@@ -35,6 +35,7 @@ export interface TransactionFilter {
     startDate?: string | null
     endDate?: string | null
     category?: string | null
+    type?: TransactionType | null
 }
 
 export interface CreateTransactionResponse {
@@ -60,4 +61,8 @@ export interface GetAccountTransactionsResponse {
   transactions: Transaction[]
   meta: PageMeta
   summary: TransactionTotals
+}
+export interface GetTransactionsPageResponse {
+  transactions: Transaction[]
+  meta: PageMeta
 }

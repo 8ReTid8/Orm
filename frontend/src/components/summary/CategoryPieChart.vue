@@ -20,13 +20,16 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   emptyText: "ไม่มีข้อมูลในช่วงเวลานี้", // 👈 กำหนดค่าเริ่มต้น
 })
-// const props = defineProps<Props>()
 
 // จานสีสวยงามสำหรับหมวดหมู่ต่างๆ
 const palette = [
   "#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6",
   "#ec4899", "#14b8a6", "#f97316", "#06b6d4", "#84cc16"
 ]
+
+const emit = defineEmits<{
+  select: [categoryName: string]
+}>()
 
 const chartData = computed(() => ({
   labels: props.items.map(i => i.name),
@@ -38,7 +41,19 @@ const chartData = computed(() => ({
   }],
 }))
 
-const chartOptions = {
+// const chartOptions = {
+//   responsive: true,
+//   maintainAspectRatio: false,
+//   plugins: {
+//     legend: { position: "right" as const },
+//     tooltip: {
+//       callbacks: {
+//         label: (ctx: any) => ` ฿${formatMoney(ctx.raw)}`,
+//       },
+//     },
+//   },
+// }
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -49,7 +64,24 @@ const chartOptions = {
       },
     },
   },
-}
+  // เมื่อชี้โดนชิ้นกราฟ ให้เมาส์เปลี่ยนเป็นรูปมือ (Pointer)
+  onHover: (event: any, elements: any[]) => {
+    const target = event?.native?.target as HTMLElement
+    if (target) {
+      target.style.cursor = elements.length > 0 ? "pointer" : "default"
+    }
+  },
+  // เมื่อคลิกที่ชิ้นกราฟ ให้ส่งชื่อหมวดหมู่ออกไป
+  onClick: (_event: any, elements: any[]) => {
+    if (elements.length > 0) {
+      const index = elements[0].index
+      const selectedItem = (props.items ?? [])[index]
+      if (selectedItem) {
+        emit("select", selectedItem.name)
+      }
+    }
+  },
+}))
 </script>
 
 <template>
