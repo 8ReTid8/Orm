@@ -12,9 +12,9 @@ import DailyTransactionList from "@/components/transaction/DailyTransactionList.
 import TransCalendar from "@/components/transaction/TransCalendar.vue"
 import TransactionSummary from "@/components/transaction/TransactionSummary.vue"
 import TransactionForm from "@/components/transaction/TransactionForm.vue"
-import AccountFilter from "@/components/filter/accountFilter.vue"
-import CategoryFilter from "@/components/filter/categoryFilter.vue"
+import CategoryFilter from "@/components/filter/CategoryFilter.vue"
 import { usePeriodFilter } from "@/composables/period/usePeriodFilter"
+import AccountFilter from "@/components/filter/AccountFilter.vue"
 
 const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)

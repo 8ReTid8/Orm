@@ -7,7 +7,7 @@ import { useBudgetForm } from "@/composables/budget/useBudgetForm";
 import BudgetForm from "@/components/budget/BudgetForm.vue";
 import BudgetOverview from "@/components/budget/BudgetOverview.vue";
 import { useBudget } from "@/composables/budget/useBudget";
-import AccountFilter from "@/components/filter/accountFilter.vue";
+import AccountFilter from "@/components/filter/AccountFilter.vue";
 import PeriodFilter from "@/components/filter/PeriodFilter.vue";
 import type { Budget } from "@/types/budget";
 import EmptyState from "@/components/common/EmptyState.vue";

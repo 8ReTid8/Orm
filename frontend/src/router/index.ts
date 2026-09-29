@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from "vue-router"
 
 import MainLayout from "@/layouts/MainLayout.vue"
-import LogMoney from "@/views/LogMoney.vue"
+import LogMoneyView from "@/views/LogMoneyView.vue"
 import LoginView from "@/views/LoginView.vue"
 import RegisterView from "@/views/RegisterView.vue"
 import AccountsView from "@/views/AccountsView.vue"
 import BudgetView from "@/views/BudgetView.vue"
-import BudgetDetail from "@/views/BudgetDetail.vue"
+import BudgetDetailView from "@/views/BudgetDetailView.vue"
 import SummaryView from "@/views/SummaryView.vue"
-import AccountDetail from "@/views/AccountDetail.vue"
+import AccountDetailView from "@/views/AccountDetailView.vue"
 import VerifyEmailView from "@/views/VerifyEmailView.vue"
 // import DashboardView from "@/views/DashboardView.vue"
 // import TransactionView from "@/views/TransactionView.vue"
@@ -51,7 +51,7 @@ const router = createRouter({
         {
           path: "",
           name: "log money",
-          component: LogMoney,
+          component: LogMoneyView,
         },
         {
           path: "accounts",
@@ -61,7 +61,7 @@ const router = createRouter({
         {
           path: "accounts/:id", // 👈 เพิ่ม Route นี้
           name: "account-detail",
-          component: AccountDetail,
+          component: AccountDetailView,
         },
         {
           path: "budgets",
@@ -71,7 +71,7 @@ const router = createRouter({
         {
           path: "budgets/:id",
           name: "budget-detail",
-          component: BudgetDetail,
+          component: BudgetDetailView,
         },
         {
           path: "summary",
