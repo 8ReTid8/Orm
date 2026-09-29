@@ -21,6 +21,8 @@ export function useTransactions() {
   const transactions = ref<Transaction[]>([])
   const isLoadingTransactions = ref(false)
   const editingTransactionId = ref<number | null>(null)
+  const error = ref<string | null>(null)
+
   const meta = ref<PageMeta>({
     page: 1,
     limit: 20,
@@ -33,16 +35,18 @@ export function useTransactions() {
     expense: 0,
     netFlow: 0,
   })
+
   async function loadTransactions({
     year = null,
     month = null,
     startDate = null,
     endDate = null,
     accountId = null,
-    category = null
+    category = null,
   }: TransactionFilter) {
     try {
       isLoadingTransactions.value = true
+      error.value = null
 
       transactions.value = await getTransactions(
         year,
@@ -50,17 +54,17 @@ export function useTransactions() {
         startDate,
         endDate,
         accountId,
-        category
+        category,
       )
-    } catch (error) {
-      console.error(
-        "Failed to load transactions:",
-        error,
-      )
+    } catch (err) {
+      console.error("Failed to load transactions:", err)
+      error.value = "ไม่สามารถโหลดรายการธุรกรรมได้"
+      throw err
     } finally {
       isLoadingTransactions.value = false
     }
   }
+
   async function loadTransactionPage(
     filter: TransactionFilter,
     page = 1,
@@ -68,6 +72,7 @@ export function useTransactions() {
   ) {
     try {
       isLoadingTransactions.value = true
+      error.value = null
 
       const response = await getTransactionPage(
         filter,
@@ -77,15 +82,15 @@ export function useTransactions() {
 
       transactions.value = response.transactions
       meta.value = response.meta
-    } catch (error) {
-      console.error(
-        "Failed to load transaction page:",
-        error,
-      )
+    } catch (err) {
+      console.error("Failed to load transaction page:", err)
+      error.value = "ไม่สามารถโหลดหน้ารายการธุรกรรมได้"
+      throw err
     } finally {
       isLoadingTransactions.value = false
     }
   }
+
   async function loadAccountTransactions(
     accountId: number,
     year: number,
@@ -95,6 +100,7 @@ export function useTransactions() {
   ) {
     try {
       isLoadingTransactions.value = true
+      error.value = null
 
       const response = await getAccountTransactions(
         accountId,
@@ -107,47 +113,50 @@ export function useTransactions() {
       transactions.value = response.transactions
       meta.value = response.meta
       totals.value = response.summary
+    } catch (err) {
+      console.error("Failed to load account transactions:", err)
+      error.value = "ไม่สามารถโหลดรายการธุรกรรมของบัญชีได้"
+      throw err
     } finally {
       isLoadingTransactions.value = false
     }
   }
 
-  async function saveTransaction(
-    form: TransactionForm,
-  ) {
-    console.log("FORM:", form)
-    console.log(
-      "EDITING ID:",
-      editingTransactionId.value,
-    )
-
-    if (
-      !form.amount ||
-      // !form.title ||
-      !form.category ||
-      !form.accountId
-    ) {
-      console.log("VALIDATION FAILED")
-      return
+  async function saveTransaction(form: TransactionForm) {
+    if (!form.amount || !form.category || !form.accountId || !form.transactionDate) {
+      const validationError = new Error("กรุณากรอกข้อมูลธุรกรรมให้ครบถ้วน")
+      console.error("Validation failed:", validationError.message)
+      throw validationError
     }
 
-    if (editingTransactionId.value !== null) {
-      await updateTransaction(
-        editingTransactionId.value,
-        form,
-      )
-    } else {
-      console.log("CREATE")
-      await createTransaction(form)
+    try {
+      error.value = null
+      if (editingTransactionId.value !== null) {
+        const updated = await updateTransaction(
+          editingTransactionId.value,
+          form,
+        )
+        editingTransactionId.value = null
+        return updated
+      } else {
+        return await createTransaction(form)
+      }
+    } catch (err) {
+      console.error("Failed to save transaction:", err)
+      error.value = "ไม่สามารถบันทึกรายการธุรกรรมได้"
+      throw err
     }
   }
 
   async function deleteTransaction(id: number) {
     try {
+      error.value = null
       await deleteTransactionApi(id)
-    } catch (error) {
-      console.error("Delete transaction failed:", error)
-      throw error
+      // transactions.value = transactions.value.filter((t) => t.id !== id)
+    } catch (err) {
+      console.error("Delete transaction failed:", err)
+      error.value = "ไม่สามารถลบรายการธุรกรรมได้"
+      throw err
     }
   }
 
@@ -165,6 +174,7 @@ export function useTransactions() {
     totals,
     isLoadingTransactions,
     editingTransactionId,
+    error,
 
     loadTransactions,
     loadTransactionPage,
@@ -175,3 +185,6 @@ export function useTransactions() {
     cancelEdit,
   }
 }
+
+// Alias for naming consistency
+// export const useTransaction = useTransactions

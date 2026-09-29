@@ -9,7 +9,7 @@ import BudgetOverview from "@/components/budget/BudgetOverview.vue";
 import { useBudget } from "@/composables/budget/useBudget";
 import AccountFilter from "@/components/filter/AccountFilter.vue";
 import PeriodFilter from "@/components/filter/PeriodFilter.vue";
-import type { Budget } from "@/types/budget";
+import type { Budget } from "@/types";
 import EmptyState from "@/components/common/EmptyState.vue";
 import { useBudgetFilter } from "@/composables/budget/useBudgetFilter";
 import { groupBudgetsByPeriod } from "@/utils/budget";

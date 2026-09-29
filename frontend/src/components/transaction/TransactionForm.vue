@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { Account } from "@/types/account";
-import type { Category } from "@/types/category";
-import type { TransactionForm } from "@/types/transaction"
+import type { Account, Category, TransactionForm } from "@/types";
 import { resolveCategoryIcon } from "@/utils/categoryIcons";
 import { formatThaiDateLong } from "@/utils/format";
 import { ImagePlus, Tag } from "lucide-vue-next";

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue"
 import { Plus } from "lucide-vue-next"
-import type { Transaction } from "@/types/transaction"
+import type { Transaction } from "@/types"
 import { formatDate } from "@/utils/format"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
@@ -20,6 +20,7 @@ const isDialogOpen = ref(false)
 const dailyTransactionSection = ref<HTMLElement | null>(null)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
+
 const {
   years,
   months,
@@ -56,12 +57,12 @@ const {
   selectedAccountId,
   // selectedCategory,
   // clientAccountId,
- 
+
   clientCategory,
   filteredTransactions,
   selectedDayTransactions,
   selectDate,
-} = useTransactionFilter(transactions,selectedYear,selectedMonth,loadTransactions)
+} = useTransactionFilter(transactions, selectedYear, selectedMonth, loadTransactions)
 
 function openEditTransaction(transaction: Transaction) {
   startEdit(transaction)
@@ -74,7 +75,6 @@ function openAddTransaction() {
   resetForm(
     formatDate(selectedDate.value),
   )
-
   form.value.transactionDate =
     formatDate(selectedDate.value)
 
@@ -83,12 +83,9 @@ function openAddTransaction() {
 
 async function handleSelectDate(date: Date) {
   selectDate(date)
-
   form.value.transactionDate =
     formatDate(date)
-
   await nextTick()
-
   dailyTransactionSection.value?.scrollIntoView({
     behavior: "smooth",
     block: "start",
@@ -105,14 +102,8 @@ async function saveTransaction() {
   try {
     await saveTransactionApi(form.value)
     fetchTransactions()
-    // await loadTransactions(
-    //   selectedDate.value.getFullYear(),
-    //   selectedDate.value.getMonth() + 1,
-    // )
     cancelEdit()
-
     isDialogOpen.value = false
-
     resetForm(
       formatDate(selectedDate.value),
     )
@@ -179,7 +170,7 @@ onMounted(async () => {
       <!-- Actions -->
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
         <CategoryFilter v-model="clientCategory" :categories="categoryStore.categories" />
-        <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" /> 
+        <AccountFilter v-model="selectedAccountId" :accounts="accountStore.accounts" />
         <button class="btn text-white bg-green-700" type="button" @click="openTodayTransaction">
           <Plus class="size-4" />
           เพิ่มรายการวันนี้
@@ -191,16 +182,17 @@ onMounted(async () => {
     <TransactionSummary :transactions="filteredTransactions" />
 
     <!-- Calendar -->
-    <TransCalendar :selected-date="selectedDate" :transactions="filteredTransactions" @select="handleSelectDate" @month-change="handleMonthChange" />
+    <TransCalendar :selected-date="selectedDate" :transactions="filteredTransactions" @select="handleSelectDate"
+      @month-change="handleMonthChange" />
 
     <div ref="dailyTransactionSection">
-      <DailyTransactionList :selected-date="selectedDate" :categories="categoryStore.categories" :transactions="selectedDayTransactions"
-        :accounts="accountStore.accounts" :loading="isLoadingTransactions" @add="openAddTransaction" @edit="openEditTransaction" @delete="handleDeleteTransaction"/>
+      <DailyTransactionList :selected-date="selectedDate" :categories="categoryStore.categories"
+        :transactions="selectedDayTransactions" :accounts="accountStore.accounts" :loading="isLoadingTransactions"
+        @add="openAddTransaction" @edit="openEditTransaction" @delete="handleDeleteTransaction" />
     </div>
   </section>
 
   <TransactionForm :open="isDialogOpen" :form="form" :accounts="accountStore.accounts"
-    :categories="categoryStore.categories" @close="closeDialog"
-    @save="saveTransaction" />
+    :categories="categoryStore.categories" @close="closeDialog" @save="saveTransaction" />
 
 </template>

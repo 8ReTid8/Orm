@@ -1,4 +1,3 @@
-import type { Account } from "./account"
 import type { PageMeta } from "./pagination"
 
 export type TransactionType = "income" | "expense"
@@ -16,13 +15,11 @@ export interface TransactionForm {
 
 export interface Transaction {
   id: number
-  // account: Account
   accountId: number
   type: TransactionType
   amount: number
   category: string
   bankName: string
-  // title: string
   note: string
   transactionDate: string
   slipImage?: string | null

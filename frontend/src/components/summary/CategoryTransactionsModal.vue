@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue"
 import { X, Calendar, ReceiptText } from "lucide-vue-next"
-import type { Account } from "@/types/account"
-import type { Category } from "@/types/category"
-import type { Transaction } from "@/types/transaction"
+import type { Account, Category, Transaction } from "@/types"
 import { useTransactions } from "@/composables/transaction/useTransaction"
 import { useTransactionForm } from "@/composables/transaction/useTransactionForm"
 import { resolveCategoryIcon } from "@/utils/categoryIcons"

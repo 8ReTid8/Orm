@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { Account } from '@/types/account'
-import type { Category } from '@/types/category'
-import type { Transaction } from '@/types/transaction'
+import type { Account, Category, Transaction } from "@/types"
 import { resolveCategoryIcon } from '@/utils/categoryIcons'
 import { formatMoney } from '@/utils/format'
 import { ref } from 'vue'

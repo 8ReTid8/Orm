@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Calendar, ReceiptText } from "lucide-vue-next"
-import type { Account } from "@/types/account"
-import type { Category } from "@/types/category"
-import type { Transaction } from "@/types/transaction"
+import type { Account, Category, Transaction } from "@/types"
 import { groupTransactionsByDate } from "@/utils/transaction"
 import TransactionCard from "./TransactionCard.vue"
 import EmptyState from "../common/EmptyState.vue"

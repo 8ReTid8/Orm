@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue"
-import type { Account } from "@/types/account"
-import type { Category } from "@/types/category"
-import type { BudgetForm } from "@/types/budget"
+import type { Account, Category, BudgetForm } from "@/types"
 
 interface Props {
     open: boolean

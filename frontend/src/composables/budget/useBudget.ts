@@ -6,24 +6,15 @@ import {
     updateBudget,
     deleteBudget as deleteBudgetApi,
     getBudgetDetail,
-    getBudgetYears
 } from "@/services/budget";
-
 
 export function useBudget() {
     const budgets = ref<Budget[]>([])
     const budgetDetail = ref<GetBudgetDetailResponse | null>(null)
     const editingBudgetId = ref<number | null>(null)
     const isLoadingBudgets = ref(false)
-    const years = ref<number[]>([])
-    // โหลดปีจริงจาก Database ผ่าน API
-   
-    // async function loadBudgets(
-    //     year: number | null = null,
-    //     month: number | null = null,
-    //     status: "active" | "ended",
-    //     accountId: number | null = null,
-    // ) {
+    const error = ref<string | null>(null)
+
     async function loadBudgets({
         year = null,
         month = null,
@@ -32,6 +23,7 @@ export function useBudget() {
     }: BudgetFilter) {
         try {
             isLoadingBudgets.value = true
+            error.value = null
 
             budgets.value = await getBudgets(
                 year,
@@ -39,50 +31,64 @@ export function useBudget() {
                 status,
                 accountId
             )
-        } catch (error) {
-            console.error(
-                "Failed to load budgets:",
-                error,
-            )
+        } catch (err) {
+            console.error("Failed to load budgets:", err)
+            error.value = "ไม่สามารถโหลดข้อมูลงบประมาณได้"
+            throw err
         } finally {
             isLoadingBudgets.value = false
         }
     }
 
-    async function saveBudget(
-        form: BudgetForm
-    ) {
+    async function saveBudget(form: BudgetForm) {
         if (!form.amount || !form.category || !form.accountId || !form.startDate || !form.endDate) {
-            console.log("VALIDATION FAILED")
-            return
+            const validationError = new Error("กรุณากรอกข้อมูลงบประมาณให้ครบถ้วน")
+            console.error("Validation failed:", validationError.message)
+            throw validationError
         }
-        if (editingBudgetId.value !== null) {
-            await updateBudget(
-                editingBudgetId.value,
-                form
-            )
 
-        } else {
-            await createBudget(form)
+        try {
+            error.value = null
+            if (editingBudgetId.value !== null) {
+                const updated = await updateBudget(editingBudgetId.value, form)
+                editingBudgetId.value = null
+                return updated
+            } else {
+                return await createBudget(form)
+            }
+        } catch (err) {
+            console.error("Failed to save budget:", err)
+            error.value = "ไม่สามารถบันทึกงบประมาณได้"
+            throw err
         }
     }
 
     async function deleteBudget(id: number) {
         try {
+            error.value = null
             await deleteBudgetApi(id)
-        } catch (error) {
-            console.error("Delete budget failed:", error)
-            throw error
+            // budgets.value = budgets.value.filter((b) => b.id !== id)
+        } catch (err) {
+            console.error("Delete budget failed:", err)
+            error.value = "ไม่สามารถลบงบประมาณได้"
+            throw err
         }
     }
+
     async function loadBudgetDetail(id: number) {
         try {
+            isLoadingBudgets.value = true
+            error.value = null
             budgetDetail.value = await getBudgetDetail(id)
-        } catch (error) {
-            console.error("Failed to load budget detail:", error)
-            throw error
+        } catch (err) {
+            console.error("Failed to load budget detail:", err)
+            error.value = "ไม่สามารถโหลดรายละเอียดงบประมาณได้"
+            throw err
+        } finally {
+            isLoadingBudgets.value = false
         }
     }
+
     function startEdit(budget: Budget) {
         editingBudgetId.value = budget.id
     }
@@ -96,6 +102,7 @@ export function useBudget() {
         isLoadingBudgets,
         editingBudgetId,
         budgetDetail,
+        error,
 
         loadBudgetDetail,
         loadBudgets,

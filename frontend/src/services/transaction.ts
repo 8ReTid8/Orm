@@ -130,7 +130,6 @@ export async function getTransactionPage(
         category: filter.category,
         type: filter.type,
 
-        // มีค่านี้ backend จึงเข้า pagination branch
         page,
         limit,
       },

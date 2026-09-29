@@ -9,7 +9,7 @@ import { useTransactions } from "@/composables/transaction/useTransaction";
 import { useTransactionForm } from "@/composables/transaction/useTransactionForm";
 import { useAccountStore } from "@/stores/account";
 import { useCategoryStore } from "@/stores/category";
-import type { Transaction } from "@/types/transaction";
+import type { Transaction } from "@/types";
 import { resolveCategoryIcon } from "@/utils/categoryIcons";
 import { formatDate, formatMoney, formatThaiDateLong } from "@/utils/format";
 import { groupTransactionsByDate } from "@/utils/transaction";

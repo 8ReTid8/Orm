@@ -8,6 +8,7 @@ export function useSummary() {
   const isLoadingSummary = ref(false)
   const comparison = ref<ComparisonResponse | null>(null)
   const isLoadingComparison = ref(false)
+  const error = ref<string | null>(null)
 
   async function loadSummary(
     year: number,
@@ -16,12 +17,17 @@ export function useSummary() {
   ) {
     try {
       isLoadingSummary.value = true
+      error.value = null
 
       summary.value = await getSummary(
         year,
         month,
         accountId,
       )
+    } catch (err) {
+      console.error("Failed to load summary:", err)
+      error.value = "ไม่สามารถโหลดข้อมูลสรุปได้"
+      throw err
     } finally {
       isLoadingSummary.value = false
     }
@@ -33,9 +39,9 @@ export function useSummary() {
     accountId: number | null,
     category: string | null,
   ) {
-
     try {
       isLoadingComparison.value = true
+      error.value = null
 
       comparison.value = await getComparison(
         year,
@@ -43,16 +49,22 @@ export function useSummary() {
         accountId,
         category,
       )
+    } catch (err) {
+      console.error("Failed to load comparison:", err)
+      error.value = "ไม่สามารถโหลดข้อมูลเปรียบเทียบได้"
+      throw err
     } finally {
       isLoadingComparison.value = false
     }
   }
+
   return {
     summary,
     comparison,
     isLoadingComparison,
     isLoadingSummary,
+    error,
     loadSummary,
-    loadComparison
+    loadComparison,
   }
 }

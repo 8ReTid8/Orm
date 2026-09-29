@@ -2,12 +2,10 @@
 import { computed, ref } from "vue"
 import { AlertCircle, PiggyBank, Wallet, BarChart3 } from "lucide-vue-next"
 import { resolveCategoryIcon } from "@/utils/categoryIcons"
-import type { Budget } from "@/types/budget"
+import type { Budget, Category, Account } from "@/types"
 import { formatMoney } from "@/utils/format"
 import ActionButton from "../common/ActionButton.vue"
 import ConfirmModal from "../common/ConfirmModal.vue"
-import type { Category } from "@/types/category.ts"
-import type { Account } from "@/types/account.ts"
 import { useRouter } from "vue-router"
 
 interface Props {
