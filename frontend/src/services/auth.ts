@@ -18,3 +18,16 @@ export async function login(input: LoginInput) {
 
   return response.data
 }
+
+export async function verifyEmail(
+  token: string,
+) {
+  const response = await api.get<{ message: string }>(
+    "/auth/verify-email",
+    {
+      params: { token },
+    },
+  )
+
+  return response.data
+}

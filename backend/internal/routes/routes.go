@@ -26,6 +26,7 @@ func SetupRoutes(
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
+
 		protected.GET("/summary", summaryHandler.GetSummary)
 		protected.GET("/summary/comparison", summaryHandler.GetComparison)
 		protected.GET("/period/years", periodHandler.GetAvailableYears)
@@ -36,12 +37,13 @@ func SetupRoutes(
 		protected.POST("/accounts", accountHandler.CreateAccount)
 		protected.GET("/accounts", accountHandler.GetAccounts)
 		protected.DELETE("/accounts/:id", accountHandler.DeleteAccount)
+		auth.GET("/verify-email", authHandler.VerifyEmail)
 		// protected.PATCH("/accounts/:id", accountHandler.UpdateAccount)
 
 		//Transaction
 		protected.POST("/transactions", transactionHandler.CreateTransaction)
 		protected.GET("/transactions", transactionHandler.GetTransactions)
-		protected.GET("/accounts/:id/transactions",transactionHandler.GetAccountTransactions,)
+		protected.GET("/accounts/:id/transactions", transactionHandler.GetAccountTransactions)
 		protected.PATCH("/transactions/:id", transactionHandler.UpdateTransaction)
 		protected.DELETE("/transactions/:id", transactionHandler.DeleteTransaction)
 

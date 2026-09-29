@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -22,6 +23,8 @@ func main() {
 	}
 
 	database.ConnectDB()
+
+	//REPO
 	userRepo := repositories.NewUserRepository(
 		database.DB,
 	)
@@ -35,8 +38,23 @@ func main() {
 		database.DB,
 	)
 
+	//SERVICE
+	emailService := services.NewEmailService(
+		services.EmailConfig{
+			Host:        os.Getenv("SMTP_HOST"),
+			Port:        os.Getenv("SMTP_PORT"),
+			Username:    os.Getenv("SMTP_USERNAME"),
+			Password:    os.Getenv("SMTP_PASSWORD"),
+			From:        os.Getenv("SMTP_FROM"),
+			FrontendURL: os.Getenv("FRONTEND_URL"),
+		},
+	)
+	// authService := services.NewAuthService(
+	// 	userRepo,
+	// )
 	authService := services.NewAuthService(
 		userRepo,
+		emailService,
 	)
 	accountService := services.NewAccountService(
 		database.DB,
@@ -57,6 +75,7 @@ func main() {
 		transactionRepo,
 	)
 
+	//HANDLER
 	authHandler := handlers.NewAuthHandler(
 		authService,
 	)

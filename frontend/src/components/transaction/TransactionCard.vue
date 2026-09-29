@@ -55,16 +55,8 @@ function handleConfirmDelete() {
 
             <!-- Title & Details -->
             <div class="min-w-0">
-                <!-- <div class="flex items-center gap-2">
-                    <p class="truncate font-semibold text-base">
-                        {{ transaction.category }}
-                    </p>
-
-                    <FileText v-if="transaction.note" class="size-3.5 text-base-content/40 shrink-0"
-                        title="มีบันทึกข้อความ" />
-                </div> -->
-                <div class="flex min-w-0 items-center gap-1">
-                    <p class="truncate font-semibold text-base">
+                <!-- <div class="flex min-w-0 items-center gap-1">
+                    <p class=" font-semibold text-base">
                         {{ transaction.category }}
                     </p>
 
@@ -76,6 +68,20 @@ function handleConfirmDelete() {
                         </p>
                         <FileText class="size-3.5 text-base-content/40 shrink-0" title="มีบันทึกข้อความ" />
                     </template>
+</div> -->
+                <div class="min-w-0">
+                    <p class="truncate font-semibold text-base">
+                        {{ transaction.category }}
+
+                        <template v-if="transaction.note">
+                            <span class="font-normal text-base-content/50">
+                                • {{ transaction.note }}
+                            </span>
+
+                            <FileText class="ml-1! inline-block size-3.5 text-base-content/40"
+                                title="มีบันทึกข้อความ" />
+                        </template>
+                    </p>
                 </div>
                 <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-sm text-base-content/60">
                     <!-- <span class="badge badge-sm badge-ghost font-normal">{{ transaction.category }}</span>

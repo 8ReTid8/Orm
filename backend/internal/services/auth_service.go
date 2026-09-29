@@ -3,7 +3,9 @@ package services
 import (
 	"context"
 	"errors"
+	"log"
 	"strings"
+	"time"
 
 	"backend/internal/models"
 	"backend/internal/repositories"
@@ -13,33 +15,38 @@ import (
 	"gorm.io/gorm"
 )
 
-// var (
-// 	ErrEmailAlreadyUsed   = errors.New("email already used")
-// 	ErrInvalidCredentials = errors.New("invalid credentials")
-// )
-
 type LoginResult struct {
 	Token string
 	User  *models.User
 }
 
 type AuthService struct {
-	userRepo *repositories.UserRepository
+	userRepo     *repositories.UserRepository
+	emailService *EmailService
 }
 
 func NewAuthService(
 	userRepo *repositories.UserRepository,
+	emailService *EmailService,
 ) *AuthService {
 	return &AuthService{
-		userRepo: userRepo,
+		userRepo:     userRepo,
+		emailService: emailService,
 	}
 }
 
 func (s *AuthService) Register(
+
 	ctx context.Context,
 	email string,
 	password string,
+
 ) error {
+	// func (s *AuthService) Register(
+	// 	ctx context.Context,
+	// 	email string,
+	// 	password string,
+	// ) (string, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 
 	_, err := s.userRepo.FindByEmail(ctx, email)
@@ -59,14 +66,50 @@ func (s *AuthService) Register(
 	if err != nil {
 		return err
 	}
-
-	user := &models.User{
-		Email:    email,
-		Password: string(hashedPassword),
-		Role:     "user",
+	token, tokenHash, err := utils.GenerateVerificationToken()
+	if err != nil {
+		return err
 	}
 
-	return s.userRepo.Create(ctx, user)
+	expiresAt := time.Now().Add(15 * time.Minute)
+
+	// user := &models.User{
+	// 	Email:    email,
+	// 	Password: string(hashedPassword),
+	// 	Role:     "user",
+	// }
+	user := &models.User{
+		Email:                 email,
+		Password:              string(hashedPassword),
+		Role:                  "user",
+		IsVerified:            false,
+		VerificationTokenHash: tokenHash,
+		VerificationExpiresAt: &expiresAt,
+	}
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return err
+	}
+	// if err := s.emailService.SendVerificationEmail(
+	// 	user.Email,
+	// 	token,
+	// ); err != nil {
+	// 	return ErrVerificationEmailFailed
+	// }
+	if err := s.emailService.SendVerificationEmail(
+		user.Email,
+		token,
+	); err != nil {
+		log.Printf(
+			"send verification email failed: %v",
+			err,
+		)
+
+		return ErrVerificationEmailFailed
+	}
+
+	return nil
+	// return token, nil
+	// return s.userRepo.Create(ctx, user)
 }
 
 func (s *AuthService) Login(
@@ -91,7 +134,9 @@ func (s *AuthService) Login(
 	); err != nil {
 		return nil, ErrInvalidCredentials
 	}
-
+	if !user.IsVerified {
+		return nil, ErrEmailNotVerified
+	}
 	token, err := utils.GenerateToken(
 		user.ID,
 		user.Role,
@@ -104,4 +149,33 @@ func (s *AuthService) Login(
 		Token: token,
 		User:  user,
 	}, nil
+}
+
+func (s *AuthService) VerifyEmail(
+	ctx context.Context,
+	token string,
+) error {
+	token = strings.TrimSpace(token)
+
+	if token == "" {
+		return ErrInvalidVerificationToken
+	}
+
+	tokenHash := utils.HashVerificationToken(token)
+
+	user, err := s.userRepo.FindByValidVerificationTokenHash(
+		ctx,
+		tokenHash,
+	)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return ErrInvalidVerificationToken
+	}
+	if err != nil {
+		return err
+	}
+
+	return s.userRepo.MarkEmailVerified(
+		ctx,
+		user.ID,
+	)
 }

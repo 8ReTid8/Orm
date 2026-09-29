@@ -12,6 +12,7 @@ import {
   CircleDollarSign,
   BanknoteArrowDown,
   HandCoins,
+  CarTaxiFront,
   type LucideIcon,
 } from "lucide-vue-next"
 
@@ -30,6 +31,7 @@ export const categoryIconMap: Record<string, LucideIcon> = {
   CircleDollarSign,
   BanknoteArrowDown,
   HandCoins,
+  CarTaxiFront,
 }
 
 // Helper function

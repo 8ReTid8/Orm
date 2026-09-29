@@ -9,6 +9,7 @@ import BudgetView from "@/views/BudgetView.vue"
 import BudgetDetail from "@/views/BudgetDetail.vue"
 import SummaryView from "@/views/SummaryView.vue"
 import AccountDetail from "@/views/AccountDetail.vue"
+import VerifyEmailView from "@/views/VerifyEmailView.vue"
 // import DashboardView from "@/views/DashboardView.vue"
 // import TransactionView from "@/views/TransactionView.vue"
 // import SavingGoalView from "@/views/SavingGoalView.vue"
@@ -31,6 +32,14 @@ const router = createRouter({
       path: "/register",
       name: "register",
       component: RegisterView,
+      meta: {
+        guestOnly: true,
+      },
+    },
+    {
+      path: "/verify-email",
+      name: "verify-email",
+      component: VerifyEmailView,
       meta: {
         guestOnly: true,
       },

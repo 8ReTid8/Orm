@@ -3,9 +3,15 @@ package services
 import "errors"
 
 var (
-	ErrAccountNotFound     = errors.New("account not found")
-	ErrTransactionNotFound = errors.New("transaction not found")
-
+	ErrAccountNotFound         = errors.New("account not found")
+	ErrVerificationEmailFailed = errors.New(
+		"verification email failed",
+	)
+	ErrEmailNotVerified         = errors.New("email not verified")
+	ErrTransactionNotFound      = errors.New("transaction not found")
+	ErrInvalidVerificationToken = errors.New(
+		"invalid or expired verification token",
+	)
 	ErrInsufficientBalance    = errors.New("insufficient balance")
 	ErrInvalidTransactionType = errors.New("invalid transaction type")
 

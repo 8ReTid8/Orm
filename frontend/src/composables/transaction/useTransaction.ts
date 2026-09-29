@@ -64,7 +64,7 @@ export function useTransactions() {
   async function loadTransactionPage(
     filter: TransactionFilter,
     page = 1,
-    limit = 20,
+    limit = 5,
   ) {
     try {
       isLoadingTransactions.value = true

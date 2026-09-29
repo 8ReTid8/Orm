@@ -9,11 +9,16 @@ type User struct {
 	// ID        uint   `gorm:"primaryKey"`
 	// Email     string `gorm:"unique;not null"`
 	// Password  string `gorm:"not null"`
-	ID        uint   `gorm:"primaryKey" json:"id"`
-	Email     string `gorm:"size:255;uniqueIndex;not null" json:"email"`
-	Password  string `gorm:"size:255;not null" json:"-"`
+	ID       uint   `gorm:"primaryKey" json:"id"`
+	Email    string `gorm:"size:255;uniqueIndex;not null" json:"email"`
+	Password string `gorm:"size:255;not null" json:"-"`
+
+	IsVerified            bool       `gorm:"not null;default:false" json:"isVerified"`
+	VerificationTokenHash string     `gorm:"size:255" json:"-"`
+	VerificationExpiresAt *time.Time `json:"-"`
+
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
-	Role      string `gorm:"type:varchar(20);not null;default:'user'"`
+	Role      string    `gorm:"type:varchar(20);not null;default:'user'"`
 
 	Accounts    []Account    `gorm:"foreignKey:UserID"`
 	Budgets     []Budget     `gorm:"foreignKey:UserID"`
