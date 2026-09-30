@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router"
+import { useAuthStore } from "@/stores/auth"
 
 import MainLayout from "@/layouts/MainLayout.vue"
 import LogMoneyView from "@/views/LogMoneyView.vue"
@@ -96,6 +97,23 @@ const router = createRouter({
       ],
     },
   ],
+})
+
+router.beforeEach((to, _from, next) => {
+  const authStore = useAuthStore()
+  const isGuestOnly = to.matched.some((record) => record.meta.guestOnly)
+
+  // 1. ถ้ายังไม่ได้เข้าสู่ระบบ และไม่ใช่หน้าที่เปิดให้บุคคลทั่วไป (Guest) -> บังคับไปหน้า login
+  if (!authStore.isAuthenticated && !isGuestOnly) {
+    return next({ name: "login" })
+  }
+
+  // 2. ถ้าเข้าสู่ระบบแล้ว แต่พยายามจะเปิดหน้า login / register -> พาไปหน้าหลัก
+  if (authStore.isAuthenticated && isGuestOnly) {
+    return next({ name: "log money" })
+  }
+
+  next()
 })
 
 export default router
