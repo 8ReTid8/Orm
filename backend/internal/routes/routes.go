@@ -21,6 +21,7 @@ func SetupRoutes(
 	{
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
+		auth.GET("/verify-email", authHandler.VerifyEmail)
 	}
 
 	protected := api.Group("")
@@ -37,8 +38,9 @@ func SetupRoutes(
 		protected.POST("/accounts", accountHandler.CreateAccount)
 		protected.GET("/accounts", accountHandler.GetAccounts)
 		protected.DELETE("/accounts/:id", accountHandler.DeleteAccount)
-		auth.GET("/verify-email", authHandler.VerifyEmail)
+
 		// protected.PATCH("/accounts/:id", accountHandler.UpdateAccount)
+		protected.POST("/accounts/:id/sync-balance", accountHandler.SyncBalance)
 
 		//Transaction
 		protected.POST("/transactions", transactionHandler.CreateTransaction)

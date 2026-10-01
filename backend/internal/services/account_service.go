@@ -87,3 +87,54 @@ func (s *AccountService) Delete(
 		return accountRepo.Delete(ctx, account)
 	})
 }
+
+func (s *AccountService) SyncBalance(
+    ctx context.Context,
+    userID uint,
+    accountID uint,
+) (*models.Account, error) {
+    var syncedAccount *models.Account
+
+    err := s.db.WithContext(ctx).Transaction(
+        func(tx *gorm.DB) error {
+            accountRepo := s.accountRepo.WithTx(tx)
+            transactionRepo := s.transactionRepo.WithTx(tx)
+
+            // lock เพื่อกัน transaction create/update/delete
+            // เปลี่ยน balance พร้อมกัน
+            account, err := accountRepo.FindOwnedForUpdate(
+                ctx,
+                userID,
+                accountID,
+            )
+            if errors.Is(err, gorm.ErrRecordNotFound) {
+                return ErrAccountNotFound
+            }
+            if err != nil {
+                return err
+            }
+
+            calculatedBalance, err := transactionRepo.CalculateAccountBalance(
+                ctx,
+                account.ID,
+            )
+            if err != nil {
+                return err
+            }
+
+            account.Balance = calculatedBalance
+
+            if err := accountRepo.UpdateBalance(ctx, account); err != nil {
+                return err
+            }
+
+            syncedAccount = account
+            return nil
+        },
+    )
+    if err != nil {
+        return nil, err
+    }
+
+    return syncedAccount, nil
+}

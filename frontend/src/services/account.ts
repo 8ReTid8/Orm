@@ -32,6 +32,7 @@ export async function getAccountTransactions(
   accountId: number,
   year: number,
   month: number | null,
+  category: string | null,
   page: number,
   limit = 20,
 ) {
@@ -41,11 +42,21 @@ export async function getAccountTransactions(
       params: {
         year,
         month,
+        category,
         page,
         limit,
       },
     },
   )
+
+  return response.data
+}
+
+export async function syncAccountBalance(id: number) {
+  const response = await api.post<{
+    message: string
+    account: Account
+  }>(`/accounts/${id}/sync-balance`)
 
   return response.data
 }

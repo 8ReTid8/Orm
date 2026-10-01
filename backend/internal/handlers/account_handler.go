@@ -25,7 +25,6 @@ type CreateAccountRequest struct {
 	Name string `json:"name" binding:"required"`
 }
 
-// func CreateAccount(c *gin.Context) {
 func (h *AccountHandler) CreateAccount(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
@@ -136,4 +135,50 @@ func (h *AccountHandler) DeleteAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ลบบัญชีสำเร็จ",
 	})
+}
+
+func (h *AccountHandler) SyncBalance(
+    c *gin.Context,
+) {
+    userID, ok := getUserID(c)
+    if !ok {
+        return
+    }
+
+    accountID64, err := strconv.ParseUint(
+        c.Param("id"),
+        10,
+        64,
+    )
+    if err != nil || accountID64 == 0 {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "account id ไม่ถูกต้อง",
+        })
+        return
+    }
+
+    account, err := h.service.SyncBalance(
+        c.Request.Context(),
+        userID,
+        uint(accountID64),
+    )
+
+    switch {
+    case errors.Is(err, services.ErrAccountNotFound):
+        c.JSON(http.StatusNotFound, gin.H{
+            "message": "ไม่พบบัญชี",
+        })
+        return
+
+    case err != nil:
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "message": "ไม่สามารถซิงก์ยอดคงเหลือได้",
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "ซิงก์ยอดคงเหลือสำเร็จ",
+        "account": dto.ToAccountResponse(*account),
+    })
 }

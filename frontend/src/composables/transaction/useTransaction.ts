@@ -12,7 +12,6 @@ import {
   getTransactions,
   updateTransaction,
   deleteTransaction as deleteTransactionApi,
-  getTransactionPage,
 } from "@/services/transaction"
 import type { PageMeta } from "@/types/pagination"
 import { getAccountTransactions } from "@/services/account"
@@ -36,65 +35,99 @@ export function useTransactions() {
     netFlow: 0,
   })
 
-  async function loadTransactions({
-    year = null,
-    month = null,
-    startDate = null,
-    endDate = null,
-    accountId = null,
-    category = null,
-  }: TransactionFilter) {
-    try {
-      isLoadingTransactions.value = true
-      error.value = null
+  // async function loadTransactions({
+  //   year = null,
+  //   month = null,
+  //   startDate = null,
+  //   endDate = null,
+  //   accountId = null,
+  //   category = null,
+  // }: TransactionFilter) {
+  //   try {
+  //     isLoadingTransactions.value = true
+  //     error.value = null
 
-      transactions.value = await getTransactions(
-        year,
-        month,
-        startDate,
-        endDate,
-        accountId,
-        category,
-      )
-    } catch (err) {
-      console.error("Failed to load transactions:", err)
-      error.value = "ไม่สามารถโหลดรายการธุรกรรมได้"
-      throw err
-    } finally {
-      isLoadingTransactions.value = false
-    }
-  }
-
-  async function loadTransactionPage(
+  //     transactions.value = await getTransactions(
+  //       year,
+  //       month,
+  //       startDate,
+  //       endDate,
+  //       accountId,
+  //       category,
+  //     )
+  //   } catch (err) {
+  //     console.error("Failed to load transactions:", err)
+  //     error.value = "ไม่สามารถโหลดรายการธุรกรรมได้"
+  //     throw err
+  //   } finally {
+  //     isLoadingTransactions.value = false
+  //   }
+  // }
+  async function loadTransactions(
     filter: TransactionFilter,
-    page = 1,
-    limit = 5,
   ) {
     try {
       isLoadingTransactions.value = true
-      error.value = null
 
-      const response = await getTransactionPage(
-        filter,
-        page,
-        limit,
-      )
-
+      const response = await getTransactions(filter)
       transactions.value = response.transactions
-      meta.value = response.meta
-    } catch (err) {
-      console.error("Failed to load transaction page:", err)
-      error.value = "ไม่สามารถโหลดหน้ารายการธุรกรรมได้"
-      throw err
     } finally {
       isLoadingTransactions.value = false
     }
   }
+  // async function loadTransactionPage(
+  //   filter: TransactionFilter,
+  //   page = 1,
+  //   limit = 5,
+  // ) {
+  //   try {
+  //     isLoadingTransactions.value = true
+  //     error.value = null
 
+  //     const response = await getTransactionPage(
+  //       filter,
+  //       page,
+  //       limit,
+  //     )
+
+  //     transactions.value = response.transactions
+  //     meta.value = response.meta
+  //   } catch (err) {
+  //     console.error("Failed to load transaction page:", err)
+  //     error.value = "ไม่สามารถโหลดหน้ารายการธุรกรรมได้"
+  //     throw err
+  //   } finally {
+  //     isLoadingTransactions.value = false
+  //   }
+  // }
+  async function loadTransactionPage(
+    filter: TransactionFilter,
+    page = 1,
+    limit = 20,
+  ) {
+    try {
+      isLoadingTransactions.value = true
+
+      const response = await getTransactions({
+        ...filter,
+        page,
+        limit,
+      })
+
+      transactions.value = response.transactions
+
+      if (response.meta) {
+        meta.value = response.meta
+      }
+    } finally {
+      isLoadingTransactions.value = false
+    }
+  }
   async function loadAccountTransactions(
     accountId: number,
     year: number,
     month: number | null,
+    category: string | null,
     page = 1,
     limit = 20,
   ) {
@@ -106,6 +139,7 @@ export function useTransactions() {
         accountId,
         year,
         month,
+        category,
         page,
         limit,
       )

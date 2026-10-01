@@ -2,7 +2,7 @@
 import { computed } from "vue"
 import type { Budget } from "@/types/budget"
 import type { Transaction } from "@/types/transaction"
-import { formatMoney } from "@/utils/format"
+import { formatDate, formatMoney } from "@/utils/format"
 
 // นำเข้า Chart.js และ Component Line จาก vue-chartjs
 import {
@@ -69,7 +69,8 @@ const chartData = computed<ChartData<"line">>(() => {
 
   // วนลูปตั้งแต่วันแรกจนถึงวันสิ้นสุดงบ
   while (cur <= end) {
-    const dateStr = cur.toISOString().slice(0, 10)
+    // const dateStr = cur.toISOString().slice(0, 10)
+    const dateStr = formatDate(cur)
     // Label แสดงแบบสั้น เช่น "1 ก.ย."
     labels.push(
       cur.toLocaleDateString("th-TH", { day: "numeric", month: "short" })

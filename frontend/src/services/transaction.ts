@@ -7,6 +7,7 @@ import type {
   DeleteTransactionResponse,
   TransactionFilter,
   GetTransactionsPageResponse,
+  TransactionQuery,
 } from "@/types/transaction"
 
 
@@ -72,31 +73,31 @@ export async function updateTransaction(
   return response.data
 }
 
-export async function getTransactions(
-  year: number | null,
-  month: number | null,
-  startDate: string | null,
-  endDate: string | null,
-  accountId: number | null,
-  category: string | null
-) {
-  const response =
-    await api.get<GetTransactionsResponse>(
-      "/transactions",
-      {
-        params: {
-          startDate,
-          endDate,
-          accountId,
-          category,
-          year,
-          month,
-        },
-      },
-    )
+// export async function getTransactions(
+//   year: number | null,
+//   month: number | null,
+//   startDate: string | null,
+//   endDate: string | null,
+//   accountId: number | null,
+//   category: string | null
+// ) {
+//   const response =
+//     await api.get<GetTransactionsResponse>(
+//       "/transactions",
+//       {
+//         params: {
+//           startDate,
+//           endDate,
+//           accountId,
+//           category,
+//           year,
+//           month,
+//         },
+//       },
+//     )
 
-  return response.data.transactions
-}
+//   return response.data.transactions
+// }
 
 export async function deleteTransaction(
   id: number
@@ -113,26 +114,39 @@ export async function getTransactionYears(): Promise<number[]> {
   return response.data.years
 }
 
-export async function getTransactionPage(
-  filter: TransactionFilter,
-  page = 1,
-  limit = 20,
+// export async function getTransactionPage(
+//   filter: TransactionFilter,
+//   page = 1,
+//   limit = 20,
+// ) {
+//   const response = await api.get<GetTransactionsPageResponse>(
+//     "/transactions",
+//     {
+//       params: {
+//         year: filter.year,
+//         month: filter.month,
+//         startDate: filter.startDate,
+//         endDate: filter.endDate,
+//         accountId: filter.accountId,
+//         category: filter.category,
+//         type: filter.type,
+
+//         page,
+//         limit,
+//       },
+//     },
+//   )
+
+//   return response.data
+// }
+
+export async function getTransactions(
+  filter: TransactionQuery,
 ) {
-  const response = await api.get<GetTransactionsPageResponse>(
+  const response = await api.get<GetTransactionsResponse>(
     "/transactions",
     {
-      params: {
-        year: filter.year,
-        month: filter.month,
-        startDate: filter.startDate,
-        endDate: filter.endDate,
-        accountId: filter.accountId,
-        category: filter.category,
-        type: filter.type,
-
-        page,
-        limit,
-      },
+      params: filter,
     },
   )
 

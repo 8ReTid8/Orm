@@ -2,7 +2,7 @@ import { onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useAccountStore } from "@/stores/account"
-import { 
+import {
   createAccount,
   deleteAccount as deleteAccountApi
 } from "@/services/account"
@@ -67,7 +67,7 @@ export function useAccount() {
   }
 
   onMounted(() => {
-    accountStore.loadAccounts()
+    accountStore.loadAccounts(true)
   })
 
   return {

@@ -1,12 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
-import {
-    ArrowDownLeft,
-    ArrowUpRight,
-    Wallet,
-    Percent,
-    Award,
-} from "lucide-vue-next"
 import { useAccountStore } from "@/stores/account"
 import { usePeriodFilter } from "@/composables/period/usePeriodFilter"
 import { formatMoney } from "@/utils/format"
@@ -211,16 +204,6 @@ onMounted(async () => {
                         เปรียบเทียบรายรับ vs รายจ่าย
                         {{ comparison?.period === "day" ? "รายวัน" : "รายเดือน" }}
                     </h2>
-
-                    <!-- <select :value="selectedComparisonCategory" class="select select-bordered select-sm" @change="updateComparisonCategory(
-                        ($event.target as HTMLSelectElement).value || null
-                    )">
-                        <option value="">ทุกหมวดหมู่</option>
-
-                        <option v-for="category in categoryStore.categories" :key="category.id" :value="category.name">
-                            {{ category.name }}
-                        </option>
-                    </select> -->
                     <CategoryFilter v-model="selectedComparisonCategory" :categories="categoryStore.categories"
                         @update:model-value="updateComparisonCategory" />
                 </div>
@@ -233,7 +216,7 @@ onMounted(async () => {
             </div>
 
             <!-- 4. 5 อันดับหมวดหมู่ที่มีรายจ่ายสูงสุด -->
-            <div class="card bg-base-100 p-5 border border-base-200 shadow-sm rounded-2xl">
+            <!-- <div class="card bg-base-100 p-5 border border-base-200 shadow-sm rounded-2xl">
                 <div class="flex items-center gap-2 mb-4">
                     <Award class="size-5 text-warning" />
                     <h2 class="font-bold text-lg">หมวดหมู่ที่มีรายจ่ายสูงสุด</h2>
@@ -262,13 +245,12 @@ onMounted(async () => {
                             </div>
                         </div>
 
-                        <!-- Progress bar -->
                         <progress class="progress progress-error w-full h-2 mt-1.5" :value="item.amount"
                             :max="summary.totalExpense" />
                     </div>
                 </div>
 
-            </div>
+            </div> -->
         </template>
         <CategoryTransactionsModal :open="isCategoryModalOpen" :category-name="selectedCategoryName"
             :category-type="selectedCategoryType" :year="selectedYear" :month="viewMode === 'monthly' ? selectedMonth : null"

@@ -3,10 +3,8 @@ import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import {
   ArrowLeft,
+  RefreshCw,
   Wallet,
-  ArrowDownLeft,
-  ArrowUpRight,
-  ReceiptText,
 } from "lucide-vue-next"
 import { useAccountStore } from "@/stores/account"
 import { useCategoryStore } from "@/stores/category"
@@ -21,6 +19,8 @@ import TotalList from "@/components/common/TotalList.vue"
 import type { Transaction } from "@/types"
 import Pagination from "@/components/common/Pagination.vue"
 import TransactionSummary from "@/components/transaction/TransactionSummary.vue"
+import CategoryFilter from "@/components/filter/CategoryFilter.vue"
+import { syncAccountBalance } from "@/services/account"
 
 const route = useRoute()
 const router = useRouter()
@@ -32,7 +32,7 @@ const accountId = computed(() => Number(route.params.id))
 const account = computed(() =>
   accountStore.accounts.find((a) => a.id === accountId.value)
 )
-
+const selectedCategory = ref<string | null>(null)
 const viewMode = ref<"monthly" | "yearly">("monthly")
 const isDialogOpen = ref(false)
 
@@ -44,15 +44,6 @@ const {
   loadYears,
 } = usePeriodFilter("transaction")
 
-// const {
-//   transactions,
-//   isLoadingTransactions,
-//   loadTransactions,
-//   deleteTransaction,
-//   saveTransaction: saveTransactionApi,
-//   startEdit,
-//   cancelEdit,
-// } = useTransactions()
 const {
   transactions,
   meta,
@@ -64,23 +55,33 @@ const {
   startEdit,
   cancelEdit,
 } = useTransactions()
-const { form, setEditForm, resetForm } = useTransactionForm()
+const { form, setEditForm } = useTransactionForm()
 
 // ดึงรายการเดินบัญชีของบัญชีนี้
+const isSyncing = ref(false)
+async function handleSyncBalance() {
+  if (!accountId.value || isSyncing.value) return
+  try {
+    isSyncing.value = true
+    await syncAccountBalance(accountId.value)
+    // สั่งโหลดบัญชีใหม่แบบ force เพื่อให้อัปเดตยอดคงเหลือใน Store ทันที
+    await accountStore.loadAccounts(true)
+  } catch (error) {
+    console.error("Sync balance failed:", error)
+  } finally {
+    isSyncing.value = false
+  }
+}
 async function fetchTransactions() {
   if (!accountId.value || !selectedYear.value) return
 
-  // await loadTransactions({
-  //   accountId: accountId.value,
-  //   year: selectedYear.value,
-  //   month: viewMode.value === "monthly" ? selectedMonth.value : null,
-  // })
   await loadAccountTransactions(
     accountId.value,
     selectedYear.value,
     viewMode.value === "monthly"
       ? selectedMonth.value
       : null,
+    selectedCategory.value,
     currentPage.value,
   )
 }
@@ -97,6 +98,12 @@ async function updateMonth(month: number | null) {
   await fetchTransactions()
 }
 
+async function updateCategory(category: string | null) {
+  console.log("kuy suea")
+  selectedCategory.value = category
+  currentPage.value = 1
+  await fetchTransactions()
+}
 async function setViewMode(mode: "monthly" | "yearly") {
   viewMode.value = mode
   if (mode === "monthly" && !selectedMonth.value) {
@@ -213,49 +220,30 @@ onMounted(async () => {
         </div>
 
         <!-- การ์ดยอดคงเหลือปัจจุบันของบัญชี -->
-        <div class="rounded-2xl border border-base-200 bg-base-100 p-4 sm:text-right shadow-xs">
+        <!-- <div class="rounded-2xl border border-base-200 bg-base-100 p-4 sm:text-right shadow-xs">
           <p class="text-xs text-base-content/50">ยอดคงเหลือปัจจุบัน</p>
           <p class="text-2xl font-bold text-success">
             ฿{{ formatMoney(account.balance) }}
           </p>
+        </div> -->
+        <!-- การ์ดยอดคงเหลือปัจจุบันของบัญชี -->
+        <div
+          class="flex items-center justify-between gap-4 rounded-2xl border border-base-200 bg-base-100 p-4 shadow-xs sm:justify-end">
+          <div class="sm:text-right">
+            <p class="text-xs text-base-content/50">ยอดคงเหลือปัจจุบัน</p>
+            <p class="text-2xl font-bold text-success">
+              ฿{{ formatMoney(account.balance) }}
+            </p>
+          </div>
+
+          <!-- 👈 ปุ่ม Sync ยอดเงิน (หมุนไอคอนตอนกำลังโหลด) -->
+          <button type="button" class="btn btn-circle btn-ghost btn-sm" :class="{ 'text-primary': isSyncing }"
+            :disabled="isSyncing" title="ซิงก์คำนวณยอดเงินใหม่จากรายการ" @click="handleSyncBalance">
+            <RefreshCw class="size-4" :class="{ 'animate-spin': isSyncing }" />
+          </button>
         </div>
       </div>
 
-      <!-- 2. Cashflow Cards (3 ใบ สรุปเงินเข้า-ออกรอบนี้) -->
-      <!-- <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-       
-        <div class="rounded-2xl bg-success/10 p-5 border border-success/20">
-          <div class="flex items-center justify-between text-success">
-            <span class="text-sm font-medium">เงินเข้า</span>
-            <ArrowDownLeft class="size-5" />
-          </div>
-          <p class="mt-3 text-2xl font-bold text-success">
-            +฿{{ formatMoney(totalIncome) }}
-          </p>
-        </div>
-
-     
-        <div class="rounded-2xl bg-error/10 p-5 border border-error/20">
-          <div class="flex items-center justify-between text-error">
-            <span class="text-sm font-medium">เงินออก</span>
-            <ArrowUpRight class="size-5" />
-          </div>
-          <p class="mt-3 text-2xl font-bold text-error">
-            -฿{{ formatMoney(totalExpense) }}
-          </p>
-        </div>
-
-      
-        <div class="rounded-2xl bg-base-200 p-5 border border-base-300">
-          <div class="flex items-center justify-between text-base-content/70">
-            <span class="text-sm font-medium">ส่วนต่างเงินในรอบนี้</span>
-            <Wallet class="size-5" />
-          </div>
-          <p class="mt-3 text-2xl font-bold" :class="netFlow >= 0 ? 'text-success' : 'text-error'">
-            {{ netFlow >= 0 ? '+' : '' }}฿{{ formatMoney(netFlow) }}
-          </p>
-        </div>
-      </div> -->
       <!-- 2. Cashflow Cards (3 ใบ) -->
       <TransactionSummary :income="totalIncome" :expense="totalExpense" :net="netFlow" income-label="เงินเข้า"
         expense-label="เงินออก" net-label="ส่วนต่างเงินในรอบนี้" />
@@ -274,11 +262,14 @@ onMounted(async () => {
             รายปี
           </button>
         </div>
-
-        <!-- PeriodFilter -->
-        <PeriodFilter :years="years" :months="viewMode === 'monthly' ? months : []" :model-year="selectedYear"
-          :model-month="viewMode === 'monthly' ? selectedMonth : null" @update:model-year="updateYear"
-          @update:model-month="updateMonth" />
+        <div class="flex flex-wrap items-center gap-3">
+          <CategoryFilter v-model="selectedCategory" :categories="categoryStore.categories"
+            @update:model-value="updateCategory" />
+          <!-- PeriodFilter -->
+          <PeriodFilter :years="years" :months="viewMode === 'monthly' ? months : []" :model-year="selectedYear"
+            :model-month="viewMode === 'monthly' ? selectedMonth : null" @update:model-year="updateYear"
+            @update:model-month="updateMonth" />
+        </div>
       </div>
 
       <!-- 4. Section รายการเดินบัญชี (Statement) -->

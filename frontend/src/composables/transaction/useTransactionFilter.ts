@@ -2,15 +2,7 @@ import { ref, computed, watch } from "vue"
 import type { Ref } from "vue"
 import type { Transaction, TransactionFilter } from "@/types/transaction"
 import { formatDate } from "@/utils/format"
-// พารามิเตอร์สำหรับส่งไปหา Backend API
-export interface TransactionServerParams {
-  year?: number | null
-  month?: number | null
-  startDate?: string | null
-  endDate?: string | null
-  accountId?: number | null
-  category?: string | null
-}
+
 export function useTransactionFilter(
   transactions: Ref<Transaction[]>,
   selectedYear: Ref<number | null>,

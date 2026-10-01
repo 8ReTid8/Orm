@@ -462,3 +462,30 @@ func (r *TransactionRepository) ListDailyTotals(
 	return totals, nil
 }
 
+func (r *TransactionRepository) CalculateAccountBalance(
+    ctx context.Context,
+    accountID uint,
+) (float64, error) {
+    var balance float64
+
+    err := r.db.WithContext(ctx).
+        Model(&models.Transaction{}).
+        Where("account_id = ?", accountID).
+        Select(`
+            COALESCE(SUM(
+                CASE
+                    WHEN type = 'income' THEN amount
+                    WHEN type = 'expense' THEN -amount
+                    ELSE 0
+                END
+            ), 0)
+        `).
+        Scan(&balance).
+        Error
+
+    if err != nil {
+        return 0, err
+    }
+
+    return balance, nil
+}

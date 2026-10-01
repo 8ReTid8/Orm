@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BudgetSpendingChart from "@/components/budget/BudgetSpendingChart.vue";
 import BudgetSummary from "@/components/budget/BudgetSummary.vue";
+import Pagination from "@/components/common/Pagination.vue";
 import TotalList from "@/components/common/TotalList.vue";
 import GroupedTransactionList from "@/components/transaction/GroupedTransactionList.vue";
 import TransactionForm from "@/components/transaction/TransactionForm.vue";
@@ -14,7 +15,7 @@ import { resolveCategoryIcon } from "@/utils/categoryIcons";
 import { formatDate, formatMoney, formatThaiDateLong } from "@/utils/format";
 import { groupTransactionsByDate } from "@/utils/transaction";
 import { AlertCircle, ArrowLeft, Calendar, ReceiptText, Wallet } from "lucide-vue-next";
-import { ref, onMounted, computed } from "vue"
+import { ref, onMounted, computed, watch } from "vue"
 import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute()
@@ -49,7 +50,24 @@ const {
 const isLoading = ref(false)
 const budget = computed(() => budgetDetail.value?.budget)
 const transactions = computed(() => budgetDetail.value?.transactions ?? [])
+const currentPage = ref(1)
+const pageSize = ref(10) // กำหนดจำนวนรายการต่อหน้า (เช่น 10 รายการ)
+const totalPages = computed(() =>
+    Math.ceil(transactions.value.length / pageSize.value) || 1
+)
 
+// รายการ transaction เฉพาะหน้าปัจจุบัน
+const paginatedTransactions = computed(() => {
+    const start = (currentPage.value - 1) * pageSize.value
+    return transactions.value.slice(start, start + pageSize.value)
+    // return sortedTransactions.value.slice(start, start + pageSize.value)
+})
+// ป้องกันกรณีลบรายการแล้วหน้าปัจจุบันเกิน totalPages
+watch(totalPages, (newTotal) => {
+    if (currentPage.value > newTotal) {
+        currentPage.value = Math.max(1, newTotal)
+    }
+})
 function getCategoryIcon(categoryName?: string) {
     if (!categoryName) return null
     const cat = categoryStore.categories.find((c) => c.name === categoryName)
@@ -203,10 +221,11 @@ onMounted(async () => {
                         <TotalList :total="transactions.length" />
                     </div>
                     <!-- 👈 ใช้งาน GroupedTransactionList แทนลูปเดิมทั้งหมด -->
-                    <GroupedTransactionList :transactions="transactions" :accounts="accountStore.accounts"
+                    <GroupedTransactionList :transactions="paginatedTransactions" :accounts="accountStore.accounts"
                         :categories="categoryStore.categories" empty-title="ยังไม่มีรายการใช้จ่าย"
                         empty-description="ยังไม่มีการบันทึกรายการในหมวดหมู่นี้ในช่วงเวลาที่กำหนด"
                         @edit="openEditTransaction" @delete="handleDeleteTransaction" />
+                    <Pagination v-model:current-page="currentPage" :total-pages="totalPages" :disabled="isLoading" />
                 </div>
             </div>
         </template>

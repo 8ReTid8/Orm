@@ -63,3 +63,13 @@ export interface GetTransactionsPageResponse {
   transactions: Transaction[]
   meta: PageMeta
 }
+
+export interface TransactionQuery extends TransactionFilter {
+  page?: number
+  limit?: number
+}
+
+export interface GetTransactionsResponse {
+  transactions: Transaction[]
+  meta?: PageMeta
+}
