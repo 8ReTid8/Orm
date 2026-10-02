@@ -73,11 +73,6 @@ func (s *AuthService) Register(
 
 	expiresAt := time.Now().Add(15 * time.Minute)
 
-	// user := &models.User{
-	// 	Email:    email,
-	// 	Password: string(hashedPassword),
-	// 	Role:     "user",
-	// }
 	user := &models.User{
 		Email:                 email,
 		Password:              string(hashedPassword),
@@ -89,12 +84,6 @@ func (s *AuthService) Register(
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return err
 	}
-	// if err := s.emailService.SendVerificationEmail(
-	// 	user.Email,
-	// 	token,
-	// ); err != nil {
-	// 	return ErrVerificationEmailFailed
-	// }
 	if err := s.emailService.SendVerificationEmail(
 		user.Email,
 		token,
@@ -108,8 +97,6 @@ func (s *AuthService) Register(
 	}
 
 	return nil
-	// return token, nil
-	// return s.userRepo.Create(ctx, user)
 }
 
 func (s *AuthService) Login(
