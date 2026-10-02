@@ -31,28 +31,41 @@ const emit = defineEmits<{
   select: [categoryName: string]
 }>()
 
-const chartData = computed(() => ({
-  labels: props.items.map(i => i.name),
-  datasets: [{
-    data: props.items.map(i => i.amount),
-    backgroundColor: props.items.map((_, index) => palette[index % palette.length]),
-    borderWidth: 2,
-    borderColor: "#ffffff",
-  }],
-}))
+// ฟังก์ชันคำนวณสีอัตโนมัติด้วย HSL
+function getCategoryColor(index: number, total: number): string {
+  const color = palette[index]
+  if (color) {
+    return color
+  }
+  const hue = Math.round((index * (360 / Math.max(total, 1)))) % 360
+  return `hsl(${hue}, 65%, 55%)`
+}
 
-// const chartOptions = {
-//   responsive: true,
-//   maintainAspectRatio: false,
-//   plugins: {
-//     legend: { position: "right" as const },
-//     tooltip: {
-//       callbacks: {
-//         label: (ctx: any) => ` ฿${formatMoney(ctx.raw)}`,
-//       },
-//     },
-//   },
-// }
+const chartData = computed(() => {
+  const total = props.items.length
+  return {
+    labels: props.items.map(i => i.name),
+    datasets: [{
+      data: props.items.map(i => i.amount),
+      // 👈 เรียกใช้ฟังก์ชันกำหนดสี
+      backgroundColor: props.items.map((item, index) => 
+        item.color || getCategoryColor(index, total)
+      ),
+      borderWidth: 2,
+      borderColor: "#ffffff",
+    }],
+  }
+})
+// const chartData = computed(() => ({
+//   labels: props.items.map(i => i.name),
+//   datasets: [{
+//     data: props.items.map(i => i.amount),
+//     backgroundColor: props.items.map((_, index) => palette[index % palette.length]),
+//     borderWidth: 2,
+//     borderColor: "#ffffff",
+//   }],
+// }))
+
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
