@@ -29,7 +29,10 @@ func ConnectDB() {
 		sslmode,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true, // ปิด prepared statements สำหรับ Supabase pooler
+	}), &gorm.Config{})
 
 	if err != nil {
 		log.Fatal(err)
