@@ -15,23 +15,31 @@ import (
 	"gorm.io/gorm"
 )
 
+//	type LoginResult struct {
+//		Token string
+//		User  *models.User
+//	}
 type LoginResult struct {
-	Token string
-	User  *models.User
+	AccessToken  string
+	RefreshToken string
+	User         *models.User
 }
 
 type AuthService struct {
-	userRepo     *repositories.UserRepository
-	emailService *EmailService
+	userRepo         *repositories.UserRepository
+	refreshTokenRepo *repositories.RefreshTokenRepository
+	emailService     *EmailService
 }
 
 func NewAuthService(
 	userRepo *repositories.UserRepository,
+	refreshTokenRepo *repositories.RefreshTokenRepository,
 	emailService *EmailService,
 ) *AuthService {
 	return &AuthService{
-		userRepo:     userRepo,
-		emailService: emailService,
+		userRepo:         userRepo,
+		refreshTokenRepo: refreshTokenRepo,
+		emailService:     emailService,
 	}
 }
 
@@ -42,11 +50,7 @@ func (s *AuthService) Register(
 	password string,
 
 ) error {
-	// func (s *AuthService) Register(
-	// 	ctx context.Context,
-	// 	email string,
-	// 	password string,
-	// ) (string, error) {
+
 	email = strings.ToLower(strings.TrimSpace(email))
 
 	_, err := s.userRepo.FindByEmail(ctx, email)
@@ -124,18 +128,83 @@ func (s *AuthService) Login(
 	if !user.IsVerified {
 		return nil, ErrEmailNotVerified
 	}
-	token, err := utils.GenerateToken(
-		user.ID,
-		user.Role,
-	)
+	// token, err := utils.GenerateToken(
+	// 	user.ID,
+	// 	user.Role,
+	// )
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return &LoginResult{
+	// 	Token: token,
+	// 	User:  user,
+	// }, nil
+	accessToken, err := utils.GenerateToken(user.ID, user.Role)
 	if err != nil {
 		return nil, err
 	}
 
+	if err := s.refreshTokenRepo.DeleteByUserID(ctx, user.ID); err != nil {
+		return nil, err
+	}
+	
+	rawRefresh, refreshHash, err := utils.GenerateRefreshToken()
+	if err != nil {
+		return nil, err
+	}
+	refreshToken := &models.RefreshToken{
+		UserID:    user.ID,
+		TokenHash: refreshHash,
+		ExpiresAt: time.Now().AddDate(0, 0, 30), // 30 วัน
+	}
+	if err := s.refreshTokenRepo.Create(ctx, refreshToken); err != nil {
+		return nil, err
+	}
 	return &LoginResult{
-		Token: token,
-		User:  user,
+		AccessToken:  accessToken,
+		RefreshToken: rawRefresh,
+		User:         user,
 	}, nil
+}
+
+func (s *AuthService) RefreshToken(
+	ctx context.Context,
+	rawToken string,
+) (string, error) {
+	rawToken = strings.TrimSpace(rawToken)
+	if rawToken == "" {
+		return "", ErrInvalidRefreshToken
+	}
+	tokenHash := utils.HashRefreshToken(rawToken)
+	stored, err := s.refreshTokenRepo.FindByTokenHash(ctx, tokenHash)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return "", ErrInvalidRefreshToken
+	}
+	if err != nil {
+		return "", err
+	}
+	user, err := s.userRepo.FindByID(ctx, stored.UserID)
+	if err != nil {
+		return "", err
+	}
+	newAccessToken, err := utils.GenerateToken(user.ID, user.Role)
+	if err != nil {
+		return "", err
+	}
+	return newAccessToken, nil
+}
+
+func (s *AuthService) Logout(
+	ctx context.Context,
+	rawToken string,
+) error {
+	rawToken = strings.TrimSpace(rawToken)
+	if rawToken == "" {
+		return nil
+	}
+	tokenHash := utils.HashRefreshToken(rawToken)
+	return s.refreshTokenRepo.DeleteByTokenHash(ctx, tokenHash)
 }
 
 func (s *AuthService) VerifyEmail(

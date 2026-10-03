@@ -2,7 +2,7 @@
 import { ref } from "vue"
 import { useRouter } from "vue-router"
 import axios from "axios"
-import { LogIn,Mail,Lock } from "lucide-vue-next"
+import { LogIn, Mail, Lock } from "lucide-vue-next"
 import { login } from "@/services/auth"
 import { useAuthStore } from "@/stores/auth"
 
@@ -24,9 +24,8 @@ async function submitLogin() {
             password: password.value,
         })
 
-        // localStorage.setItem("token", result.token)
-        // localStorage.setItem("user", JSON.stringify(result.user))
-        authStore.setAuth(result.token, result.user)
+        // authStore.setAuth(result.token, result.user)
+        authStore.setAuth(result.accessToken, result.refreshToken, result.user)
         await router.push("/")
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
@@ -73,7 +72,7 @@ async function submitLogin() {
                 </div>
 
                 <!-- <form class="mt-4 space-y-4" @submit.prevent="submitLogin"> -->
-                 <form class="flex flex-col gap-3" @submit.prevent="submitLogin">
+                <form class="flex flex-col gap-3" @submit.prevent="submitLogin">
                     <!-- <label class="form-control">
                         <span class="label-text mb-2">อีเมล</span>
                         <input v-model.trim="email" type="email" class="input input-bordered w-full"
@@ -112,7 +111,8 @@ async function submitLogin() {
                         </label>
                     </div>
 
-                    <button type="submit" class="btn bg-[#99e550] hover:bg-[#6abe30] w-full h-12 text-base" :disabled="isLoading">
+                    <button type="submit" class="btn bg-[#99e550] hover:bg-[#6abe30] w-full h-12 text-base"
+                        :disabled="isLoading">
                         <span v-if="isLoading" class="loading loading-spinner loading-sm" />
 
                         {{ isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ" }}

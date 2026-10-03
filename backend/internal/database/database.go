@@ -36,6 +36,7 @@ func ConnectDB() {
 		&models.Transaction{},
 		&models.Budget{},
 		&models.SavingGoal{},
+		&models.RefreshToken{},
 	)
 
 	if err != nil {

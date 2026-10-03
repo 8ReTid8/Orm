@@ -4,9 +4,15 @@ export interface AuthUser {
   role: "user" | "admin"
 }
 
+// export interface AuthResponse {
+//   message: string
+//   token: string
+//   user: AuthUser
+// }
 export interface AuthResponse {
   message: string
-  token: string
+  accessToken: string
+  refreshToken: string
   user: AuthUser
 }
 

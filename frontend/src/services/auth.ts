@@ -19,6 +19,20 @@ export async function login(input: LoginInput) {
   return response.data
 }
 
+export async function refreshAccessToken(refreshToken: string) {
+  const response = await api.post<{ accessToken: string }>("/auth/refresh", {
+    refreshToken,
+  })
+  return response.data
+}
+
+export async function logout(refreshToken: string) {
+  const response = await api.post<{ message: string }>("/auth/logout", {
+    refreshToken,
+  })
+  return response.data
+}
+
 export async function verifyEmail(
   token: string,
 ) {

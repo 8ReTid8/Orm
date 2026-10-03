@@ -18,32 +18,56 @@ function loadUser(): AuthUser | null {
 }
 
 export const useAuthStore = defineStore("auth", () => {
-    const token = ref<string | null>(localStorage.getItem("token"))
+    // const token = ref<string | null>(localStorage.getItem("token"))
+    const accessToken = ref<string | null>(localStorage.getItem("accessToken"))
+    const refreshToken = ref<string | null>(localStorage.getItem("refreshToken"))
     const user = ref<AuthUser | null>(loadUser())
 
-    const isAuthenticated = computed(() => Boolean(token.value))
+    // const isAuthenticated = computed(() => Boolean(token.value))
+    const isAuthenticated = computed(() => Boolean(accessToken.value))
 
-    function setAuth(newToken: string, newUser: AuthUser) {
-        token.value = newToken
+    // function setAuth(newToken: string, newUser: AuthUser) {
+    //     token.value = newToken
+    //     user.value = newUser
+
+    //     localStorage.setItem("token", newToken)
+    //     localStorage.setItem("user", JSON.stringify(newUser))
+    // }
+    function setAuth(newAccessToken: string, newRefreshToken: string, newUser: AuthUser) {
+        accessToken.value = newAccessToken
+        refreshToken.value = newRefreshToken
         user.value = newUser
-
-        localStorage.setItem("token", newToken)
+        localStorage.setItem("accessToken", newAccessToken)
+        localStorage.setItem("refreshToken", newRefreshToken)
         localStorage.setItem("user", JSON.stringify(newUser))
     }
+    function setAccessToken(newAccessToken: string) {
+        accessToken.value = newAccessToken
+        localStorage.setItem("accessToken", newAccessToken)
+    }
+    // function clearAuth() {
+    //     token.value = null
+    //     user.value = null
 
+    //     localStorage.removeItem("token")
+    //     localStorage.removeItem("user")
+    // }
     function clearAuth() {
-        token.value = null
+        accessToken.value = null
+        refreshToken.value = null
         user.value = null
-
-        localStorage.removeItem("token")
+        localStorage.removeItem("accessToken")
+        localStorage.removeItem("refreshToken")
         localStorage.removeItem("user")
     }
 
     return {
-        token,
+        accessToken,
+        refreshToken,
         user,
         isAuthenticated,
         setAuth,
         clearAuth,
+        setAccessToken,
     }
 })

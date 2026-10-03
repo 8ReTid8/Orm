@@ -94,10 +94,59 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"message": "เข้าสู่ระบบสำเร็จ",
+	// 	"token":   result.Token,
+	// 	"user":    dto.ToAuthUserResponse(*result.User),
+	// })
 	c.JSON(http.StatusOK, gin.H{
-		"message": "เข้าสู่ระบบสำเร็จ",
-		"token":   result.Token,
-		"user":    dto.ToAuthUserResponse(*result.User),
+		"message":      "เข้าสู่ระบบสำเร็จ",
+		"accessToken":  result.AccessToken,
+		"refreshToken": result.RefreshToken,
+		"user":         dto.ToAuthUserResponse(*result.User),
+	})
+}
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	var request dto.RefreshRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "ข้อมูลไม่ถูกต้อง",
+		})
+		return
+	}
+	newAccessToken, err := h.service.RefreshToken(
+		c.Request.Context(),
+		request.RefreshToken,
+	)
+	if errors.Is(err, services.ErrInvalidRefreshToken) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "refresh token ไม่ถูกต้องหรือหมดอายุ",
+		})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถ refresh token ได้",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"accessToken": newAccessToken,
+	})
+}
+
+func (h *AuthHandler) Logout(c *gin.Context) {
+	var request dto.LogoutRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "ข้อมูลไม่ถูกต้อง",
+		})
+		return
+	}
+	_ = h.service.Logout(c.Request.Context(), request.RefreshToken)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "ออกจากระบบสำเร็จ",
 	})
 }
 

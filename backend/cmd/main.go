@@ -25,18 +25,11 @@ func main() {
 	database.ConnectDB()
 
 	//REPO
-	userRepo := repositories.NewUserRepository(
-		database.DB,
-	)
-	accountRepo := repositories.NewAccountRepository(
-		database.DB,
-	)
-	transactionRepo := repositories.NewTransactionRepository(
-		database.DB,
-	)
-	budgetRepo := repositories.NewBudgetRepository(
-		database.DB,
-	)
+	userRepo := repositories.NewUserRepository(database.DB,)
+	refreshTokenRepo := repositories.NewRefreshTokenRepository(database.DB)
+	accountRepo := repositories.NewAccountRepository(database.DB,)
+	transactionRepo := repositories.NewTransactionRepository(database.DB,)
+	budgetRepo := repositories.NewBudgetRepository(database.DB,)
 
 	//SERVICE
 	emailService := services.NewEmailService(
@@ -54,6 +47,7 @@ func main() {
 	// )
 	authService := services.NewAuthService(
 		userRepo,
+		refreshTokenRepo,
 		emailService,
 	)
 	accountService := services.NewAccountService(
