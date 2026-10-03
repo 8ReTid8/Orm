@@ -136,8 +136,8 @@ func main() {
 
 	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler, authHandler, periodHandler, summaryHandler)
 
-	// if err := router.Run(":8080"); err != nil {
-	if err := router.Run(":10000"); err != nil {
+	if err := router.Run(":8080"); err != nil {
+	// if err := router.Run(":10000"); err != nil {
 		log.Fatal(err)
 	}
 }
