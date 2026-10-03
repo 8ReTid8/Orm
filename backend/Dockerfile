@@ -1,12 +1,22 @@
-FROM golang:1.24
+# Build stage
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod ./
+COPY go.mod go.sum ./
+RUN go mod download
 
 COPY . .
 
-RUN go build -o main .
+# main.go อยู่ใน ./cmd/ ไม่ใช่ root
+RUN go build -o main ./cmd/
+
+# Run stage
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/main .
 
 EXPOSE 8080
 
