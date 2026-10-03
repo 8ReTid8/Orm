@@ -20,7 +20,10 @@ import (
 func main() {
 	// local dev only — บน production อ่าน env จาก platform แทน
 	godotenv.Load()
-
+	// err := godotenv.Load()
+	// 	if err != nil {
+	// 		log.Fatal("Error loading .env file")
+	// 	}
 	database.ConnectDB()
 
 	//REPO
@@ -102,13 +105,11 @@ func main() {
 	router := gin.Default()
 
 	router.Use(func(c *gin.Context) {
-		
-		
+
 		allowedOrigin := os.Getenv("FRONTEND_URL")
 		if allowedOrigin == "" {
 			allowedOrigin = "http://localhost:5173"
 		}
-
 
 		c.Writer.Header().Set(
 			"Access-Control-Allow-Origin",
