@@ -178,3 +178,35 @@ func (h *AuthHandler) VerifyEmail(
         "message": "ยืนยันอีเมลสำเร็จ คุณสามารถเข้าสู่ระบบได้แล้ว",
     })
 }
+
+type ResendVerificationRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+func (h *AuthHandler) ResendVerification(c *gin.Context) {
+	var request ResendVerificationRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "รูปแบบอีเมลไม่ถูกต้อง",
+		})
+		return
+	}
+
+	err := h.service.ResendVerificationEmail(c.Request.Context(), request.Email)
+	if errors.Is(err, services.ErrEmailAlreadyVerified) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "อีเมลนี้ได้รับการยืนยันแล้ว สามารถเข้าสู่ระบบได้เลย",
+		})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "ไม่สามารถส่งอีเมลยืนยันได้ กรุณาลองใหม่อีกครั้ง",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "ส่งอีเมลยืนยันใหม่สำเร็จแล้ว กรุณาตรวจสอบกล่องจดหมายของคุณ",
+	})
+}

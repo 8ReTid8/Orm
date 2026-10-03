@@ -3,7 +3,7 @@ import { ref } from "vue"
 import { useRouter } from "vue-router"
 import axios from "axios"
 import { LogIn, Mail, Lock } from "lucide-vue-next"
-import { login } from "@/services/auth"
+import { login, resendVerificationEmail } from "@/services/auth"
 import { useAuthStore } from "@/stores/auth"
 
 const router = useRouter()
@@ -13,29 +13,72 @@ const password = ref("")
 const errorMessage = ref("")
 const isLoading = ref(false)
 
+const canResend = ref(false)
+const isResending = ref(false)
+const resendSuccessMessage = ref("")
+
+// async function submitLogin() {
+//     errorMessage.value = ""
+
+//     try {
+//         isLoading.value = true
+
+//         const result = await login({
+//             email: email.value,
+//             password: password.value,
+//         })
+
+//         // authStore.setAuth(result.token, result.user)
+//         authStore.setAuth(result.accessToken, result.refreshToken, result.user)
+//         await router.push("/")
+//     } catch (error: unknown) {
+//         if (axios.isAxiosError(error)) {
+//             errorMessage.value =
+//                 error.response?.data?.message ?? "เข้าสู่ระบบไม่สำเร็จ"
+//         } else {
+//             errorMessage.value = "เกิดข้อผิดพลาด"
+//         }
+//     } finally {
+//         isLoading.value = false
+//     }
+// }
+
 async function submitLogin() {
     errorMessage.value = ""
-
+    resendSuccessMessage.value = ""
+    canResend.value = false
     try {
         isLoading.value = true
-
-        const result = await login({
-            email: email.value,
-            password: password.value,
-        })
-
-        // authStore.setAuth(result.token, result.user)
+        const result = await login({ email: email.value, password: password.value })
         authStore.setAuth(result.accessToken, result.refreshToken, result.user)
         await router.push("/")
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-            errorMessage.value =
-                error.response?.data?.message ?? "เข้าสู่ระบบไม่สำเร็จ"
+            errorMessage.value = error.response?.data?.message ?? "เข้าสู่ระบบไม่สำเร็จ"
+            // 👈 ถ้าเจอ status 403 (ยังไม่ยืนยันอีเมล) ให้เปิดปุ่ม Resend
+            if (error.response?.status === 403) {
+                canResend.value = true
+            }
         } else {
             errorMessage.value = "เกิดข้อผิดพลาด"
         }
     } finally {
         isLoading.value = false
+    }
+}
+// ฟังก์ชันกดส่งอีเมลใหม่
+async function handleResend() {
+    if (!email.value) return
+    try {
+        isResending.value = true
+        errorMessage.value = ""
+        const res = await resendVerificationEmail(email.value)
+        resendSuccessMessage.value = res.message
+        canResend.value = false
+    } catch (err: any) {
+        errorMessage.value = err.response?.data?.message ?? "ส่งอีเมลไม่สำเร็จ"
+    } finally {
+        isResending.value = false
     }
 }
 </script>
@@ -67,10 +110,23 @@ async function submitLogin() {
                 </div>
 
 
-                <div v-if="errorMessage" role="alert" class="alert alert-error mt-4">
+                <!-- <div v-if="errorMessage" role="alert" class="alert alert-error mt-4">
                     <span>{{ errorMessage }}</span>
+                </div> -->
+                <div v-if="resendSuccessMessage" class="alert alert-success text-sm mb-4">
+                    {{ resendSuccessMessage }}
                 </div>
+                <!-- กล่องแจ้งเตือน Error + ปุ่มกดส่งเมลใหม่ -->
+                <div v-if="errorMessage" class="alert alert-error text-sm mb-4 flex flex-col items-start gap-2">
+                    <div>{{ errorMessage }}</div>
 
+                    <!-- ปุ่มกดส่งอีเมลใหม่ จะโผล่ขึ้นมาเฉพาะตอน 403 (ยังไม่ยืนยันอีเมล) -->
+                    <button v-if="canResend" type="button"
+                        class="btn btn-xs btn-outline border-white text-white hover:bg-white hover:text-error"
+                        :disabled="isResending" @click="handleResend">
+                        {{ isResending ? "กำลังส่งอีเมล..." : "ส่งลิงก์ยืนยันใหม่อีกครั้ง" }}
+                    </button>
+                </div>
                 <!-- <form class="mt-4 space-y-4" @submit.prevent="submitLogin"> -->
                 <form class="flex flex-col gap-3" @submit.prevent="submitLogin">
                     <!-- <label class="form-control">

@@ -4,14 +4,13 @@ import { useRouter } from "vue-router"
 import { useAuthStore } from "@/stores/auth";
 import {
     WalletCards,
-    PiggyBank,
-    Tags,
     User,
     LogOut,
     CalendarDays,
     WalletMinimal,
     PieChart,
 } from "lucide-vue-next"
+import { logout as logoutApi } from "@/services/auth"
 const authStore = useAuthStore()
 const router = useRouter()
 const menuItems = [
@@ -47,8 +46,18 @@ const menuItems = [
     // },
 ]
 async function logout() {
+    const refreshToken = authStore.refreshToken
+    if (refreshToken) {
+        try {
+            await logoutApi(refreshToken)
+        } catch {
+            // silent fail
+        }
+    }
     authStore.clearAuth()
     await router.push("/login")
+    // authStore.clearAuth()
+    // await router.push("/login")
 }
 </script>
 
@@ -82,12 +91,12 @@ async function logout() {
         <!-- Footer -->
         <div class="border-t border-base-300 p-3">
             <ul class="menu w-full gap-1 p-0" v-if="authStore.isAuthenticated">
-                <li>
+                <!-- <li>
                     <RouterLink to="/profile" active-class="menu-active">
                         <User class="size-6" />
                         <span class="text-base ">Profile</span>
                     </RouterLink>
-                </li>
+                </li> -->
 
                 <li>
                     <button type="button" @click="logout">

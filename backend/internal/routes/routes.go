@@ -22,6 +22,7 @@ func SetupRoutes(
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
 		auth.GET("/verify-email", authHandler.VerifyEmail)
+		auth.POST("/resend-verification", authHandler.ResendVerification) 
 		auth.POST("/refresh", authHandler.RefreshToken) // เพิ่ม
 		auth.POST("/logout", authHandler.Logout)
 	}

@@ -200,7 +200,7 @@ function closeDialog() {
                     <textarea v-model.trim="form.note" class="textarea w-full" placeholder="รายละเอียดเพิ่มเติม" />
                 </fieldset>
 
-                <fieldset class="fieldset gap-0.5">
+                <!-- <fieldset class="fieldset gap-0.5">
                     <label class="label text-base">รูปสลิป</label>
                     <label
                         class="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-box border border-dashed border-base-300 bg-base-200/50 p-4 text-center transition hover:border-primary hover:bg-primary/5">
@@ -229,7 +229,7 @@ function closeDialog() {
                             </button>
                         </div>
                     </label>
-                </fieldset>
+                </fieldset> -->
 
                 <div class="modal-action mt-2!">
                     <button type="button" class="btn btn-ghost" @click="closeDialog">

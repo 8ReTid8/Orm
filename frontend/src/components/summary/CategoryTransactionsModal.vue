@@ -30,6 +30,7 @@ const emit = defineEmits<{
     refresh: [] // แจ้ง SummaryView ให้โหลด useSummary ใหม่เมื่อมีการแก้ไข/ลบ
 }>()
 
+const limit = 10
 const currentPage = ref(1)
 const dialogRef = ref<HTMLDialogElement | null>(null)
 const isEditFormOpen = ref(false)
@@ -95,6 +96,7 @@ async function fetchCategoryTransactions(
             type: props.categoryType,
         },
         page,
+        limit
     )
 
     currentPage.value = meta.value.page

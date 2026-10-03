@@ -78,9 +78,10 @@ async function fetchTransactions() {
   await loadAccountTransactions(
     accountId.value,
     selectedYear.value,
-    viewMode.value === "monthly"
-      ? selectedMonth.value
-      : null,
+    // viewMode.value === "monthly"
+    //   ? selectedMonth.value
+    //   : null,
+    selectedMonth.value,
     selectedCategory.value,
     currentPage.value,
   )
@@ -104,14 +105,14 @@ async function updateCategory(category: string | null) {
   currentPage.value = 1
   await fetchTransactions()
 }
-async function setViewMode(mode: "monthly" | "yearly") {
-  viewMode.value = mode
-  if (mode === "monthly" && !selectedMonth.value) {
-    selectedMonth.value = new Date().getMonth() + 1
-  }
-  currentPage.value = 1
-  await fetchTransactions()
-}
+// async function setViewMode(mode: "monthly" | "yearly") {
+//   viewMode.value = mode
+//   if (mode === "monthly" && !selectedMonth.value) {
+//     selectedMonth.value = new Date().getMonth() + 1
+//   }
+//   currentPage.value = 1
+//   await fetchTransactions()
+// }
 
 const totalIncome = computed(() => totals.value.income)
 const totalExpense = computed(() => totals.value.expense)
@@ -185,7 +186,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="space-y-6!">
+  <section class="w-full space-y-6!">
     <!-- Not Found State -->
     <div v-if="!account && !accountStore.isLoading" class="text-center py-16">
       <p class="text-lg font-semibold">ไม่พบข้อมูลบัญชีนี้</p>
@@ -249,7 +250,7 @@ onMounted(async () => {
         expense-label="เงินออก" net-label="ส่วนต่างเงินในรอบนี้" />
 
       <!-- 3. แถบควบคุมตัวกรอง (สลับ รายเดือน / รายปี) -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
+      <!-- <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="join bg-base-200 p-1 rounded-xl">
           <button class="btn btn-sm join-item border-none"
             :class="viewMode === 'monthly' ? 'btn-neutral text-white shadow-sm' : 'btn-ghost'"
@@ -265,13 +266,21 @@ onMounted(async () => {
         <div class="flex flex-wrap items-center gap-3">
           <CategoryFilter v-model="selectedCategory" :categories="categoryStore.categories"
             @update:model-value="updateCategory" />
-          <!-- PeriodFilter -->
+  
           <PeriodFilter :years="years" :months="viewMode === 'monthly' ? months : []" :model-year="selectedYear"
             :model-month="viewMode === 'monthly' ? selectedMonth : null" @update:model-year="updateYear"
             @update:model-month="updateMonth" />
         </div>
-      </div>
+      </div> -->
+      <!-- 3. แถบควบคุมตัวกรอง (ชิดขวา) -->
+      <div class="flex flex-wrap items-center justify-end gap-3">
+        <CategoryFilter v-model="selectedCategory" :categories="categoryStore.categories"
+          @update:model-value="updateCategory" />
 
+        <PeriodFilter :years="years" :months="viewMode === 'monthly' ? months : []" :model-year="selectedYear"
+          :model-month="viewMode === 'monthly' ? selectedMonth : null" @update:model-year="updateYear"
+          @update:model-month="updateMonth" />
+      </div>
       <!-- 4. Section รายการเดินบัญชี (Statement) -->
       <div class="card border border-base-300 bg-base-100 shadow-sm rounded-2xl">
         <div class="card-body p-5 sm:p-6">

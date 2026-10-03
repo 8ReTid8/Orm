@@ -55,3 +55,10 @@ func (r *RefreshTokenRepository) DeleteByUserID(
 		Where("user_id = ?", userID).
 		Delete(&models.RefreshToken{}).Error
 }
+
+// เพิ่มใน refresh_token_repository.go
+func (r *RefreshTokenRepository) DeleteExpired(ctx context.Context) error {
+    return r.db.WithContext(ctx).
+        Where("expires_at < ?", time.Now()).
+        Delete(&models.RefreshToken{}).Error
+}

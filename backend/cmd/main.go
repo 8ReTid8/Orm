@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -25,12 +27,23 @@ func main() {
 	database.ConnectDB()
 
 	//REPO
-	userRepo := repositories.NewUserRepository(database.DB,)
+	userRepo := repositories.NewUserRepository(database.DB)
 	refreshTokenRepo := repositories.NewRefreshTokenRepository(database.DB)
-	accountRepo := repositories.NewAccountRepository(database.DB,)
-	transactionRepo := repositories.NewTransactionRepository(database.DB,)
-	budgetRepo := repositories.NewBudgetRepository(database.DB,)
+	accountRepo := repositories.NewAccountRepository(database.DB)
+	transactionRepo := repositories.NewTransactionRepository(database.DB)
+	budgetRepo := repositories.NewBudgetRepository(database.DB)
 
+	go func() {
+		for {
+			time.Sleep(24 * time.Hour)
+			if err := refreshTokenRepo.DeleteExpired(context.Background()); err != nil {
+				log.Printf("cleanup expired refresh tokens failed: %v", err)
+			} else {
+				log.Println("cleanup expired refresh tokens: done")
+			}
+		}
+	}()
+	
 	//SERVICE
 	emailService := services.NewEmailService(
 		services.EmailConfig{

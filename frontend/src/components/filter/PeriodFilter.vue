@@ -45,7 +45,7 @@ function handleMonthChange(event: Event) {
       class="select select-bordered min-w-max"
       @change="handleYearChange"
     >
-      <option value="">ทุกปี</option>
+      <!-- <option value="">ทุกปี</option> -->
       <option v-for="year in years" :key="year" :value="year">
         <!-- {{ year + 543 }} -->
           {{ toBuddhistYear(year) }}

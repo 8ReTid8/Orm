@@ -45,3 +45,10 @@ export async function verifyEmail(
 
   return response.data
 }
+
+export async function resendVerificationEmail(email: string) {
+  const response = await api.post<{ message: string }>("/auth/resend-verification", {
+    email,
+  })
+  return response.data
+}

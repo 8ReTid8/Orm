@@ -7,6 +7,7 @@ var (
 	ErrVerificationEmailFailed = errors.New(
 		"verification email failed",
 	)
+	ErrEmailAlreadyVerified = errors.New("email is already verified")
 	ErrInvalidRefreshToken = errors.New("invalid or expired refresh token")
 	ErrEmailNotVerified         = errors.New("email not verified")
 	ErrTransactionNotFound      = errors.New("transaction not found")

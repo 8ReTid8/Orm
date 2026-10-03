@@ -145,10 +145,10 @@ func (s *AuthService) Login(
 		return nil, err
 	}
 
-	if err := s.refreshTokenRepo.DeleteByUserID(ctx, user.ID); err != nil {
-		return nil, err
-	}
-	
+	// if err := s.refreshTokenRepo.DeleteByUserID(ctx, user.ID); err != nil {
+	// 	return nil, err
+	// }
+
 	rawRefresh, refreshHash, err := utils.GenerateRefreshToken()
 	if err != nil {
 		return nil, err
@@ -234,4 +234,42 @@ func (s *AuthService) VerifyEmail(
 		ctx,
 		user.ID,
 	)
+}
+
+func (s *AuthService) ResendVerificationEmail(
+	ctx context.Context,
+	email string,
+) error {
+	email = strings.ToLower(strings.TrimSpace(email))
+
+	user, err := s.userRepo.FindByEmail(ctx, email)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// คืนค่า nil หรือ ErrUserNotFound (เพื่อความปลอดภัย ไม่บอกว่ามีอีเมลนี้ในระบบหรือไม่)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	if user.IsVerified {
+		return ErrEmailAlreadyVerified
+	}
+
+	// สร้าง Verification Token ใหม่
+	token, tokenHash, err := utils.GenerateVerificationToken()
+	if err != nil {
+		return err
+	}
+
+	expiresAt := time.Now().Add(15 * time.Minute)
+	user.VerificationTokenHash = tokenHash
+	user.VerificationExpiresAt = &expiresAt
+
+	// บันทึกลงฐานข้อมูล
+	if err := s.userRepo.UpdateVerificationToken(ctx, user.ID, tokenHash, expiresAt); err != nil {
+		return err
+	}
+
+	// ส่งอีเมลใหม่
+	return s.emailService.SendVerificationEmail(user.Email, token)
 }

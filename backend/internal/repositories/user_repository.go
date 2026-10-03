@@ -90,3 +90,19 @@ func (r *UserRepository) MarkEmailVerified(
         }).
         Error
 }
+
+func (r *UserRepository) UpdateVerificationToken(
+	ctx context.Context,
+	userID uint,
+	tokenHash string,
+	expiresAt time.Time,
+) error {
+	return r.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ?", userID).
+		Updates(map[string]any{
+			"verification_token_hash": tokenHash,
+			"verification_expires_at": expiresAt,
+		}).
+		Error
+}
