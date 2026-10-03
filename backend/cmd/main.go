@@ -20,10 +20,6 @@ import (
 func main() {
 	// local dev only — บน production อ่าน env จาก platform แทน
 	godotenv.Load()
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	database.ConnectDB()
 
