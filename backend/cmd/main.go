@@ -134,10 +134,27 @@ func main() {
 		c.Next()
 	})
 
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "ok",
+			"message": "Orm Backend API is running",
+		})
+	})
+
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+	})
+
 	routes.SetupRoutes(router, transactionHandler, accountHandler, budgetHandler, authHandler, periodHandler, summaryHandler)
 
-	// if err := router.Run(":8080"); err != nil {
-	if err := router.Run(":10000"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }

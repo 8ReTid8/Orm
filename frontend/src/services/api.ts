@@ -2,14 +2,14 @@ import { useAuthStore } from "@/stores/auth"
 import axios from "axios"
 import { refreshAccessToken } from "./auth"
 
+let baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
+baseURL = baseURL.replace(/\/+$/, '')
+if (!baseURL.endsWith('/api')) {
+  baseURL += '/api'
+}
+
 const api = axios.create({
-  // baseURL: "http://localhost:8080/api",
-  // baseURL: "http://192.168.1.102:8080/api",
-  // headers: {
-  //   "Content-Type": "application/json",
-  // },
-  
-  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8080/api",
+  baseURL,
 })
 
 // api.interceptors.request.use((config) => {
