@@ -1,0 +1,24 @@
+# Environment variables — ห้าม commit เด็ดขาด!
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build output
+frontend/dist/
+frontend/.nuxt/
+
+# Go build
+backend/main
+backend/tmp/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
